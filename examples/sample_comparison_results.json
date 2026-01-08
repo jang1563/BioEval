@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-01-08T18:07:51.689693",
+  "enhanced": {
+    "total_tasks": 24
+  },
+  "baseline": {
+    "total_tasks": 24
+  },
+  "improvements": [
+    "hallucination_trap: +20%",
+    "false_premise: +40%",
+    "plausible_nonsense: +33%",
+    "edge_case: +25%"
+  ],
+  "regressions": [],
+  "adversarial": {
+    "enhanced_pass_rate": 0.8333333333333334,
+    "baseline_pass_rate": 0.625,
+    "improvement": 0.20833333333333337,
+    "by_type": {
+      "overly_specific": {
+        "enhanced": 1.0,
+        "baseline": 1.0,
+        "improvement": 0.0
+      },
+      "hallucination_trap": {
+        "enhanced": 1.0,
+        "baseline": 0.8,
+        "improvement": 0.19999999999999996
+      },
+      "false_premise": {
+        "enhanced": 1.0,
+        "baseline": 0.6,
+        "improvement": 0.4
+      },
+      "contradictory": {
+        "enhanced": 0.5,
+        "baseline": 0.5,
+        "improvement": 0.0
+      },
+      "misleading_context": {
+        "enhanced": 0.0,
+        "baseline": 0.0,
+        "improvement": 0.0
+      },
+      "plausible_nonsense": {
+        "enhanced": 1.0,
+        "baseline": 0.6666666666666666,
+        "improvement": 0.33333333333333337
+      },
+      "edge_case": {
+        "enhanced": 1.0,
+        "baseline": 0.75,
+        "improvement": 0.25
+      }
+    }
+  }
+}
