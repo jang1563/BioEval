@@ -492,46 +492,54 @@ Per user's explicit instruction: "Files and explanations must all be written in 
 
 ---
 
-## 8. Priority Action Items (Ordered)
+## 8. Priority Action Items — Resolution Status
+
+> Updated 2026-02-24 after Phase 0 completion and Post-Phase 0 Review.
+> See [POST_PHASE0_REVIEW.md](POST_PHASE0_REVIEW.md) for 21 additional issues identified.
 
 ### Immediate (before any coding):
-1. **Reconcile task counts** across all documents (Issue 1.1)
-2. **Fix phase numbering** in IMPROVEMENT_PLAN (Issue 1.2)
-3. **Add BioAmbiguity as R7** in PRD (Issue 1.3)
-4. **Convert all documents to English** (Issue 6)
+1. ~~**Reconcile task counts**~~ — **RESOLVED** (Phase 0: 80 base, 272 total. All docs updated in v3.0)
+2. ~~**Fix phase numbering**~~ — **RESOLVED** (IMPROVEMENT_PLAN v3.0: phases renumbered, old §3-8 eliminated)
+3. ~~**Add BioAmbiguity as R7**~~ — **RESOLVED** (PRD v2.0 added R7; v3.0 deferred to post-submission)
+4. ~~**Convert all documents to English**~~ — **RESOLVED** (All docs converted in v2.0)
 
 ### Before Phase 1 (scoring fixes):
-5. **Define BioAmbiguity ground truth strategy** (Issue 2.1)
-6. **Specify statistical tests per component** (Issue 2.3)
-7. **Define annotation sourcing plan** (Issue 4.1)
-8. **Confirm GPU availability** for 3-model comparison (Issue 4.2)
+5. ~~**Define BioAmbiguity ground truth strategy**~~ — **RESOLVED** (BIOLOGICAL_AMBIGUITY_DESIGN.md §3: multi-dimensional rubric)
+6. ~~**Specify statistical tests per component**~~ — **RESOLVED** (PRD R10: McNemar/Wilcoxon/paired t-test per type)
+7. **Define annotation sourcing plan** (Issue 4.1) — **PARTIALLY RESOLVED** (options documented in IMPROVEMENT_PLAN v3.0 §5.3; no concrete annotator recruited yet)
+8. ~~**Confirm GPU availability**~~ — **RESOLVED** (Post-Phase 0: API-based open-source strategy, no local GPU needed)
 
 ### Before Phase 2 (credibility):
-9. **Design MedQA comparison methodology** with format confound discussion (Issue 2.4)
-10. **Create Judge validation protocol** (Issue 2.5)
-11. **Add Flex-ECE to calibration plan** (Issue 2.6)
-12. **Implement all guardrails** from Section 5
+9. ~~**Design MedQA comparison methodology**~~ — **RESOLVED** (Post-Phase 0: simplified to use published scores + GPQA-Bio; format as illustrative not statistical)
+10. ~~**Create Judge validation protocol**~~ — **RESOLVED** (IMPROVEMENT_PLAN v3.0 §5.3: two-stage validation design)
+11. ~~**Add Flex-ECE to calibration plan**~~ — **RESOLVED** (PRD R6 updated)
+12. ~~**Implement all guardrails**~~ — **RESOLVED** (PRD §5: 6 subsections defined)
 
 ### Before submission:
-13. **Create Datasheet for Datasets** (Issue 3.1)
-14. **Write Ethics & Broader Impact statement** (Issue 3.2)
-15. **Complete reproducibility checklist** (Issue 3.3)
-16. **Report inter-annotator agreement** (Issue 3.4)
-17. **Write paper following outline** (Issue 3.5)
+13. **Create Datasheet for Datasets** (Issue 3.1) — **PENDING** (Phase 3)
+14. **Write Ethics & Broader Impact statement** (Issue 3.2) — **PENDING** (Phase 3)
+15. **Complete reproducibility checklist** (Issue 3.3) — **PENDING** (Phase 3)
+16. **Report inter-annotator agreement** (Issue 3.4) — **PENDING** (Phase 2-3)
+17. **Write paper following outline** (Issue 3.5) — **PENDING** (Phase 3)
+
+### Status Summary: 12/17 resolved, 1 partially resolved, 4 pending (expected in Phases 2-3)
 
 ---
 
-## 9. Summary Verdict
+## 9. Summary Verdict (Updated Post-Phase 0)
 
-| Dimension | Current State | Publication Ready? | Fix Effort |
-|-----------|--------------|-------------------|------------|
-| Novelty | Strong — BioAmbiguity confirmed gap | Yes | None needed |
-| Positioning | Strong — "know vs do" framing | Yes | None needed |
-| Methodology | Moderate — gaps in stats, judge validation | No | Medium |
-| Consistency | Weak — contradictions across documents | No | Low |
-| Completeness | Weak — missing datasheet, ethics, IAA | No | Medium |
-| Feasibility | Moderate — timeline and annotation sourcing unclear | Needs revision | Low |
-| Language | Not ready — Korean/English mixed | No | Medium |
-| Guardrails | Not defined until this review | Now defined | Implementation needed |
+| Dimension | Pre-Phase 0 | Post-Phase 0 | Status |
+|-----------|-------------|-------------|--------|
+| Novelty | Strong | Strong | Ready |
+| Positioning | Strong | Strong | Ready |
+| Methodology | Moderate — gaps | Improved — tests specified, MVP defined | Scoring fixes needed (Phase 1) |
+| Consistency | Weak — contradictions | **Resolved** — all docs aligned on verified counts | Ready |
+| Completeness | Weak — missing elements | Improved — guardrails, MVP, strategy defined | Datasheet/Ethics pending (Phase 3) |
+| Feasibility | Moderate — unclear | **Improved** — 10-week timeline, BioAmbiguity deferred, API-based models | Annotator recruitment pending |
+| Language | Not ready — mixed Korean/English | **Resolved** — all English | Ready |
+| Guardrails | Not defined | **Defined** — PRD §5 | Implementation during Phase 1-2 |
+| Scoring | Not assessed | **Identified as primary blocker** — keyword-only scoring | Phase 1 focus |
 
-**Bottom line**: The core idea and competitive positioning are publication-worthy. The execution plan needs the 17 fixes above to reach submission quality. Estimated effort for fixes: ~1-2 weeks of planning work before coding begins.
+**Bottom line**: Phase 0 validated the foundation (imports, tests, data). The critical path is now Phase 1 scoring — replacing keyword matching with real metrics. The 10-week plan to NeurIPS submission is feasible if Phase 1 stays on track.
+
+**New risk identified**: Scoring gap is larger than originally estimated. See [POST_PHASE0_REVIEW.md](POST_PHASE0_REVIEW.md) for 21 detailed issues.

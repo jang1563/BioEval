@@ -1,10 +1,10 @@
 # BioEval — Product Requirements Document (PRD)
 
-> Version: 2.0
+> Version: 3.0
 > Author: JangKeun Kim
 > Last Updated: 2026-02-24
-> Status: **Revised after Publication-Quality Review**
-> Related: [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md) | [EXPERT_PANEL_REVIEW.md](EXPERT_PANEL_REVIEW.md) | [LITERATURE_SURVEY.md](LITERATURE_SURVEY.md) | [BIOLOGICAL_AMBIGUITY_DESIGN.md](BIOLOGICAL_AMBIGUITY_DESIGN.md) | [PUBLICATION_QUALITY_REVIEW.md](PUBLICATION_QUALITY_REVIEW.md)
+> Status: **Revised after Phase 0 completion + Post-Phase 0 Review**
+> Related: [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md) | [EXPERT_PANEL_REVIEW.md](EXPERT_PANEL_REVIEW.md) | [LITERATURE_SURVEY.md](LITERATURE_SURVEY.md) | [BIOLOGICAL_AMBIGUITY_DESIGN.md](BIOLOGICAL_AMBIGUITY_DESIGN.md) | [PUBLICATION_QUALITY_REVIEW.md](PUBLICATION_QUALITY_REVIEW.md) | [POST_PHASE0_REVIEW.md](POST_PHASE0_REVIEW.md)
 
 ---
 
@@ -55,7 +55,9 @@ Key competitors/reference benchmarks:
 
 ## 3. Core Requirements
 
-### 3.1 Evaluation Components (7 total)
+### 3.1 Evaluation Components
+
+#### First Submission: 6 Components (Phase 1-3)
 
 #### R1: ProtoReason — Protocol Reasoning
 | Requirement | Specification |
@@ -64,7 +66,7 @@ Key competitors/reference benchmarks:
 | Data source | protocols.io API (CC BY 4.0) + curated protocols (citation>10 or journal-linked, 8-20 steps) |
 | Ground truth | Published protocol step sequences with critical ordering constraints annotated |
 | Scoring | Kendall's tau (ordering), numerical tolerance ±5% (calc), LLM-as-Judge (troubleshoot) |
-| Target count | ~25 tasks |
+| Verified count | **17 base**, 70 extended, 49 advanced (136 total available) |
 | Validation | Each protocol verified against original publication |
 
 #### R2: CausalBio — Causal Biological Reasoning
@@ -75,7 +77,7 @@ Key competitors/reference benchmarks:
 | Ground truth | Experimental CRISPR fitness scores (binary: essential <-0.5, non-essential >-0.3, ambiguous zone excluded) |
 | Cell line context | Every knockout task MUST specify the cell line (e.g., "In A549 cells, what happens when TP53 is knocked out?") |
 | Scoring | Directional accuracy + LLM-as-Judge for mechanism quality (Wilcoxon signed-rank for comparisons) |
-| Target count | ~25 tasks |
+| Verified count | **13 base**, 44 extended, 19 advanced (76 total available) |
 | Validation | Ground truth values verified against pinned DepMap release with SHA256 hash |
 
 #### R3: DesignCheck — Experimental Design Critique
@@ -85,58 +87,60 @@ Key competitors/reference benchmarks:
 | Data source | Expert-curated flawed designs, retraction case studies |
 | Ground truth | Annotated flaws with category, severity, explanation |
 | Scoring | Detection rate (recall), false positive rate (precision), severity accuracy, LLM-as-Judge for fix quality |
-| Target count | ~15 tasks |
+| Verified count | **10 base**, 10 advanced (20 total available) |
 | Validation | Each design reviewed by domain expert |
 
 #### R4: Adversarial — Adversarial Robustness
 | Requirement | Specification |
 |-------------|---------------|
 | Task types | 7 types: false premise, hallucination trap, misleading context, edge case, contradictory, plausible nonsense, overly specific |
-| Difficulty tiers | Basic (~20), Intermediate (~15), Expert (~10) |
+| Difficulty tiers | Basic (~8), Intermediate (~10), Expert (~6) — to be classified in Phase 2 |
 | Scoring | Binary pass/fail with type-specific validation logic (McNemar test for model comparisons) |
-| Target count | ~44 tasks (current) + tier classification |
-| Proven results | Enhanced prompts: 87.5% vs baseline 66.7% (+20.8%) |
+| Verified count | **24 base** |
+| Proven results | Enhanced prompts: 87.5% vs baseline 66.7% (+20.8%) — measured with keyword scorer, needs re-validation |
 
 #### R5: MultiTurn — Scientific Dialogue
 | Requirement | Specification |
 |-------------|---------------|
 | Task types | Hypothesis refinement, experimental design iteration, troubleshooting, data interpretation, peer review |
 | Scoring | Per-turn evaluation + context retention + progression quality |
-| Target count | ~10 dialogues |
+| Verified count | **6 base** |
 
 #### R6: Calibration — Confidence Calibration
 | Requirement | Specification |
 |-------------|---------------|
 | Metrics | ECE, MCE, Brier score, **Flex-ECE** (per JAMIA Open recommendation), overconfidence rate, reliability diagram |
-| Confidence extraction | (1) Structured prompt requiring numerical 0-100% confidence, AND (2) self-consistency method (5 samples, agreement rate) |
-| Task balance | HIGH expected confidence: 5 tasks, MEDIUM: 10 tasks, LOW/IDK: 5 tasks |
+| Confidence extraction | (1) Structured prompt requiring numerical 0-100% confidence, AND (2) self-consistency method (5 samples, optional — 5x cost) |
+| Task balance | Current: 10 tasks. Target: HIGH 5, MEDIUM 10, LOW/IDK 5 |
 | Scoring | Confidence extraction → bucket accuracy comparison |
-| Target count | ~20 tasks |
+| Verified count | **10 base** |
+| Power limitation | With 10-20 tasks and 5 bins, ~2-4 tasks per bin — report this limitation explicitly |
 
-#### R7: BioAmbiguity — Biological Context-Dependency (NEW)
+#### Deferred: R7: BioAmbiguity — Biological Context-Dependency
 | Requirement | Specification |
 |-------------|---------------|
+| Status | **Deferred to post-first-submission** (separate paper or revision) |
+| Rationale | Solo developer cannot build + validate 45 tasks while completing Phases 2-3 for NeurIPS deadline |
+| Phase 1 work | Create skeleton directory + 5 pilot tasks as proof-of-concept |
+| Full design | See [BIOLOGICAL_AMBIGUITY_DESIGN.md](BIOLOGICAL_AMBIGUITY_DESIGN.md) |
 | Evaluation axes | ContextSwitch (10), NullSense (8), ConflictResolve (8), TissueContext (8), TemporalBiology (6), DoseLogic (5) |
-| Scoring | Multi-dimensional rubric per task: Context Recognition (0/1) + Variable Identification (0-N checklist) + Mechanism Quality (LLM-Judge 1-5) + Epistemic Calibration (0/1) |
-| Ground truth | Expert-annotated rubric with: required context variables (checklist), acceptable mechanism explanations (set), unacceptable oversimplifications (exclusion list) |
-| Cross-cutting dimensions | Epistemic Humility, Contextual Specificity, Reasoning Transparency |
-| Target count | ~45 tasks |
-| Validation | Each task created by PhD-level biologist, verified by second expert; IAA (κ ≥ 0.7) required for inclusion |
-| Human validation subset | Minimum 20 tasks with expert scores to validate LLM-Judge on ambiguity tasks |
-| Literature basis | Confirmed gap — no existing benchmark tests context-dependent biological reasoning (See LITERATURE_SURVEY.md §5) |
+| Target count | ~45 tasks (when fully built) |
 
-### Task Count Summary (Reconciled)
+### Task Count Summary (Phase 0 Verified)
 ```
-R1 ProtoReason:     ~25 tasks
-R2 CausalBio:       ~25 tasks
-R3 DesignCheck:     ~15 tasks
-R4 Adversarial:     ~44 tasks (+ tier classification)
-R5 MultiTurn:       ~10 dialogues
-R6 Calibration:     ~20 tasks
-R7 BioAmbiguity:    ~45 tasks
-────────────────────────────────
-TOTAL:              ~184 candidate → ~140 validated (after IAA + quality filtering)
-MAXIMUM CAP:        150 tasks (scope guardrail)
+FIRST SUBMISSION (6 components):
+                    Base    Extended   Advanced   Total Available
+R1 ProtoReason:      17        70         49          136
+R2 CausalBio:        13        44         19           76
+R3 DesignCheck:      10         —         10           20
+R4 Adversarial:      24         —          —           24
+R5 MultiTurn:         6         —          —            6
+R6 Calibration:      10         —          —           10
+─────────────────────────────────────────────────────────────
+TOTAL:               80       114         78          272
+
+Phase 1 target:     80 base tasks with real scoring
+Phase 2 target:    194 tasks (base + extended) for statistical power
 ```
 
 ---
@@ -147,13 +151,25 @@ MAXIMUM CAP:        150 tasks (scope guardrail)
 ```
 LLM Response
   │
-  ├─→ [Structured Extraction] → Parsed answer (numbers, step orders, yes/no)
-  │     └─→ [Metric Computation] → Kendall's tau, numerical accuracy, detection rate
+  ├─→ [Response Parser] → Structured extraction (NEW: Phase 1 prerequisite)
+  │     ├─→ Step ordering → list[int]
+  │     ├─→ Numerical value → float
+  │     ├─→ Direction prediction → up/down/unchanged
+  │     ├─→ Flaw list → list[dict]
+  │     └─→ Confidence → float (0-100%)
   │
-  └─→ [LLM-as-Judge] → Rubric-based evaluation
-        ├─→ Standard components: 1-5 scale (accuracy, mechanism, reasoning, completeness, applicability, uncertainty)
-        └─→ BioAmbiguity: Multi-dimensional rubric (context recognition + variable checklist + mechanism quality + epistemic calibration)
+  ├─→ [Metric Computation] → Kendall's tau, directional accuracy, precision/recall, Flex-ECE
+  │
+  └─→ [LLM-as-Judge] → Rubric-based evaluation (for free-text tasks only)
+        └─→ 1-5 scale per dimension (accuracy, mechanism, reasoning, completeness, uncertainty)
 ```
+
+**Response Parser** (`bioeval/scoring/response_parser.py`): NEW module — Phase 1 prerequisite.
+- **Primary method**: Structured prompting (force LLM to output parseable format)
+- **Fallback**: LLM-based extraction using Haiku (~$0.001/call) for ambiguous responses
+- **Target**: ≥85% extraction success rate per component
+
+**LLM-as-Judge** (`bioeval/scoring/llm_judge.py`): EXISTS (516 lines) but currently disconnected from evaluators. Must be wired in during Phase 1.
 
 #### R9: Scoring Requirements
 | Requirement | Specification |
@@ -162,16 +178,20 @@ LLM Response
 | Reproducibility | Same input → same score (cache-based, temperature=0) |
 | Cost control | LLM-as-Judge only for free-text tasks, not for parseable answers |
 | Rubric transparency | Every score explainable by referencing rubric criteria |
-| Judge validation | LLM-as-Judge accepted only for components where Human-Judge κ ≥ 0.5 |
+| Judge validation | Two-stage: (1) 10-task mini-validation in Phase 1, (2) 30-50 task formal validation in Phase 2 |
+| Judge acceptance | LLM-as-Judge accepted only for components where Human-Judge κ ≥ 0.5 |
 | Score reporting | Per-component independent reporting (no single composite score) |
+| Parser reliability | Response parser success rate ≥ 85% per component (documented) |
 
 #### R10: Statistical Comparison Framework
 | Score Type | Appropriate Test | Effect Size | Components |
 |-----------|-----------------|-------------|------------|
 | Binary (pass/fail) | McNemar's test | Odds ratio | Adversarial |
-| Ordinal (1-5, 0-3) | Wilcoxon signed-rank | Rank-biserial correlation | CausalBio, BioAmbiguity, MultiTurn |
-| Continuous (-1 to 1, 0-1) | Paired t-test or Wilcoxon | Cohen's d | ProtoReason (tau), Calibration (ECE), DesignCheck |
+| Ordinal (1-5) | Wilcoxon signed-rank | Rank-biserial correlation | CausalBio, MultiTurn |
+| Continuous (-1 to 1, 0-1) | Paired t-test or Wilcoxon | Cohen's d | ProtoReason (tau), Calibration (ECE), DesignCheck (F1) |
 | All comparisons | Bootstrap 95% CI (1000 iterations) | — | All |
+
+**Power limitation**: With base task counts (6-24 per component), only large effects (d ≥ 0.7) are detectable. Use extended data (194 tasks) for Phase 2 comparisons to improve power.
 
 ---
 
@@ -187,13 +207,15 @@ LLM Response
 | CLI interface | `bioeval run`, `bioeval compare`, `bioeval report`, `bioeval demo` |
 
 #### R12: Model Support
-| Backend | Requirements |
-|---------|--------------|
-| Anthropic | Claude Sonnet 4, Claude Opus 4, Claude Haiku |
-| OpenAI | GPT-4o, GPT-4-turbo |
-| HuggingFace | Any causal LM, LoRA adapter support, 4-bit quantization |
-| API-based open-source | together.ai, Groq (fallback if no local GPU) |
-| Custom | BaseModel interface for any backend |
+| Backend | Requirements | Status |
+|---------|--------------|--------|
+| Anthropic | Claude Sonnet 4, Claude Opus 4, Claude Haiku | Working |
+| OpenAI | GPT-4o, GPT-4-turbo | Working |
+| HuggingFace | Any causal LM, LoRA adapter support, 4-bit quantization | Implemented, untested |
+| **API-based open-source** | **together.ai, Groq for Llama-3-8B / Mistral-7B** | **Phase 2 (primary strategy for 3-model comparison)** |
+| Custom | BaseModel interface for any backend | Available |
+
+**Decision (Post-Phase 0)**: Use API-based open-source models for 3-model comparison, NOT local inference. Apple Silicon Macs cannot run `bitsandbytes` 4-bit quantization (CUDA-only). CPU inference (~60s/response) is too slow. together.ai/Groq provides fast, cheap access (~$0.20/M tokens).
 
 #### R13: Reporting
 | Feature | Specification |
@@ -552,43 +574,62 @@ class BioEvalEcosystemAdapter:
 
 ---
 
-## 9. Success Criteria (Panel-Driven)
+## 9. Minimum Viable Publication (MVP)
 
-### Portfolio-Worthy Deliverables
+### MUST HAVE (required for any submission)
+| Deliverable | Metric | Phase |
+|-------------|--------|-------|
+| 6 components with real scoring | Zero null scores, ≥85% parser success | Phase 1 |
+| 2-model comparison minimum | Claude Sonnet 4 + GPT-4o results table | Phase 2 |
+| Basic statistical tests with CIs | Bootstrap 95% CI for all comparisons | Phase 2 |
+| Honest task counts and limitations | Verified counts in all docs | Phase 0 ✓ |
+| Reproducibility | seed, caching, version pinning | Phase 1 |
 
-| Deliverable | Success Metric | Panel Driver |
-|-------------|---------------|-------------|
-| Working benchmark | `bioeval run --all` completes with 0 errors, 0 null scores | Dr. B |
-| 3-model comparison | Claude Sonnet 4, GPT-4o, open-source 7B results table | Dr. A, Dr. E |
-| MedQA gap analysis | Same model scores higher on MedQA → demonstrates need for BioEval | Dr. A |
-| Statistical rigor | All comparisons with appropriate tests + 95% bootstrap CI | Dr. D |
-| Judge validation | Human vs LLM-Judge κ ≥ 0.5 on 50 stratified tasks | Dr. D |
-| Real ground truth | >50% of tasks backed by experimental databases | Dr. C |
-| Cell line context | All knockout tasks specify cell line | Dr. C |
-| Demo mode | `bioeval demo` shows results without API key | Dr. E |
-| Data integrity | Integrity report passes 100% of checks | All |
-| 5-min demo story | README + 3-5 Key Findings + HTML report | Dr. E |
-| BioAmbiguity results | Demonstrate the "knows vs reasons" gap on context-dependent tasks | New |
+### SHOULD HAVE (strengthens the paper significantly)
+| Deliverable | Metric | Phase |
+|-------------|--------|-------|
+| 3-model comparison | Add open-source via API (Llama-3-8B) | Phase 2 |
+| LLM-Judge validation | ≥30 tasks, κ reported | Phase 2 |
+| Error analysis | 50 classified wrong responses | Phase 2 |
+| Flex-ECE calibration | Reported for all models | Phase 2 |
+| Adversarial tier classification | Basic/Intermediate/Expert failure rates | Phase 2 |
+| Datasheet + Ethics statement | NeurIPS format | Phase 3 |
+
+### NICE TO HAVE (for the strongest possible paper)
+| Deliverable | Metric | Phase |
+|-------------|--------|-------|
+| BioAmbiguity pilot | 15-20 tasks in appendix | Post-submission |
+| Full MedQA gap analysis | Re-run MedQA on same models | Phase 2 |
+| 50-task judge validation with 2 external annotators | κ with formal protocol | Phase 2 |
+| DepMap live integration | API query at runtime | Phase 2 |
+| HuggingFace distribution | Public 80% / private 20% | Phase 3 |
+| HTML dashboard demo | `bioeval demo` with charts | Phase 3 |
+
+**Decision point**: At end of Phase 2, evaluate which NICE-TO-HAVEs are achievable before deadline.
+
+---
+
+## 10. Success Criteria (Revised)
 
 ### Key Findings to Demonstrate
-1. **MedQA vs BioEval gap** — "Model X scores 90% on MedQA but only Y% on BioEval causal reasoning"
-2. **Cross-model comparison** — Performance differences between Claude, GPT-4o, and open-source 7B
-3. **Prompt enhancement effect** — Baseline vs enhanced with statistical significance (current: +20.8%)
-4. **Adversarial difficulty tiers** — Basic vs Intermediate vs Expert failure rates
-5. **Context-dependency gap** — "Models score X% on factual biology but Y% on context-dependent reasoning" (BioAmbiguity core finding)
-6. **Calibration analysis** — Overconfidence patterns on partial-knowledge questions
+1. **Cross-model comparison** — Performance differences between Claude, GPT-4o, and open-source on 194 tasks
+2. **Component-level reasoning gaps** — "Models score differently across task types: causal reasoning vs design critique vs adversarial"
+3. **Error analysis** — "Knowledge errors (X%) vs reasoning errors (Y%) — models KNOW biology but can't REASON about it"
+4. **Prompt enhancement effect** — Baseline vs enhanced with statistical significance (re-measured with real scoring)
+5. **Adversarial difficulty tiers** — Basic vs Intermediate vs Expert failure rates
+6. **Calibration analysis** — Overconfidence patterns, Flex-ECE across models
 
-### API Cost Budget
+### API Cost Budget (Revised)
 ```
-Per full evaluation run (~140 tasks):
-  Claude Sonnet 4: ~$2.00 (eval) + ~$1.00 (judge) = ~$3.00
-  GPT-4o:          ~$2.50 (eval) + ~$1.25 (judge) = ~$3.75
-  Local 7B / API:  $0-1.00 (GPU or API)
-
-Development budget (20 runs):  ~$60-75
-3-model comparison (3 × 3 runs): ~$30-35
-Judge validation runs:          ~$10-15
-Total estimated:               ~$100-125
+Phase 1 development (20 debugging runs × $1.40):     ~$28
+Phase 2 three-model comparison (3 × 3 × $3.00):      ~$27
+Phase 2 judge scoring (194 tasks × $0.03 × 5 runs):  ~$29
+Phase 2 extended data runs:                           ~$15
+Self-consistency calibration (optional):              ~$10
+Miscellaneous/debugging:                              ~$15
+──────────────────────────────────────────────────────────
+Total estimated:                                     ~$124
+Budget cap:                                          $120 (track from Phase 1 start)
 ```
 
 ---
@@ -671,13 +712,15 @@ Total estimated:               ~$100-125
 
 To be included in the paper's Limitations section:
 
-1. **Task count**: ~140 tasks is small compared to LAB-Bench (2,400) or BioProBench (556K). We prioritize depth and experimental grounding over scale.
-2. **LLM-as-Judge**: Despite validation, LLM judges may have systematic biases not captured by κ agreement metrics.
-3. **Format confound**: The MedQA vs BioEval gap partially reflects format difficulty (MCQ vs open-ended), not purely reasoning difficulty. GPQA-Bio comparison mitigates but does not eliminate this.
-4. **BioAmbiguity ground truth**: For genuinely ambiguous questions, "ground truth" is defined as expert consensus rubrics, not absolute answers. Expert disagreement is preserved as a feature.
-5. **English-only**: All tasks and evaluation in English. Multilingual biology reasoning is not assessed.
-6. **Domain scope**: Focused on molecular/cellular biology and cancer biology. Does not cover ecology, evolutionary biology, or computational biology workflows.
-7. **Temporal validity**: Biology knowledge evolves. Tasks based on current literature may become outdated. Version-pinned data mitigates but does not eliminate this.
+1. **Task count**: 194 tasks (base + extended) is small compared to LAB-Bench (2,400) or BioProBench (556K). We prioritize depth and experimental grounding over scale.
+2. **Statistical power**: Per-component task counts (6-24 base, 13-87 with extended) limit detection of small effects. We report effect sizes and CIs, noting power limitations.
+3. **LLM-as-Judge**: Despite validation, LLM judges may have systematic biases not captured by κ agreement metrics.
+4. **Response parser reliability**: Structured extraction from free-text responses may fail on creative or unexpected response formats. Parser success rates documented per component.
+5. **Format confound**: The MedQA vs BioEval gap partially reflects format difficulty (MCQ vs open-ended), not purely reasoning difficulty.
+6. **English-only**: All tasks and evaluation in English. Multilingual biology reasoning is not assessed.
+7. **Domain scope**: Focused on molecular/cellular biology and cancer biology. Does not cover ecology, evolutionary biology, or computational biology workflows.
+8. **Temporal validity**: Biology knowledge evolves. Tasks based on current literature may become outdated. Version-pinned data mitigates but does not eliminate this.
+9. **Prompt enhancement claims**: The +20.8% adversarial improvement was measured with keyword-based scoring. Effect may change with real scoring (re-validated in Phase 1).
 
 ---
 
@@ -709,3 +752,15 @@ To be included in the paper's Limitations section:
 | | | Added format confound mitigation for MedQA comparison |
 | | | Architecture preserves existing file structure per Dr. B recommendation |
 | | | Added API-based fallback for open-source models |
+| 2026-02-24 | 3.0 | **Post-Phase 0 Review (21 issues addressed)** |
+| | | Phase 0 verified task counts: 80 base, 114 extended, 78 advanced, 272 total |
+| | | R1-R6 counts updated to verified actuals (e.g., R4 Adversarial: 44 → 24 base) |
+| | | R7 BioAmbiguity deferred to post-first-submission |
+| | | Added R8 Response Parser as Phase 1 prerequisite |
+| | | R9 updated: two-stage judge validation (mini + full) |
+| | | R10 power limitation noted; extended data strategy for Phase 2 |
+| | | R12 updated: API-based open-source as primary strategy (Apple Silicon incompatible) |
+| | | Added Section 9: Minimum Viable Publication (MVP) definition |
+| | | Section 10 success criteria revised (BioAmbiguity removed, error analysis added) |
+| | | Section 12 limitations expanded (statistical power, parser reliability, prompt claim caveat) |
+| | | API cost budget revised with per-phase breakdown |
