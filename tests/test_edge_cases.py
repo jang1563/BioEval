@@ -248,7 +248,7 @@ class TestSimulationEdgeCases:
         from bioeval.simulation import run_simulation
         for q in ["good", "bad", "mixed"]:
             r = run_simulation(quality=q, seed=42)
-            assert len(r["results"]) == 8
+            assert len(r["results"]) == 9
             for comp in r["results"]:
                 assert comp["num_tasks"] > 0
 

@@ -580,10 +580,10 @@ class TestRegistry:
     def test_builtin_components(self):
         from bioeval.registry import REGISTRY, list_components
         names = list_components()
-        assert len(names) == 8
+        assert len(names) == 9
         for expected in ["protoreason", "causalbio", "designcheck",
                          "adversarial", "multiturn", "calibration",
-                         "biosafety", "datainterp"]:
+                         "biosafety", "datainterp", "debate"]:
             assert expected in names
 
     def test_component_info(self):
@@ -627,12 +627,12 @@ class TestSimulation:
         result = run_simulation(quality="good", seed=42)
         assert result["metadata"]["quality"] == "good"
         assert result["metadata"]["simulation"] is True
-        assert len(result["results"]) == 8
-        # All 8 components present
+        assert len(result["results"]) == 9
+        # All 9 components present
         comp_names = {r["component"] for r in result["results"]}
         assert comp_names == {"protoreason", "causalbio", "designcheck",
                               "adversarial", "multiturn", "calibration",
-                              "biosafety", "datainterp"}
+                              "biosafety", "datainterp", "debate"}
         # No errors
         for comp_result in result["results"]:
             errors = [r for r in comp_result["results"]

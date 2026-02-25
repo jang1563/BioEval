@@ -189,7 +189,7 @@ def verify_component_coverage() -> dict:
     all_scored = all(c["n_scored"] > 0 for c in components.values())
     expected_components = {"protoreason", "causalbio", "designcheck",
                            "adversarial", "multiturn", "calibration",
-                           "biosafety", "datainterp"}
+                           "biosafety", "datainterp", "debate"}
     all_present = set(components.keys()) == expected_components
 
     return {

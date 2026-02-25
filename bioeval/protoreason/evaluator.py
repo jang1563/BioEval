@@ -252,7 +252,9 @@ Provide:
         """Create a step ordering task."""
         steps = protocol["steps"].copy()
         correct_order = list(range(len(steps)))
-        random.shuffle(steps)
+        # Deterministic shuffle based on protocol_id for reproducibility
+        rng = random.Random(hash(f"ordering_{protocol_id}"))
+        rng.shuffle(steps)
         
         prompt = f"""The following steps for {protocol['name']} are in random order. 
 Please reorder them into the correct sequence by providing the step numbers in order.
@@ -277,10 +279,11 @@ Then briefly explain the reasoning for critical ordering decisions."""
     def _create_missing_step_task(self, protocol_id: str, protocol: dict) -> EvalTask:
         """Create a missing step detection task."""
         steps = protocol["steps"].copy()
-        
-        # Remove 1-2 random steps
-        num_to_remove = random.randint(1, 2)
-        removed_indices = random.sample(range(len(steps)), num_to_remove)
+
+        # Deterministic removal based on protocol_id for reproducibility
+        rng = random.Random(hash(f"missing_{protocol_id}"))
+        num_to_remove = rng.randint(1, 2)
+        removed_indices = rng.sample(range(len(steps)), num_to_remove)
         removed_steps = [steps[i] for i in sorted(removed_indices, reverse=True)]
         for i in sorted(removed_indices, reverse=True):
             steps.pop(i)
