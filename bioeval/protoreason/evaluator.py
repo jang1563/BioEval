@@ -170,9 +170,14 @@ TROUBLESHOOTING_TASKS = [
 
 class ProtoReasonEvaluator(BaseEvaluator):
     """Evaluator for Protocol Procedural Reasoning tasks."""
-    
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
-        super().__init__(model_name)
+
+    def __init__(
+        self,
+        model_name: str = "claude-sonnet-4-20250514",
+        adapter_path: Optional[str] = None,
+        use_4bit: bool = True,
+    ):
+        super().__init__(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
         self.protocols = SAMPLE_PROTOCOLS
     
     def load_tasks(self) -> list[EvalTask]:

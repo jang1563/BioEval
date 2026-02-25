@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="bioeval",
-    version="0.1.0",
+    version="0.2.0",
     description="Multi-dimensional Evaluation of LLMs for Biological Research",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -59,7 +59,7 @@ setup(
     keywords="llm, evaluation, biology, bioinformatics, nlp, machine-learning, benchmark",
     entry_points={
         "console_scripts": [
-            "bioeval=scripts.run_evaluation:main",
+            "bioeval=bioeval.cli:main",
         ],
     },
 )
