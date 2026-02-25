@@ -15,6 +15,9 @@ from bioeval.protoreason.evaluator import ProtoReasonEvaluator
 from bioeval.causalbio.evaluator import CausalBioEvaluator
 from bioeval.designcheck.evaluator import DesignCheckEvaluator
 
+# Debate
+from bioeval.debate.evaluator import DebateEvaluator
+
 # Scoring
 from bioeval.scoring.calibration import extract_confidence, compute_calibration_metrics
 from bioeval.scoring.llm_judge import LLMJudge
@@ -34,6 +37,8 @@ __all__ = [
     "ProtoReasonEvaluator",
     "CausalBioEvaluator",
     "DesignCheckEvaluator",
+    # Debate
+    "DebateEvaluator",
     # Scoring
     "extract_confidence",
     "compute_calibration_metrics",

@@ -127,16 +127,17 @@ PATHWAY_TASKS = [
         "cell_context": "BRAF V600E melanoma",
         "question": "Predict immediate effects and potential resistance mechanisms.",
         "ground_truth": {
-            "immediate_effects": [
+            "affected_pathways": [
                 {"pathway": "MAPK/ERK", "direction": "decreased", "mechanism": "Direct BRAF inhibition"},
                 {"pathway": "Cell cycle", "direction": "arrested", "mechanism": "Loss of ERK-driven proliferation signals"}
             ],
-            "resistance_mechanisms": [
+            "compensatory": [
                 "NRAS mutations - bypass BRAF",
                 "BRAF amplification - overwhelm inhibitor",
                 "MEK mutations - constitutive activation downstream",
                 "RTK upregulation (EGFR, PDGFR) - alternative pathway activation"
-            ]
+            ],
+            "expected_phenotype": "Rapid tumor regression in BRAF V600E melanoma"
         }
     }
 ]
@@ -240,36 +241,47 @@ class CausalBioEvaluator(BaseEvaluator):
         )
         self.system_prompt = SCIENTIFIC_REASONING_SYSTEM_PROMPT if self.use_enhanced_prompts else None
     
-    def load_tasks(self) -> list[EvalTask]:
-        """Load all CausalBio evaluation tasks."""
+    def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:
+        """Load CausalBio evaluation tasks.
+
+        Args:
+            data_tier: "base" (evaluator.py only), "extended" or "all"
+                       (extended_data.py superset including base).
+        """
+        if data_tier in ("extended", "all"):
+            from bioeval.causalbio.extended_data import (
+                KNOCKOUT_TASKS as ko_list,
+                PATHWAY_TASKS as pw_list,
+                DRUG_RESPONSE_TASKS as dr_list,
+                EPISTASIS_TASKS as ep_list,
+            )
+        else:
+            ko_list = KNOCKOUT_TASKS
+            pw_list = PATHWAY_TASKS
+            dr_list = DRUG_RESPONSE_TASKS
+            ep_list = EPISTASIS_TASKS
+
         tasks = []
-        
-        # Knockout prediction tasks
-        for ko in KNOCKOUT_TASKS:
+        for ko in ko_list:
             tasks.append(self._create_knockout_task(ko))
-        
-        # Pathway reasoning tasks
-        for pathway in PATHWAY_TASKS:
+        for pathway in pw_list:
             tasks.append(self._create_pathway_task(pathway))
-        
-        # Epistasis reasoning tasks
-        for epi in EPISTASIS_TASKS:
+        for epi in ep_list:
             tasks.append(self._create_epistasis_task(epi))
-        
-        # Drug response tasks
-        for drug in DRUG_RESPONSE_TASKS:
+        for drug in dr_list:
             tasks.append(self._create_drug_response_task(drug))
-        
         return tasks
     
     def _create_knockout_task(self, ko: dict) -> EvalTask:
         """Create a knockout phenotype prediction task."""
+        question = ko.get('question',
+                          f"What is the predicted fitness effect of {ko['gene']} knockout in {ko['cell_line']}?")
         base_prompt = f"""Predict the fitness effect of a gene knockout based on biological reasoning.
 
 Gene: {ko['gene']}
 Cell line: {ko['cell_line']} ({ko['cell_type']})
 
-Question: {ko['question']}
+Question: {question}
 
 Provide:
 1. Your prediction: Is this gene essential, non-essential, or context-dependent in this cell line?
@@ -294,12 +306,14 @@ Provide:
     
     def _create_pathway_task(self, pathway: dict) -> EvalTask:
         """Create a pathway reasoning task."""
+        question = pathway.get('question',
+                               f"Which downstream pathways will be affected by {pathway['perturbation']} and in what direction?")
         base_prompt = f"""Predict downstream pathway effects of a perturbation.
 
 Perturbation: {pathway['perturbation']}
 Cell context: {pathway['cell_context']}
 
-Question: {pathway['question']}
+Question: {question}
 
 Provide:
 1. List of affected pathways and direction of change (increased/decreased)
@@ -324,6 +338,12 @@ Provide:
     
     def _create_epistasis_task(self, epi: dict) -> EvalTask:
         """Create an epistasis reasoning task."""
+        # single_effects can be at top-level or inside ground_truth
+        single_effects = epi.get('single_effects', epi.get('ground_truth', {}).get('single_effects', {}))
+        se_a = single_effects.get(f'{epi["gene_a"]}_ko', single_effects.get(f'{epi["gene_a"]}_loss', 'unknown'))
+        se_b = single_effects.get(f'{epi["gene_b"]}_ko', single_effects.get(f'{epi["gene_b"]}_loss', 'unknown'))
+        question = epi.get('question',
+                           f"What is the combined effect of {epi['gene_a']} and {epi['gene_b']} perturbation in {epi['context']}?")
         base_prompt = f"""Predict the genetic interaction between two genes.
 
 Gene A: {epi['gene_a']}
@@ -331,10 +351,10 @@ Gene B: {epi['gene_b']}
 Context: {epi['context']}
 
 Known single-gene effects:
-- {epi['gene_a']} knockout: {epi['single_effects'][f'{epi["gene_a"]}_ko']}
-- {epi['gene_b']} knockout: {epi['single_effects'][f'{epi["gene_b"]}_ko']}
+- {epi['gene_a']} knockout: {se_a}
+- {epi['gene_b']} knockout: {se_b}
 
-Question: {epi['question']}
+Question: {question}
 
 Provide:
 1. Type of genetic interaction (synthetic lethal, suppressive, enhancing, no interaction)
@@ -359,12 +379,14 @@ Provide:
     
     def _create_drug_response_task(self, drug: dict) -> EvalTask:
         """Create a drug response prediction task."""
+        question = drug.get('question',
+                            f"What genes are affected by {drug['drug']} treatment in {drug['cell_type']}?")
         base_prompt = f"""Predict the transcriptional and cellular response to drug treatment.
 
 Drug: {drug['drug']}
 Cell type: {drug['cell_type']}
 
-Question: {drug['question']}
+Question: {question}
 
 Provide:
 1. Key genes expected to be upregulated
@@ -399,88 +421,204 @@ Provide:
             return self._score_drug_response(task, response)
         else:
             return {"error": f"Unknown task type: {task.task_type}"}
-    
+
     def _score_knockout(self, task: EvalTask, response: str) -> dict:
-        """Score knockout prediction."""
+        """Score knockout prediction using structured label extraction."""
+        from bioeval.scoring.response_parser import extract_categorical_label, extract_confidence_structured
+        from bioeval.scoring.matching import phrase_match, extract_key_terms, matched_list
+
         gt = task.ground_truth["ground_truth"]
         response_lower = response.lower()
-        
-        # Check if predicted effect matches
-        effect_correct = gt["effect"] in response_lower
-        
-        # Check if reasoning mentions key concepts
-        explanation_lower = gt["explanation"].lower()
-        key_concepts = [word for word in explanation_lower.split() if len(word) > 4][:5]
-        reasoning_score = sum(1 for concept in key_concepts if concept in response_lower) / len(key_concepts)
-        
+
+        # Extract predicted effect using parser
+        label_result = extract_categorical_label(
+            response, ["essential", "non-essential", "context-dependent"]
+        )
+        if label_result.success:
+            effect_correct = label_result.value == gt["effect"]
+        else:
+            effect_correct = phrase_match(gt["effect"], response_lower)
+
+        # Reasoning quality
+        key_concepts = extract_key_terms(gt["explanation"], min_length=5, max_terms=5)
+        matched_concepts = matched_list(key_concepts, response_lower)
+        reasoning_score = len(matched_concepts) / len(key_concepts) if key_concepts else 0
+
+        confidence_result = extract_confidence_structured(response)
+
         return {
             "effect_correct": effect_correct,
-            "reasoning_score": reasoning_score,
-            "mentions_cell_line_context": task.ground_truth["cell_line"].lower() in response_lower,
-            "response_length": len(response)
+            "predicted_effect": label_result.value if label_result.success else "unknown",
+            "expected_effect": gt["effect"],
+            "extraction_method": label_result.method,
+            "reasoning_score": round(reasoning_score, 3),
+            "matched_concepts": matched_concepts,
+            "mentions_cell_line_context": phrase_match(task.ground_truth["cell_line"], response_lower),
+            "confidence": confidence_result.value if confidence_result.success else None,
+            "response_length": len(response),
         }
-    
+
     def _score_pathway(self, task: EvalTask, response: str) -> dict:
-        """Score pathway reasoning."""
+        """Score pathway reasoning with direction accuracy."""
+        from bioeval.scoring.response_parser import extract_direction
+        from bioeval.scoring.matching import phrase_match, any_match
+
         gt = task.ground_truth["ground_truth"]
         response_lower = response.lower()
-        
-        # Check pathway coverage
+
         pathways_mentioned = 0
+        direction_correct = 0
+        pathway_details = []
+
         for pathway_info in gt["affected_pathways"]:
-            pathway_name = pathway_info["pathway"].lower()
-            if any(term in response_lower for term in pathway_name.split("/")):
+            pathway_name = pathway_info["pathway"]
+            expected_direction = pathway_info["direction"].lower()
+
+            name_parts = [t.lower() for t in pathway_name.split("/")]
+            is_mentioned = any_match(name_parts, response_lower)
+            if is_mentioned:
                 pathways_mentioned += 1
-        
-        pathway_coverage = pathways_mentioned / len(gt["affected_pathways"])
-        
+
+            dir_result = extract_direction(response, target=pathway_name)
+            dir_map = {
+                "decreased": "down", "reduced": "down", "inhibited": "down",
+                "blocked": "down", "arrested": "down", "suppressed": "down",
+                "downregulated": "down", "attenuated": "down", "diminished": "down",
+                "repressed": "down", "abolished": "down", "impaired": "down",
+                "increased": "up", "activated": "up", "enhanced": "up",
+                "upregulated": "up", "stimulated": "up", "induced": "up",
+                "elevated": "up", "amplified": "up", "promoted": "up",
+            }
+            expected_normalized = dir_map.get(expected_direction, expected_direction)
+            dir_correct = dir_result.success and dir_result.value == expected_normalized
+            if dir_correct:
+                direction_correct += 1
+
+            pathway_details.append({
+                "pathway": pathway_name,
+                "mentioned": is_mentioned,
+                "expected_direction": expected_normalized,
+                "predicted_direction": dir_result.value if dir_result.success else None,
+                "direction_correct": dir_correct,
+            })
+
+        total_pathways = len(gt["affected_pathways"])
+        pathway_coverage = pathways_mentioned / total_pathways if total_pathways > 0 else 0
+        direction_accuracy = direction_correct / total_pathways if total_pathways > 0 else 0
+
+        compensatory = gt.get("compensatory", [])
+        comp_mentioned = sum(
+            1 for c in compensatory
+            if any(phrase_match(term.lower(), response_lower) for term in c.split()[:3] if len(term) > 4)
+        )
+
         return {
-            "pathway_coverage": pathway_coverage,
+            "pathway_coverage": round(pathway_coverage, 3),
+            "direction_accuracy": round(direction_accuracy, 3),
+            "combined_score": round((pathway_coverage + direction_accuracy) / 2, 3),
             "pathways_mentioned": pathways_mentioned,
-            "total_pathways": len(gt["affected_pathways"]),
-            "response_length": len(response)
+            "direction_correct": direction_correct,
+            "total_pathways": total_pathways,
+            "compensatory_mentioned": comp_mentioned,
+            "pathway_details": pathway_details,
+            "response_length": len(response),
         }
-    
+
     def _score_epistasis(self, task: EvalTask, response: str) -> dict:
-        """Score epistasis reasoning."""
+        """Score epistasis reasoning with structured interaction type extraction."""
+        from bioeval.scoring.response_parser import extract_interaction_type
+        from bioeval.scoring.matching import extract_key_terms, matched_list, any_match
+
         gt = task.ground_truth["ground_truth"]
         response_lower = response.lower()
-        
-        # Check interaction type
-        interaction_correct = gt["interaction"] in response_lower
-        
-        # Check mechanism understanding
-        mechanism_lower = gt["mechanism"].lower()
-        mechanism_terms = [word for word in mechanism_lower.split() if len(word) > 4][:5]
-        mechanism_score = sum(1 for term in mechanism_terms if term in response_lower) / len(mechanism_terms) if mechanism_terms else 0
-        
+
+        type_result = extract_interaction_type(response)
+        gt_type = gt.get("interaction", gt.get("interaction_type", "")).lower()
+        type_normalization = {
+            "synergistic": "synergistic", "suppressive": "suppressive",
+            "enhancing": "enhancing", "synthetic_lethal": "synthetic_lethal",
+        }
+        expected_type = type_normalization.get(gt_type, gt_type)
+        interaction_correct = type_result.success and type_result.value == expected_type
+
+        mechanism_terms = extract_key_terms(gt["mechanism"], min_length=5, max_terms=5)
+        matched_mechanism = matched_list(mechanism_terms, response_lower)
+        mechanism_score = len(matched_mechanism) / len(mechanism_terms) if mechanism_terms else 0
+
+        clinical_terms = extract_key_terms(gt.get("clinical_relevance", ""), min_length=5, max_terms=3)
+        clinical_mentioned = any_match(clinical_terms, response_lower) if clinical_terms else False
+
         return {
             "interaction_type_correct": interaction_correct,
-            "mechanism_score": mechanism_score,
-            "mentions_clinical_relevance": "clinical" in response_lower or "resistance" in response_lower,
-            "response_length": len(response)
+            "predicted_type": type_result.value if type_result.success else "unknown",
+            "expected_type": expected_type,
+            "extraction_method": type_result.method,
+            "mechanism_score": round(mechanism_score, 3),
+            "matched_mechanism_terms": matched_mechanism,
+            "mentions_clinical_relevance": clinical_mentioned,
+            "response_length": len(response),
         }
-    
+
     def _score_drug_response(self, task: EvalTask, response: str) -> dict:
-        """Score drug response prediction."""
+        """Score drug response prediction with directional accuracy."""
+        from bioeval.scoring.response_parser import extract_gene_directions
+        from bioeval.scoring.matching import phrase_match, any_match, extract_key_terms
+
         gt = task.ground_truth["ground_truth"]
         response_lower = response.lower()
-        
-        # Check gene predictions
-        upregulated_found = sum(1 for gene in gt["upregulated"] 
-                               if gene.lower().split("/")[0] in response_lower)
-        downregulated_found = sum(1 for gene in gt["downregulated"] 
-                                 if gene.lower().split("/")[0] in response_lower)
-        
+
+        gene_result = extract_gene_directions(response)
+
+        up_correct = 0
+        down_correct = 0
+        up_mentioned = 0
+        down_mentioned = 0
+
+        for gene in gt["upregulated"]:
+            gene_name = gene.split("/")[0].upper()
+            mentioned = phrase_match(gene_name, response_lower) or phrase_match(gene, response_lower)
+            if mentioned:
+                up_mentioned += 1
+                if gene_result.success:
+                    if gene_name in gene_result.value.get("upregulated", []):
+                        up_correct += 1
+                    elif gene_name not in gene_result.value.get("downregulated", []):
+                        up_correct += 0.5
+
+        for gene in gt["downregulated"]:
+            gene_name = gene.split("/")[0].upper()
+            mentioned = phrase_match(gene_name, response_lower) or phrase_match(gene, response_lower)
+            if mentioned:
+                down_mentioned += 1
+                if gene_result.success:
+                    if gene_name in gene_result.value.get("downregulated", []):
+                        down_correct += 1
+                    elif gene_name not in gene_result.value.get("upregulated", []):
+                        down_correct += 0.5
+
         total_genes = len(gt["upregulated"]) + len(gt["downregulated"])
-        gene_accuracy = (upregulated_found + downregulated_found) / total_genes if total_genes > 0 else 0
-        
+        gene_mention_rate = (up_mentioned + down_mentioned) / total_genes if total_genes > 0 else 0
+        direction_accuracy = (up_correct + down_correct) / total_genes if total_genes > 0 else 0
+
+        mech_terms = extract_key_terms(gt.get("mechanism", ""), min_length=5, max_terms=3)
+        mechanism_mentioned = any_match(mech_terms, response_lower)
+
+        phenotype = gt.get("phenotype", "")
+        phenotype_terms = [t.strip().lower() for t in phenotype.split(",") if len(t.strip()) > 3]
+        phenotype_mentioned = any_match(phenotype_terms, response_lower) if phenotype_terms else False
+
         return {
-            "gene_accuracy": gene_accuracy,
-            "upregulated_found": upregulated_found,
-            "downregulated_found": downregulated_found,
-            "phenotype_mentioned": gt["phenotype"].split(",")[0].lower() in response_lower,
-            "response_length": len(response)
+            "gene_mention_rate": round(gene_mention_rate, 3),
+            "direction_accuracy": round(direction_accuracy, 3),
+            "combined_score": round((gene_mention_rate + direction_accuracy) / 2, 3),
+            "upregulated_mentioned": up_mentioned,
+            "upregulated_direction_correct": up_correct,
+            "downregulated_mentioned": down_mentioned,
+            "downregulated_direction_correct": down_correct,
+            "total_expected_genes": total_genes,
+            "mechanism_mentioned": mechanism_mentioned,
+            "phenotype_mentioned": phenotype_mentioned,
+            "response_length": len(response),
         }
 
 

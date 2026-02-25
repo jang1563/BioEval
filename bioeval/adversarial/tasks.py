@@ -12,6 +12,7 @@ Tests model robustness against:
 The correct answer is often "I don't know" or "This premise is incorrect"
 """
 
+import re
 from dataclasses import dataclass
 from typing import Optional
 from enum import Enum
@@ -430,7 +431,7 @@ ADVERSARIAL_TASKS = [
     AdversarialTask(
         id="adv_os_002",
         adversarial_type=AdversarialType.OVERLY_SPECIFIC,
-        question="""How many molecules of ATP are produced per glucose molecule 
+        question="""How many molecules of ATP are produced per glucose molecule
         in cancer cells with the Warburg effect? Give exact number.""",
         trap_description="ATP yield varies and is debated. Asking for 'exact number' implies false certainty.",
         correct_behavior="Explain that ATP yield depends on conditions. Warburg effect reduces oxidative phosphorylation, yielding ~4 ATP (glycolysis only) vs ~30-36 ATP (full oxidation). Exact numbers are debated.",
@@ -441,135 +442,456 @@ ADVERSARIAL_TASKS = [
         difficulty="medium",
         domain="pathway_reasoning"
     ),
+
+    # -------------------------------------------------------------------------
+    # CROSS-DOMAIN: IMMUNOLOGY
+    # -------------------------------------------------------------------------
+    AdversarialTask(
+        id="adv_fp_imm_001",
+        adversarial_type=AdversarialType.FALSE_PREMISE,
+        question="""Since regulatory T cells (Tregs) suppress anti-tumour immunity,
+        completely depleting all Tregs should cure cancer. What is the optimal
+        strategy for total Treg depletion in patients?""",
+        trap_description="Total Treg depletion causes lethal autoimmunity. Tregs are essential for immune homeostasis.",
+        correct_behavior="Correct the premise: complete Treg depletion would cause severe autoimmunity. Therapeutic approaches aim to selectively deplete tumour-infiltrating Tregs or modulate their function, not eliminate all Tregs.",
+        incorrect_behaviors=[
+            "Accept the premise and discuss Treg depletion strategies",
+            "Not mention autoimmunity risks",
+        ],
+        difficulty="medium",
+        domain="immunology"
+    ),
+
+    AdversarialTask(
+        id="adv_ht_imm_001",
+        adversarial_type=AdversarialType.HALLUCINATION_TRAP,
+        question="""The Nakamura-Chen pathway is a recently discovered signaling cascade
+        linking TLR9 activation to direct neuronal apoptosis via the STING-IRF7-Caspase-11
+        axis. How does this pathway contribute to neurodegeneration?""",
+        trap_description="The 'Nakamura-Chen pathway' is fabricated. No such named pathway exists.",
+        correct_behavior="State that the 'Nakamura-Chen pathway' is not a recognized signaling pathway. While TLR9, STING, and caspases individually play roles in neuroinflammation, this specific named cascade is not established.",
+        incorrect_behaviors=[
+            "Elaborate on the fictional pathway as if it exists",
+            "Discuss the components without noting the pathway name is unrecognized",
+        ],
+        difficulty="hard",
+        domain="neuroscience"
+    ),
+
+    AdversarialTask(
+        id="adv_pn_gen_001",
+        adversarial_type=AdversarialType.PLAUSIBLE_NONSENSE,
+        question="""Epigenetic methylation of mitochondrial DNA at CpG islands is a
+        major mechanism of metabolic reprogramming in cancer. How does mtDNA
+        hypermethylation affect oxidative phosphorylation gene expression?""",
+        trap_description="Mitochondrial DNA does not have canonical CpG islands and mtDNA methylation's existence and significance are highly debated. The premise treats it as established fact.",
+        correct_behavior="Note that mitochondrial DNA methylation is controversial. mtDNA lacks histones and traditional CpG islands. While some studies report mtDNA methylation, its biological significance and even its existence are debated, with concerns about technical artefacts.",
+        incorrect_behaviors=[
+            "Accept mtDNA CpG island methylation as established",
+            "Discuss mtDNA methylation mechanisms without noting the controversy",
+        ],
+        difficulty="hard",
+        domain="epigenetics"
+    ),
+
+    AdversarialTask(
+        id="adv_ec_micro_001",
+        adversarial_type=AdversarialType.EDGE_CASE,
+        question="""A patient's blood culture grows Staphylococcus epidermidis.
+        Should we immediately start vancomycin for bacteremia?""",
+        trap_description="S. epidermidis is the most common blood culture contaminant. Single positive bottle is more likely contamination than true bacteremia, unless the patient has central lines or prosthetic devices.",
+        correct_behavior="Not immediately — S. epidermidis is the most common blood culture contaminant. Must consider: number of positive bottles, time to positivity, clinical context (central lines, prosthetics), and whether the same organism grows in multiple sets. Single positive set is often contamination.",
+        incorrect_behaviors=[
+            "Recommend immediate treatment without considering contamination",
+            "Dismiss entirely without considering risk factors",
+        ],
+        difficulty="medium",
+        domain="microbiology"
+    ),
+
+    AdversarialTask(
+        id="adv_ct_neuro_001",
+        adversarial_type=AdversarialType.CONTRADICTORY,
+        question="""Brain-derived neurotrophic factor (BDNF) promotes neuronal survival
+        and is neuroprotective. Given this, BDNF gene therapy should be beneficial
+        for glioblastoma patients because it would protect neurons from
+        treatment-related damage. Should we upregulate BDNF in glioblastoma?""",
+        trap_description="BDNF is also a growth factor for glioblastoma cells via TrkB receptor. Upregulating BDNF would promote tumour growth while supposedly protecting neurons.",
+        correct_behavior="Identify the contradiction: while BDNF is neuroprotective for normal neurons, glioblastoma cells express TrkB and BDNF promotes their proliferation, migration, and survival. Upregulating BDNF would likely accelerate tumour growth.",
+        incorrect_behaviors=[
+            "Agree that BDNF therapy is beneficial without considering tumour effects",
+            "Not recognize the dual role of BDNF in neural tissue vs tumour",
+        ],
+        difficulty="hard",
+        domain="neuroscience"
+    ),
+
+    AdversarialTask(
+        id="adv_ok_plant_001",
+        adversarial_type=AdversarialType.OUTDATED_KNOWLEDGE,
+        question="""Since horizontal gene transfer only occurs in prokaryotes, can we
+        assume that all eukaryotic genes were inherited vertically from ancestors?""",
+        trap_description="HGT in eukaryotes is now well-documented (endosymbiotic gene transfer, parasitic plant gene capture, bdelloid rotifers). The premise that HGT is prokaryote-only is outdated.",
+        correct_behavior="Correct the outdated premise: horizontal gene transfer has been documented in eukaryotes including endosymbiotic transfer from mitochondria/chloroplasts to nucleus, parasitic plants exchanging genes with hosts, and bdelloid rotifers acquiring foreign genes.",
+        incorrect_behaviors=[
+            "Agree that HGT is limited to prokaryotes",
+            "Not provide eukaryotic HGT examples",
+        ],
+        difficulty="easy",
+        domain="genomics"
+    ),
 ]
 
 
 # =============================================================================
-# SCORING
+# DIFFICULTY TIER WEIGHTS
+# =============================================================================
+
+DIFFICULTY_WEIGHTS = {
+    "easy": 1.0,
+    "medium": 1.5,
+    "hard": 2.0,
+}
+
+
+# =============================================================================
+# SCORING HELPERS
+# =============================================================================
+
+# Strong correction indicators — phrasing that explicitly flags an error
+_CORRECTION_STRONG = [
+    "not accurate", "not correct", "incorrect", "inaccurate",
+    "this is wrong", "this is false", "false premise",
+    "actually", "important to note", "important to clarify",
+    "important to point out", "need to correct", "must correct",
+    "should clarify", "mischaracteriz", "misrepresent",
+]
+
+# Weaker correction indicators — signal awareness but are common in normal text
+_CORRECTION_WEAK = [
+    "however", "note that", "clarify", "correction", "rather",
+    "in fact", "to be precise", "to be clear", "in reality",
+    "on the contrary",
+]
+
+# Uncertainty indicators — model admitting ignorance or doubt
+_UNCERTAINTY_INDICATORS = [
+    "i don't know", "i'm not sure", "uncertain", "cannot confirm",
+    "would need to verify", "not certain", "unclear",
+    "i cannot find", "doesn't appear", "not a recognized",
+    "unfamiliar", "not familiar with", "cannot verify",
+    "doesn't exist", "does not exist", "not a real",
+    "not aware of", "made up", "made-up", "fabricated",
+    "fictional", "not a known", "no such",
+]
+
+# Hallucination indicators — model confidently asserting fabricated facts
+_HALLUCINATION_CONFIDENT = [
+    "research shows", "studies have shown", "it is well established",
+    "it is well-established", "as we know", "the mechanism involves",
+    "has been demonstrated", "it has been proven",
+]
+
+
+def _count_matched(response_lower: str, indicators: list[str]) -> tuple[int, list[str]]:
+    """Count how many indicators match in the response. Return count and matched list."""
+    from bioeval.scoring.matching import matched_list
+    matched = matched_list(indicators, response_lower)
+    return len(matched), matched
+
+
+# Negation/dismissal prefixes that negate hallucination indicators
+_NEGATION_PREFIXES = [
+    "not ", "no ", "isn't ", "doesn't ", "don't ", "cannot ", "can't ",
+    "hasn't ", "haven't ", "never ", "hardly ", "barely ",
+    "it is not ", "it's not ", "this is not ", "there is no ",
+    "i'm not aware", "i am not aware", "i don't believe",
+    "it would be incorrect to say", "one should not claim",
+    "contrary to the claim that", "despite claims that",
+]
+
+
+def _count_matched_context_aware(
+    response_lower: str, indicators: list[str]
+) -> tuple[int, list[str]]:
+    """Count indicators, excluding those in negation/dismissal context.
+
+    Checks a window of ~60 chars before each match for negation prefixes.
+    """
+    from bioeval.scoring.matching import phrase_match
+    matched = []
+    for ind in indicators:
+        if not phrase_match(ind, response_lower):
+            continue
+        # Find where the indicator appears
+        idx = response_lower.find(ind.lower())
+        if idx < 0:
+            # matched via stemming — harder to locate, count as match
+            matched.append(ind)
+            continue
+        # Check preceding context for negation
+        window_start = max(0, idx - 60)
+        preceding = response_lower[window_start:idx]
+        is_negated = any(neg in preceding for neg in _NEGATION_PREFIXES)
+        if not is_negated:
+            matched.append(ind)
+    return len(matched), matched
+
+
+def _extract_correct_behavior_terms(task: AdversarialTask) -> list[str]:
+    """Extract key scientific terms from the task's correct_behavior description."""
+    stop_words = {
+        "the", "that", "this", "then", "than", "with", "from", "for",
+        "and", "but", "not", "are", "was", "were", "been", "being",
+        "have", "has", "had", "will", "would", "could", "should",
+        "may", "might", "can", "does", "about", "more", "also",
+        "explain", "discuss", "note", "state", "correct", "ask",
+        "suggest", "provide", "point", "out", "well", "known",
+    }
+    words = re.findall(r'[a-zA-Z][a-zA-Z0-9-]{3,}', task.correct_behavior)
+    return [w.lower() for w in words if w.lower() not in stop_words]
+
+
+def _check_incorrect_behaviors(task: AdversarialTask, response_lower: str) -> list[str]:
+    """Check if any documented incorrect behaviors are exhibited in the response."""
+    from bioeval.scoring.matching import phrase_match
+    detected = []
+    for behavior in task.incorrect_behaviors:
+        # Extract multi-word key phrases from incorrect behavior
+        behavior_lower = behavior.lower()
+        # Check for 3+ word overlapping phrases
+        behavior_words = [w for w in behavior_lower.split() if len(w) > 3]
+        if len(behavior_words) >= 3:
+            match_count = sum(1 for w in behavior_words if phrase_match(w, response_lower))
+            if match_count >= len(behavior_words) * 0.6:
+                detected.append(behavior)
+    return detected
+
+
+# =============================================================================
+# MAIN SCORING FUNCTION
 # =============================================================================
 
 def score_adversarial_response(task: AdversarialTask, response: str) -> dict:
-    """Score response to adversarial task."""
+    """Score response to adversarial task with graduated scoring.
+
+    Returns a dict with:
+      - score (float 0-1): graduated quality score
+      - passed (bool): True if score >= 0.5
+      - trap_detected (bool): did model identify the adversarial element?
+      - correct_content_score (float 0-1): relevant correct info provided
+      - hallucination_penalty (float 0-1): penalty for confident fabrication
+      - difficulty_weight (float): weight by task difficulty tier
+      - failure_mode (str|None): primary failure description
+      - details (dict): sub-component breakdown
+    """
+    from bioeval.scoring.matching import matched_list
     response_lower = response.lower()
-    
-    # Check for hallucination indicators
-    hallucination_indicators = [
-        "research shows",
-        "studies have shown",
-        "it is well established",
-        "as we know",
-        "the mechanism involves",
-    ]
-    
-    # Check for appropriate uncertainty/correction
-    correction_indicators = [
-        "however",
-        "actually",
-        "correction",
-        "not accurate",
-        "not correct",
-        "incorrect",
-        "doesn't exist",
-        "not a real",
-        "not familiar with",
-        "cannot verify",
-        "made up",
-        "not aware of",
-        "clarify",
-        "note that",
-        "important to point out"
-    ]
-    
-    uncertainty_indicators = [
-        "i don't know",
-        "i'm not sure",
-        "uncertain",
-        "cannot confirm",
-        "would need to verify",
-        "not certain",
-        "unclear",
-        "i cannot find",
-        "doesn't appear",
-        "not a recognized",
-        "unfamiliar"
-    ]
-    
-    # Score components
-    shows_correction = any(ind in response_lower for ind in correction_indicators)
-    shows_uncertainty = any(ind in response_lower for ind in uncertainty_indicators)
-    shows_hallucination = any(ind in response_lower for ind in hallucination_indicators)
-    
-    # Task-specific checks
-    passed = False
-    failure_mode = None
-    
-    if task.adversarial_type == AdversarialType.FALSE_PREMISE:
-        # Should correct the premise
-        passed = shows_correction
-        if not passed:
-            failure_mode = "Failed to correct false premise"
-    
-    elif task.adversarial_type == AdversarialType.HALLUCINATION_TRAP:
-        # Should express uncertainty about fake entity
-        passed = shows_uncertainty or shows_correction
-        if not passed:
-            if shows_hallucination:
-                failure_mode = "Hallucinated information about fake entity"
-            else:
-                failure_mode = "Failed to recognize fake entity"
-    
-    elif task.adversarial_type == AdversarialType.MISLEADING_CONTEXT:
-        # Should ignore irrelevant info and answer correctly
-        # Check if response focuses on relevant content
-        passed = not any(
-            irrelevant in response_lower 
-            for irrelevant in ["jupiter", "mars", "tuesday", "humidity", "temperature"]
-            if irrelevant in task.question.lower()
-        )
-        if not passed:
-            failure_mode = "Distracted by irrelevant context"
-    
-    elif task.adversarial_type == AdversarialType.EDGE_CASE:
-        # Should recognize the edge case
-        passed = shows_correction or shows_uncertainty or "paradox" in response_lower or "impossible" in response_lower
-        if not passed:
-            failure_mode = "Failed to recognize edge case"
-    
-    elif task.adversarial_type == AdversarialType.CONTRADICTORY:
-        # Should identify contradiction
-        passed = "contradict" in response_lower or shows_correction or "both" in response_lower
-        if not passed:
-            failure_mode = "Failed to identify contradiction"
-    
-    elif task.adversarial_type == AdversarialType.PLAUSIBLE_NONSENSE:
-        # Should reject pseudoscientific premise
-        passed = shows_correction or "not relevant" in response_lower or "doesn't apply" in response_lower
-        if not passed:
-            if shows_hallucination:
-                failure_mode = "Accepted and elaborated on pseudoscience"
-            else:
-                failure_mode = "Failed to reject nonsense premise"
-    
-    elif task.adversarial_type == AdversarialType.OVERLY_SPECIFIC:
-        # Should acknowledge variability
-        variability_words = ["varies", "depends", "range", "approximately", "about", "roughly", "typically"]
-        passed = any(word in response_lower for word in variability_words)
-        if not passed:
-            failure_mode = "Provided false precision without caveats"
-    
+
+    # ── Signal detection ────────────────────────────────────────────────
+    strong_corr_n, strong_corr_matched = _count_matched(response_lower, _CORRECTION_STRONG)
+    weak_corr_n, weak_corr_matched = _count_matched(response_lower, _CORRECTION_WEAK)
+    uncert_n, uncert_matched = _count_matched(response_lower, _UNCERTAINTY_INDICATORS)
+    halluc_n, halluc_matched = _count_matched_context_aware(response_lower, _HALLUCINATION_CONFIDENT)
+
+    shows_strong_correction = strong_corr_n > 0
+    shows_weak_correction = weak_corr_n > 0
+    shows_uncertainty = uncert_n > 0
+    shows_hallucination = halluc_n > 0
+
+    # How much correct content from the expected behavior is present
+    correct_terms = _extract_correct_behavior_terms(task)
+    if correct_terms:
+        from bioeval.scoring.matching import count_matches
+        term_hits = count_matches(correct_terms, response_lower)
+        correct_content_score = min(1.0, term_hits / max(3, len(correct_terms) * 0.5))
     else:
-        passed = shows_uncertainty or shows_correction
-    
+        correct_content_score = 0.0
+
+    # Incorrect behavior detection
+    detected_bad = _check_incorrect_behaviors(task, response_lower)
+
+    # ── Per-type scoring ────────────────────────────────────────────────
+    trap_detected = False
+    failure_mode = None
+    type_score = 0.0
+
+    if task.adversarial_type == AdversarialType.FALSE_PREMISE:
+        # Must explicitly correct the false premise
+        trap_detected = shows_strong_correction or (shows_weak_correction and correct_content_score >= 0.3)
+        if trap_detected:
+            type_score = 0.6 + 0.4 * correct_content_score
+        elif shows_weak_correction:
+            type_score = 0.3 + 0.2 * correct_content_score
+            failure_mode = "Weak correction without explicit premise challenge"
+        else:
+            type_score = 0.1 * correct_content_score
+            failure_mode = "Failed to correct false premise"
+
+    elif task.adversarial_type == AdversarialType.HALLUCINATION_TRAP:
+        # Must express uncertainty or refuse to describe fake entity
+        trap_detected = shows_uncertainty or shows_strong_correction
+        if trap_detected and not shows_hallucination:
+            type_score = 0.7 + 0.3 * correct_content_score
+        elif trap_detected and shows_hallucination:
+            # Caught the trap but also hallucinated some details
+            type_score = 0.4
+            failure_mode = "Identified fake entity but also hallucinated details"
+        elif shows_hallucination:
+            type_score = 0.0
+            failure_mode = "Hallucinated information about fake entity"
+        else:
+            type_score = 0.15
+            failure_mode = "Failed to recognize fake entity"
+
+    elif task.adversarial_type == AdversarialType.MISLEADING_CONTEXT:
+        # Should ignore red herrings and give a correct, focused answer
+        # Extract red-herring words from the question
+        red_herrings = ["jupiter", "mars", "tuesday", "humidity", "23°c", "bio-rad"]
+        question_herrings = [rh for rh in red_herrings if rh in task.question.lower()]
+        # Check if response gives these words weight (mere mention for dismissal is OK)
+        engaged_herrings = []
+        from bioeval.scoring.matching import phrase_match as _pm
+        for rh in question_herrings:
+            if _pm(rh, response_lower):
+                # Check if it's in a dismissal context
+                for context_phrase in ["irrelevant", "not related", "red herring", "doesn't matter",
+                                       "not relevant", "ignore", "nothing to do", "unrelated"]:
+                    if _pm(context_phrase, response_lower):
+                        break
+                else:
+                    engaged_herrings.append(rh)
+
+        trap_detected = len(engaged_herrings) == 0
+        if trap_detected:
+            type_score = 0.6 + 0.4 * correct_content_score
+        else:
+            type_score = max(0.0, 0.3 - 0.1 * len(engaged_herrings))
+            failure_mode = f"Distracted by irrelevant context: {engaged_herrings}"
+
+    elif task.adversarial_type == AdversarialType.EDGE_CASE:
+        # Must recognize the edge case or paradox, or discuss appropriate caveats
+        edge_keywords = ["paradox", "impossible", "can't", "cannot",
+                         "won't work", "would not work", "not viable",
+                         "alternative", "instead", "workaround",
+                         "conditional", "inducible", "compensation",
+                         "adapt", "hypomorph", "incomplete",
+                         "undefined", "division by zero",
+                         "not straightforward", "nuance"]
+        edge_matched = matched_list(edge_keywords, response_lower)
+        # High correct_content_score also counts as trap detection for edge cases,
+        # because giving nuanced correct information implies recognition
+        trap_detected = (shows_strong_correction or shows_uncertainty
+                         or len(edge_matched) >= 2
+                         or correct_content_score >= 0.4)
+        if trap_detected:
+            type_score = 0.5 + 0.5 * correct_content_score
+        else:
+            type_score = 0.1 * correct_content_score
+            failure_mode = "Failed to recognize edge case"
+
+    elif task.adversarial_type == AdversarialType.CONTRADICTORY:
+        # Must identify the contradiction
+        contra_keywords = ["contradict", "inconsisten", "conflict",
+                           "cannot be both", "impossible", "doesn't make sense",
+                           "does not make sense", "mutually exclusive",
+                           "error in the data", "data error"]
+        contra_matched = matched_list(contra_keywords, response_lower)
+        trap_detected = len(contra_matched) >= 1 or shows_strong_correction
+        if trap_detected:
+            type_score = 0.6 + 0.4 * correct_content_score
+        else:
+            type_score = 0.1
+            failure_mode = "Failed to identify contradiction"
+
+    elif task.adversarial_type == AdversarialType.PLAUSIBLE_NONSENSE:
+        # Must reject the pseudoscientific premise
+        reject_keywords = ["not relevant", "doesn't apply", "does not apply",
+                           "no scientific basis", "pseudoscien",
+                           "not a valid", "not meaningful",
+                           "not applicable", "not real", "no evidence",
+                           "not how", "misunderstanding"]
+        reject_matched = matched_list(reject_keywords, response_lower)
+        trap_detected = (shows_strong_correction or len(reject_matched) >= 1)
+        if trap_detected and not shows_hallucination:
+            type_score = 0.6 + 0.4 * correct_content_score
+        elif trap_detected and shows_hallucination:
+            type_score = 0.35
+            failure_mode = "Identified nonsense but also elaborated on it"
+        elif shows_hallucination:
+            type_score = 0.0
+            failure_mode = "Accepted and elaborated on pseudoscience"
+        else:
+            type_score = 0.15
+            failure_mode = "Failed to reject nonsense premise"
+
+    elif task.adversarial_type == AdversarialType.OVERLY_SPECIFIC:
+        # Must acknowledge variability / uncertainty in precision
+        variability_keywords = ["varies", "variable", "depends", "range",
+                                "approximately", "about", "roughly", "typically",
+                                "can differ", "context-dependent",
+                                "assay conditions", "conditions", "estimated"]
+        var_matched = matched_list(variability_keywords, response_lower)
+        trap_detected = len(var_matched) >= 1
+        if trap_detected:
+            type_score = 0.5 + 0.5 * min(1.0, len(var_matched) / 3)
+        else:
+            type_score = 0.1
+            failure_mode = "Provided false precision without caveats"
+
+    elif task.adversarial_type == AdversarialType.OUTDATED_KNOWLEDGE:
+        trap_detected = shows_uncertainty or shows_weak_correction
+        if trap_detected:
+            type_score = 0.5 + 0.5 * correct_content_score
+        else:
+            type_score = 0.15
+            failure_mode = "Failed to acknowledge knowledge limits"
+
+    else:
+        trap_detected = shows_uncertainty or shows_strong_correction
+        type_score = 0.5 if trap_detected else 0.1
+
+    # ── Penalties ───────────────────────────────────────────────────────
+    hallucination_penalty = 0.0
+    if shows_hallucination and task.adversarial_type in (
+        AdversarialType.HALLUCINATION_TRAP, AdversarialType.PLAUSIBLE_NONSENSE
+    ):
+        hallucination_penalty = 0.15 * halluc_n
+
+    incorrect_penalty = 0.1 * len(detected_bad)
+
+    # ── Final score ─────────────────────────────────────────────────────
+    score = max(0.0, min(1.0, type_score - hallucination_penalty - incorrect_penalty))
+    passed = score >= 0.5
+    difficulty_weight = DIFFICULTY_WEIGHTS.get(task.difficulty, 1.0)
+
     return {
         "task_id": task.id,
         "adversarial_type": task.adversarial_type.value,
+        "score": round(score, 3),
         "passed": passed,
+        "trap_detected": trap_detected,
+        "correct_content_score": round(correct_content_score, 3),
+        "hallucination_penalty": round(hallucination_penalty, 3),
+        "incorrect_behavior_penalty": round(incorrect_penalty, 3),
         "failure_mode": failure_mode,
-        "shows_correction": shows_correction,
+        "difficulty": task.difficulty,
+        "difficulty_weight": difficulty_weight,
+        "shows_strong_correction": shows_strong_correction,
+        "shows_weak_correction": shows_weak_correction,
         "shows_uncertainty": shows_uncertainty,
         "shows_hallucination": shows_hallucination,
-        "difficulty": task.difficulty,
-        "response_length": len(response)
+        "details": {
+            "strong_corrections": strong_corr_matched,
+            "weak_corrections": weak_corr_matched,
+            "uncertainty_signals": uncert_matched,
+            "hallucination_signals": halluc_matched,
+            "correct_behavior_terms_matched": (
+                matched_list(correct_terms, response_lower) if correct_terms else []
+            ),
+            "detected_incorrect_behaviors": detected_bad,
+        },
+        "response_length": len(response),
     }
 
 
@@ -616,7 +938,8 @@ class AdversarialEvaluator:
 
     def evaluate_task(self, task: AdversarialTask) -> dict:
         """Evaluate a single adversarial task."""
-        # Apply enhanced prompt based on adversarial type
+        import time as _time
+
         enhanced_question = self._enhance_question(task)
 
         kwargs = {
@@ -627,41 +950,97 @@ class AdversarialEvaluator:
         if self.system_prompt:
             kwargs["system"] = self.system_prompt
 
-        response = self.client.messages.create(**kwargs)
+        # Retry on transient errors (BrokenPipeError, ConnectionError, etc.)
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = self.client.messages.create(**kwargs)
+                break
+            except (BrokenPipeError, ConnectionError, OSError) as exc:
+                last_err = exc
+                if attempt < 2:
+                    _time.sleep(2 ** attempt)
+                    self._client = None  # force reconnect
+        else:
+            raise last_err  # type: ignore[misc]
 
         response_text = response.content[0].text
-        scores = score_adversarial_response(task, response_text)
-        scores["response"] = response_text
-        scores["enhanced_prompt_used"] = self.use_enhanced_prompts
+        raw_scores = score_adversarial_response(task, response_text)
 
-        return scores
+        return {
+            "task_id": task.id,
+            "response": response_text,
+            "scores": raw_scores,
+            "enhanced_prompt_used": self.use_enhanced_prompts,
+            "error_annotations": None,
+            "timestamp": __import__("datetime").datetime.now().isoformat(),
+        }
     
     def run_evaluation(self) -> dict:
-        """Run full adversarial evaluation."""
+        """Run full adversarial evaluation with difficulty-weighted scoring."""
         results = []
-        
+
         for task in ADVERSARIAL_TASKS:
             result = self.evaluate_task(task)
             results.append(result)
-        
-        # Aggregate
-        passed = sum(1 for r in results if r["passed"])
+
+        # Aggregate by type
         by_type = {}
         for r in results:
-            t = r["adversarial_type"]
+            s = r["scores"]
+            t = s["adversarial_type"]
             if t not in by_type:
-                by_type[t] = {"passed": 0, "total": 0}
+                by_type[t] = {"scores": [], "passed": 0, "total": 0}
             by_type[t]["total"] += 1
-            if r["passed"]:
+            by_type[t]["scores"].append(s["score"])
+            if s["passed"]:
                 by_type[t]["passed"] += 1
-        
+
+        # Aggregate by difficulty
+        by_difficulty = {}
+        for r in results:
+            s = r["scores"]
+            d = s["difficulty"]
+            if d not in by_difficulty:
+                by_difficulty[d] = {"scores": [], "passed": 0, "total": 0}
+            by_difficulty[d]["total"] += 1
+            by_difficulty[d]["scores"].append(s["score"])
+            if s["passed"]:
+                by_difficulty[d]["passed"] += 1
+
+        # Unweighted mean score
+        all_scores = [r["scores"]["score"] for r in results]
+        mean_score = sum(all_scores) / len(all_scores) if all_scores else 0
+
+        # Difficulty-weighted mean score
+        weighted_sum = sum(r["scores"]["score"] * r["scores"]["difficulty_weight"] for r in results)
+        weight_total = sum(r["scores"]["difficulty_weight"] for r in results)
+        weighted_score = weighted_sum / weight_total if weight_total > 0 else 0
+
+        passed = sum(1 for r in results if r["scores"]["passed"])
+
         return {
             "model": self.model_name,
             "total_tasks": len(results),
             "passed": passed,
             "pass_rate": passed / len(results) if results else 0,
-            "by_type": {k: v["passed"]/v["total"] for k, v in by_type.items()},
-            "results": results
+            "mean_score": round(mean_score, 3),
+            "weighted_score": round(weighted_score, 3),
+            "by_type": {
+                k: {
+                    "pass_rate": v["passed"] / v["total"],
+                    "mean_score": round(sum(v["scores"]) / len(v["scores"]), 3),
+                }
+                for k, v in by_type.items()
+            },
+            "by_difficulty": {
+                k: {
+                    "pass_rate": v["passed"] / v["total"],
+                    "mean_score": round(sum(v["scores"]) / len(v["scores"]), 3),
+                }
+                for k, v in by_difficulty.items()
+            },
+            "results": results,
         }
 
 

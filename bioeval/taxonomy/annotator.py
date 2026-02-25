@@ -77,8 +77,9 @@ def detect_knowledge_errors(response: str, ground_truth: dict) -> list[ErrorAnno
     
     # Check for domain confusion (mixing species, cell types)
     species_mentioned = []
+    from bioeval.scoring.matching import phrase_match
     for species in ["human", "mouse", "rat", "yeast", "drosophila", "zebrafish", "c. elegans"]:
-        if species in response_lower:
+        if phrase_match(species, response_lower):
             species_mentioned.append(species)
     
     if len(species_mentioned) > 2:

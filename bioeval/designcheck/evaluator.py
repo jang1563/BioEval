@@ -542,14 +542,19 @@ class DesignCheckEvaluator(BaseEvaluator):
         super().__init__(model_name)
         self.flaw_categories = FLAW_CATEGORIES
     
-    def load_tasks(self) -> list[EvalTask]:
-        """Load all DesignCheck evaluation tasks."""
-        tasks = []
-        
-        for design in FLAWED_DESIGNS:
-            tasks.append(self._create_flaw_detection_task(design))
-        
-        return tasks
+    def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:
+        """Load DesignCheck evaluation tasks.
+
+        Args:
+            data_tier: 'base' (10 designs), 'extended' or 'all' (20 designs).
+        """
+        if data_tier in ("extended", "all"):
+            from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
+            designs = FLAWED_DESIGNS + EXTENDED_FLAWED_DESIGNS
+        else:
+            designs = FLAWED_DESIGNS
+
+        return [self._create_flaw_detection_task(d) for d in designs]
     
     def _create_flaw_detection_task(self, design: dict) -> EvalTask:
         """Create a flaw detection task."""
@@ -580,36 +585,123 @@ Be thorough but focus on flaws that would actually affect the validity of the co
         )
     
     def score_response(self, task: EvalTask, response: str) -> dict:
-        """Score flaw detection response."""
+        """Score flaw detection response with precision, recall, and severity weighting.
+
+        Improvements over v0.2:
+        - Uses response parser for structured flaw extraction
+        - Computes both recall (of GT flaws) and estimated precision
+        - Severity-weighted scoring (critical=3, major=2, minor=1)
+        - Per-flaw matching details
+        """
+        from bioeval.scoring.response_parser import extract_flaw_list
+        from bioeval.scoring.matching import phrase_match, matched_list, count_matches, extract_key_terms
+
         gt_flaws = task.ground_truth.get("flaws", [])
         response_lower = response.lower()
-        
-        # Check coverage of known flaws
+        stop_words = {'that', 'this', 'with', 'from', 'have', 'been', 'more', 'also', 'which', 'their'}
+
+        # --- Recall: how many GT flaws did the model find? ---
+        severity_weights = {"critical": 3, "major": 2, "minor": 1}
         flaws_detected = 0
         critical_detected = 0
-        
+        weighted_detected = 0
+        weighted_total = 0
+        flaw_match_details = []
+
         for flaw in gt_flaws:
-            # Check if flaw type or key terms mentioned
+            weight = severity_weights.get(flaw["severity"], 1)
+            weighted_total += weight
+
+            # Multi-term matching: flaw type keywords + explanation key terms
             flaw_type = flaw["type"].replace("_", " ")
-            explanation_terms = flaw["explanation"].lower().split()[:5]
-            
-            if (flaw_type in response_lower or 
-                any(term in response_lower for term in explanation_terms if len(term) > 4)):
+            explanation_terms = [t for t in flaw["explanation"].lower().split()
+                                if len(t) > 4 and t not in stop_words][:5]
+
+            # A flaw is "detected" if:
+            # (a) the flaw type phrase appears, OR
+            # (b) 2+ explanation key terms appear
+            type_match = phrase_match(flaw_type, response_lower)
+            term_matches = matched_list(explanation_terms, response_lower)
+            is_detected = type_match or len(term_matches) >= min(2, len(explanation_terms))
+
+            if is_detected:
                 flaws_detected += 1
+                weighted_detected += weight
                 if flaw["severity"] == "critical":
                     critical_detected += 1
-        
+
+            flaw_match_details.append({
+                "flaw_type": flaw["type"],
+                "severity": flaw["severity"],
+                "detected": is_detected,
+                "type_match": type_match,
+                "term_matches": term_matches[:3],
+            })
+
         total_flaws = len(gt_flaws)
         total_critical = len([f for f in gt_flaws if f["severity"] == "critical"])
-        
+
+        flaw_recall = flaws_detected / total_flaws if total_flaws > 0 else 0
+        critical_recall = critical_detected / total_critical if total_critical > 0 else 0
+        weighted_recall = weighted_detected / weighted_total if weighted_total > 0 else 0
+
+        # --- Precision estimate: how many extracted flaws match a GT flaw? ---
+        parse_result = extract_flaw_list(response)
+        extracted_flaws = parse_result.value if parse_result.success else []
+        num_extracted = len(extracted_flaws)
+
+        # Match each extracted flaw against GT flaws
+        true_positives = 0
+        matched_gt = set()
+        for ex_flaw in extracted_flaws:
+            ex_desc = ex_flaw.description.lower() if ex_flaw.description else ""
+            for j, gt_flaw in enumerate(gt_flaws):
+                if j in matched_gt:
+                    continue
+                gt_type = gt_flaw["type"].replace("_", " ")
+                gt_terms = [t for t in gt_flaw["explanation"].lower().split()
+                            if len(t) > 4 and t not in stop_words][:5]
+                type_hit = phrase_match(gt_type, ex_desc)
+                term_hits = count_matches(gt_terms, ex_desc)
+                if type_hit or term_hits >= min(2, len(gt_terms)):
+                    true_positives += 1
+                    matched_gt.add(j)
+                    break
+
+        estimated_precision = true_positives / num_extracted if num_extracted > 0 else 0
+        # F1 (harmonic mean of recall and precision)
+        if flaw_recall + estimated_precision > 0:
+            f1 = 2 * (flaw_recall * estimated_precision) / (flaw_recall + estimated_precision)
+        else:
+            f1 = 0
+
+        # --- Quality checks ---
+        mentions_fix = phrase_match("fix", response_lower) or phrase_match("should", response_lower) or phrase_match("recommend", response_lower)
+        categorizes_severity = phrase_match("critical", response_lower) or phrase_match("major", response_lower)
+
+        # Check if severity categorization is accurate
+        severity_accuracy = 0
+        if parse_result.success and categorizes_severity:
+            for extracted_flaw in parse_result.value:
+                if extracted_flaw.severity and extracted_flaw.severity in severity_weights:
+                    severity_accuracy += 1
+            if num_extracted > 0:
+                severity_accuracy = severity_accuracy / num_extracted
+
         return {
-            "flaw_recall": flaws_detected / total_flaws if total_flaws > 0 else 0,
-            "critical_recall": critical_detected / total_critical if total_critical > 0 else 0,
+            "flaw_recall": round(flaw_recall, 3),
+            "critical_recall": round(critical_recall, 3),
+            "weighted_recall": round(weighted_recall, 3),
+            "estimated_precision": round(estimated_precision, 3),
+            "f1": round(f1, 3),
             "flaws_detected": flaws_detected,
+            "flaws_extracted": num_extracted,
             "total_flaws": total_flaws,
-            "mentions_fix": "fix" in response_lower or "should" in response_lower or "recommend" in response_lower,
-            "categorizes_severity": "critical" in response_lower or "major" in response_lower,
-            "response_length": len(response)
+            "mentions_fix": mentions_fix,
+            "categorizes_severity": categorizes_severity,
+            "severity_accuracy": round(severity_accuracy, 3),
+            "flaw_match_details": flaw_match_details,
+            "response_length": len(response),
         }
 
 

@@ -71,11 +71,14 @@ CONFIDENCE_BUCKETS = {
 # Component names
 COMPONENTS = [
     "protoreason",
-    "causalbio", 
+    "causalbio",
     "designcheck",
     "adversarial",
     "multiturn",
-    "calibration"
+    "calibration",
+    "biosafety",
+    "datainterp",
+    "debate",
 ]
 
 # Task types by component
@@ -103,16 +106,55 @@ TASK_TYPES = {
         "edge_case",
         "contradictory",
         "plausible_nonsense",
-        "overly_specific"
+        "overly_specific",
+        "outdated_knowledge"
+    ],
+    "multiturn": [
+        "hypothesis_refinement",
+        "experimental_design",
+        "troubleshooting",
+        "data_interpretation",
+        "peer_review"
     ],
     "calibration": [
         "acknowledge_unknown",
         "high_confidence_correct",
         "partial_knowledge",
         "context_dependent",
-        "moderate_confidence"
+        "moderate_confidence",
+        "overconfidence_trap"
+    ],
+    "biosafety": [
+        "bsl_classification",
+        "dual_use_recognition",
+        "responsible_refusal",
+        "risk_assessment",
+        "ethics_reasoning"
+    ],
+    "datainterp": [
+        "qpcr_analysis",
+        "dose_response",
+        "statistical_test",
+        "survival_analysis",
+        "multi_assay"
+    ],
+    "debate": [
+        "variant_interpretation",
+        "differential_diagnosis",
+        "experimental_critique",
+        "evidence_synthesis",
+        "mechanism_dispute"
     ]
 }
+
+# =============================================================================
+# DEBATE CONFIGURATION
+# =============================================================================
+
+DEFAULT_DEBATE_PROTOCOL = "simultaneous"
+DEFAULT_DEBATE_AGENTS = 3
+DEFAULT_DEBATE_ROUNDS = 3
+DEFAULT_DEBATE_TERMINATION = "adaptive"
 
 # =============================================================================
 # OUTPUT CONFIGURATION

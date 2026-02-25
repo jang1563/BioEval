@@ -527,9 +527,21 @@ class DialogueResult:
     summary: str
 
 
+class _DialogueTaskWrapper:
+    """Wrapper to give MultiTurnDialogue the .id / .task_type interface the CLI expects."""
+    __slots__ = ("id", "task_type", "prompt", "ground_truth", "dialogue")
+
+    def __init__(self, dialogue: "MultiTurnDialogue"):
+        self.id = dialogue.id
+        self.task_type = "multiturn_dialogue"
+        self.prompt = dialogue.turns[0].user_message if dialogue.turns else ""
+        self.ground_truth = {"dialogue_id": dialogue.id, "num_turns": len(dialogue.turns)}
+        self.dialogue = dialogue
+
+
 class MultiTurnEvaluator:
     """Evaluator for multi-turn dialogues."""
-    
+
     def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
         self.model_name = model_name
         self._client = None
@@ -540,7 +552,41 @@ class MultiTurnEvaluator:
             from anthropic import Anthropic
             self._client = Anthropic()
         return self._client
-    
+
+    # -- CLI-compatible interface ------------------------------------------
+
+    def load_tasks(self, data_tier: str = "base") -> list:
+        """Return dialogues wrapped as task objects for the CLI runner.
+
+        Args:
+            data_tier: 'base' (6 dialogues), 'extended' or 'all' (12 dialogues).
+        """
+        if data_tier in ("extended", "all"):
+            from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+            dialogues = list(DIALOGUES) + EXTENDED_DIALOGUES
+        else:
+            dialogues = DIALOGUES
+        return [_DialogueTaskWrapper(d) for d in dialogues]
+
+    def evaluate_task(self, task) -> dict:
+        """Evaluate a single dialogue task (CLI entry-point)."""
+        dialogue = task.dialogue if hasattr(task, "dialogue") else task
+        result = self.run_dialogue(dialogue)
+        return {
+            "task_id": result.dialogue_id,
+            "response": result.summary,
+            "scores": {
+                "overall_score": result.overall_score,
+                "memory_score": result.memory_score,
+                "turns_passed": sum(1 for t in result.turns if t.passed),
+                "total_turns": len(result.turns),
+            },
+            "error_annotations": None,
+            "timestamp": __import__("datetime").datetime.now().isoformat(),
+        }
+
+    # -- Original dialogue runner ------------------------------------------
+
     def run_dialogue(self, dialogue: MultiTurnDialogue) -> DialogueResult:
         """Run a complete multi-turn dialogue."""
         messages = []
@@ -550,15 +596,27 @@ class MultiTurnEvaluator:
             # Add user message
             messages.append({"role": "user", "content": turn.user_message})
             
-            # Get assistant response
-            response = self.client.messages.create(
-                model=self.model_name,
-                max_tokens=1500,
-                system=f"You are a helpful scientific assistant discussing {dialogue.domain}. "
-                       f"Engage in a multi-turn conversation, building on previous exchanges.",
-                messages=messages
-            )
-            
+            # Get assistant response (with retry on transient errors)
+            import time as _time
+            last_err = None
+            for _attempt in range(3):
+                try:
+                    response = self.client.messages.create(
+                        model=self.model_name,
+                        max_tokens=1500,
+                        system=f"You are a helpful scientific assistant discussing {dialogue.domain}. "
+                               f"Engage in a multi-turn conversation, building on previous exchanges.",
+                        messages=messages
+                    )
+                    break
+                except (BrokenPipeError, ConnectionError, OSError) as exc:
+                    last_err = exc
+                    if _attempt < 2:
+                        _time.sleep(2 ** _attempt)
+                        self._client = None
+            else:
+                raise last_err  # type: ignore[misc]
+
             assistant_message = response.content[0].text
             messages.append({"role": "assistant", "content": assistant_message})
             
@@ -587,56 +645,109 @@ class MultiTurnEvaluator:
         )
     
     def _score_turn(
-        self, 
-        turn: DialogueTurn, 
+        self,
+        turn: DialogueTurn,
         response: str,
         previous_messages: list
     ) -> dict:
-        """Score a single turn."""
+        """Score a single turn with improved behavior matching and context retention.
+
+        Improvements over v0.2:
+        - Multi-term matching (2+ terms) for behavior detection
+        - Per-behavior match detail tracking
+        - Context retention: checks for key entities from previous turns
+        - Graduated scoring instead of binary pass/fail
+        """
+        from bioeval.scoring.matching import extract_key_terms, matched_list, any_match, phrase_match
         response_lower = response.lower()
-        
+
         scores = {
             "turn_number": turn.turn_number,
             "turn_type": turn.turn_type.value,
         }
-        
-        # Check expected behaviors
+
+        # --- Check expected behaviors with improved matching ---
         behaviors_shown = 0
+        behavior_details = []
         for behavior in turn.expected_behaviors:
-            # Simple keyword matching for demo - could use LLM judge
-            key_terms = [w for w in behavior.lower().split() if len(w) > 4][:3]
-            if any(term in response_lower for term in key_terms):
+            key_terms = extract_key_terms(behavior, min_length=5, max_terms=5)
+            matched_terms = matched_list(key_terms, response_lower)
+            # Require 2+ term matches for longer behaviors, 1 for short
+            threshold = min(2, len(key_terms))
+            is_shown = len(matched_terms) >= threshold
+            if is_shown:
                 behaviors_shown += 1
-        
+            behavior_details.append({
+                "behavior": behavior[:80],
+                "shown": is_shown,
+                "matched_terms": matched_terms,
+            })
+
         scores["behavior_coverage"] = behaviors_shown / len(turn.expected_behaviors) if turn.expected_behaviors else 0
-        
-        # Check failure modes
+        scores["behavior_details"] = behavior_details
+
+        # --- Check failure modes ---
         failures = 0
+        failure_details = []
         for failure in turn.failure_modes:
-            key_terms = [w for w in failure.lower().split() if len(w) > 4][:3]
-            if all(term in response_lower for term in key_terms):
+            key_terms = extract_key_terms(failure, min_length=5, max_terms=3)
+            matched = matched_list(key_terms, response_lower)
+            # All terms must match to trigger a failure
+            is_triggered = len(matched) == len(key_terms) and len(key_terms) > 0
+            if is_triggered:
                 failures += 1
-        
+            failure_details.append({
+                "failure": failure[:80],
+                "triggered": is_triggered,
+            })
+
         scores["failure_modes_triggered"] = failures
-        
-        # Check context dependency
-        if turn.context_dependency and turn.context_dependency != "None":
-            # Check if response references previous context
-            if previous_messages:
-                last_user = previous_messages[-2]["content"] if len(previous_messages) >= 2 else ""
-                last_assistant = previous_messages[-1]["content"] if len(previous_messages) >= 1 else ""
-                
-                # Look for continuity markers
-                continuity_markers = ["as mentioned", "as we discussed", "you said", "earlier", 
-                                     "previous", "building on", "to your point", "indeed"]
-                has_continuity = any(marker in response_lower for marker in continuity_markers)
-                scores["shows_continuity"] = has_continuity
-        
-        scores["passed"] = (
-            scores["behavior_coverage"] >= 0.5 and 
-            scores["failure_modes_triggered"] == 0
-        )
-        
+        scores["failure_details"] = failure_details
+
+        # --- Context retention check ---
+        scores["shows_continuity"] = False
+        scores["context_retention_score"] = 0.0
+
+        if turn.context_dependency and turn.context_dependency != "None" and previous_messages:
+            # Check for explicit continuity markers
+            continuity_markers = [
+                "as mentioned", "as we discussed", "you said", "earlier",
+                "previous", "building on", "to your point", "indeed",
+                "as i noted", "given that", "based on", "from our",
+                "we established", "you mentioned", "as before",
+            ]
+            has_continuity_marker = any_match(continuity_markers, response_lower)
+
+            # Check for key entity references from previous assistant messages
+            entity_retention = 0
+            entity_total = 0
+            stop_words = {'about', 'after', 'their', 'there', 'these', 'those',
+                          'which', 'would', 'could', 'should', 'being', 'other',
+                          'where', 'while', 'using', 'first', 'based', 'known',
+                          'shown', 'given', 'since', 'might'}
+            for msg in previous_messages:
+                if msg.get("role") == "assistant":
+                    # Extract key scientific terms from previous responses
+                    sample_terms = extract_key_terms(msg["content"], min_length=4, max_terms=5,
+                                                     stop_words=stop_words)
+                    for term in sample_terms:
+                        entity_total += 1
+                        if phrase_match(term, response_lower):
+                            entity_retention += 1
+
+            entity_score = entity_retention / entity_total if entity_total > 0 else 0
+            scores["shows_continuity"] = has_continuity_marker or entity_score > 0.3
+            scores["context_retention_score"] = round(entity_score, 3)
+
+        # --- Graduated pass/fail ---
+        # Instead of binary, use a graduated score
+        behavior_score = scores["behavior_coverage"]
+        failure_penalty = min(failures * 0.3, 1.0)  # Each failure deducts 0.3
+        turn_score = max(0, behavior_score - failure_penalty)
+
+        scores["turn_score"] = round(turn_score, 3)
+        scores["passed"] = turn_score >= 0.4  # Slightly relaxed from 0.5
+
         return scores
     
     def _calculate_memory_score(
