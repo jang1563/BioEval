@@ -43,12 +43,39 @@ def load_and_normalize(result_path: str) -> dict:
                 continue
 
             task_type = r.get("task_type", "")
-            # Handle adversarial nested scores
-            if component == "adversarial" and isinstance(r.get("scores"), dict):
+            # Flatten nested "scores" dict into top-level for normalizer
+            if isinstance(r.get("scores"), dict):
                 merged = {**r, **r["scores"]}
-                ns = normalize_result(merged, component, task_type)
             else:
-                ns = normalize_result(r, component, task_type)
+                merged = r
+
+            # Infer task_type from task_id when not explicitly stored
+            if not task_type:
+                task_id = merged.get("task_id", "")
+                if "ordering" in task_id:
+                    task_type = "step_ordering"
+                elif "missing" in task_id:
+                    task_type = "missing_step"
+                elif "calc" in task_id:
+                    task_type = "calculation"
+                elif "trouble" in task_id or "ts_" in task_id:
+                    task_type = "troubleshooting"
+                elif "safety" in task_id:
+                    task_type = "safety"
+                elif task_id.startswith("ko_"):
+                    task_type = "knockout_prediction"
+                elif task_id.startswith("pathway_"):
+                    task_type = "pathway_reasoning"
+                elif task_id.startswith("epistasis_"):
+                    task_type = "epistasis"
+                elif task_id.startswith("drug_"):
+                    task_type = "drug_response"
+                elif task_id.startswith("design_"):
+                    task_type = "flaw_detection"
+                elif task_id.startswith("cal_"):
+                    task_type = "calibration"
+
+            ns = normalize_result(merged, component, task_type)
 
             all_normalized.append(ns)
             by_component[component].append(ns)

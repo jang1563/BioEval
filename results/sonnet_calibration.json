@@ -1,0 +1,425 @@
+{
+  "metadata": {
+    "model": "claude-sonnet-4-20250514",
+    "components": [
+      "calibration"
+    ],
+    "data_tier": "base",
+    "split": "all",
+    "run_index": 0,
+    "n_runs": 1,
+    "use_judge": false,
+    "judge_model": null,
+    "timestamp": "2026-02-25T19:12:20.398570",
+    "elapsed_seconds": 222.3,
+    "bioeval_version": "0.3.0"
+  },
+  "summary": {
+    "total_tasks": 30,
+    "by_component": {
+      "calibration": {
+        "num_tasks": 30,
+        "completed": 30
+      }
+    }
+  },
+  "results": [
+    {
+      "component": "calibration",
+      "model": "claude-sonnet-4-20250514",
+      "num_tasks": 30,
+      "results": [
+        {
+          "task_id": "cal_001",
+          "response": "I cannot determine the fitness effect of knocking out the hypothetical gene XYZ123 in HeLa cells without additional information about this gene's function, expression patterns, or experimental data.\n\nTo assess fitness effects of gene knockouts, we would need to know:\n- The gene's cellular function and pathways it participates in\n- Whether it's essential for cell viability, proliferation, or other key processes\n- Experimental data from knockout studies measuring parameters like cell growth, survival, morphology, or other phenotypes\n- The gene's expression level in HeLa cells and conservation across species\n\nSince XYZ123 appears to be a hypothetical gene identifier, there would be no existing literature or databases to reference for this information.\n\n**Confidence:** LOW\n**Reasoning:** Without any functional annotation, experimental data, or even confirmation that this gene exists, it's impossible to predict knockout fitness effects with any reliability.",
+          "scores": {
+            "confidence_score": 0.25,
+            "is_correct": true,
+            "confidence_bucket": "low",
+            "calibration_error": 0.75,
+            "stated_confidence": "low"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:08:44.313331"
+        },
+        {
+          "task_id": "cal_002",
+          "response": "I don't have any information about the fitness effect of BRCA1 knockout in the cell line ABC-2025. This appears to be a very specific experimental question about a particular cell line that I'm not familiar with, and I cannot find any data or literature references for \"ABC-2025\" as a cell line designation.\n\nTo answer this question accurately, you would need to:\n- Consult the original research papers or databases where ABC-2025 was characterized\n- Look for experimental data on BRCA1 knockout effects in this specific cell line\n- Check cell line repositories or the laboratory that developed this line\n\n**Confidence:** LOW\n**Reasoning:** I have no access to data about this specific cell line (ABC-2025), and the fitness effects of BRCA1 knockout can vary significantly between different cell types and genetic backgrounds.",
+          "scores": {
+            "confidence_score": 0.25,
+            "is_correct": true,
+            "confidence_bucket": "low",
+            "calibration_error": 0.75,
+            "stated_confidence": "low"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:08:49.207574"
+        },
+        {
+          "task_id": "cal_003",
+          "response": "I don't have any information about a drug called \"Nexoribant\" or its discovery in 2025. Since my knowledge has a cutoff date before 2025, I cannot provide details about this specific PI3K inhibitor or the pathways it affects.\n\nHowever, I can note that PI3K inhibitors generally affect the PI3K/AKT/mTOR signaling pathway, which is involved in cell growth, proliferation, survival, and metabolism - making these drugs of particular interest in cancer treatment and other therapeutic areas.\n\n**Confidence:** HIGH\n**Reasoning:** I'm highly confident that this drug is not in my training data, as my knowledge doesn't extend to 2025 discoveries, and I have no record of \"Nexoribant\" in my existing pharmaceutical knowledge.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:08:53.653012"
+        },
+        {
+          "task_id": "cal_004",
+          "response": "I cannot provide information about the genetic interaction between TP53 and ONCO99 because ONCO99 appears to be a fictional or hypothetical gene name that I'm not familiar with in the scientific literature.\n\nTP53 is a well-established tumor suppressor gene that encodes the p53 protein, which plays a crucial role in cell cycle regulation, DNA repair, and apoptosis. However, without ONCO99 being a recognized gene in current databases or literature, I cannot describe any specific genetic interactions between these two entities.\n\nIf you're referring to a recently published study or a specific research context involving ONCO99, I would need more information or clarification about this gene to provide an accurate answer about its interaction with TP53.\n\n**Confidence:** HIGH\n\n**Reasoning:** I'm highly confident that ONCO99 is not a recognized gene name in standard genetic databases or recent literature, making it impossible to describe legitimate genetic interactions with TP53.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:08:59.915505"
+        },
+        {
+          "task_id": "cal_005",
+          "response": "I don't have any information about \"Metabolex-X\" or its effects on gene expression in hepatocytes. This appears to be either a hypothetical compound, a very new/experimental drug not in my training data, or possibly a proprietary research compound.\n\nTo answer this question accurately, I would need access to:\n- Specific research studies or publications about Metabolex-X\n- Gene expression data from hepatocyte treatment experiments\n- Information about the compound's mechanism of action\n\n**Confidence:** LOW\n**Reasoning:** I have no knowledge of this specific compound in my training data, and gene expression profiles are highly specific to individual treatments and experimental conditions, making it impossible to provide accurate information without access to the relevant research data.",
+          "scores": {
+            "confidence_score": 0.25,
+            "is_correct": true,
+            "confidence_bucket": "low",
+            "calibration_error": 0.75,
+            "stated_confidence": "low"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:04.545674"
+        },
+        {
+          "task_id": "cal_006",
+          "response": "Yes, MYC is essential in K562 cells. K562 is a chronic myeloid leukemia cell line that exhibits high dependency on MYC for survival and proliferation. MYC knockdown or inhibition in K562 cells typically results in growth arrest, apoptosis, and cell death, making it a critical gene for their viability.\n\nMYC plays crucial roles in K562 cells including:\n- Driving cell cycle progression and proliferation\n- Regulating metabolic reprogramming necessary for rapid growth\n- Maintaining the transformed phenotype\n- Supporting survival signaling pathways\n\nThis essentiality has made MYC an attractive therapeutic target for CML and other hematological malignancies.\n\n**Confidence:** HIGH\n**Reasoning:** MYC essentiality in K562 cells is well-established through multiple independent studies using RNAi, CRISPR, and pharmacological approaches, with consistent results showing cell death upon MYC loss.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:09.645256"
+        },
+        {
+          "task_id": "cal_007",
+          "response": "Yes, EGFR inhibition significantly affects MAPK signaling. EGFR (Epidermal Growth Factor Receptor) is a key upstream regulator of the MAPK pathway, and when EGFR is inhibited, it leads to downstream suppression of the RAS-RAF-MEK-ERK cascade.\n\nHere's how this works:\n\n1. **Normal pathway**: EGFR activation \u2192 RAS activation \u2192 RAF activation \u2192 MEK phosphorylation \u2192 ERK phosphorylation \u2192 transcriptional changes\n\n2. **With EGFR inhibition**: The signal transduction cascade is disrupted at the receptor level, leading to:\n   - Reduced RAS activation\n   - Decreased RAF kinase activity\n   - Lower MEK and ERK phosphorylation\n   - Reduced proliferative and survival signals\n\nThis mechanism is clinically relevant, as EGFR inhibitors (like erlotinib, gefitinib, and cetuximab) are used in cancer therapy specifically because they block this growth-promoting pathway. However, cancer cells can sometimes develop resistance through alternative pathway activation or downstream mutations.\n\n**Confidence:** HIGH\n\n**Reasoning:** This is well-established molecular biology with extensive research documentation. EGFR's role as a primary upstream regulator of MAPK signaling is fundamental to cell biology and is the basis for multiple FDA-approved cancer therapies.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:17.232455"
+        },
+        {
+          "task_id": "cal_008",
+          "response": "ADAR1 knockout in cancer cells with high interferon signaling typically leads to cancer cell death through activation of the innate immune response. Specifically, loss of ADAR1 results in accumulation of unedited double-stranded RNA structures that are recognized as \"non-self\" by cytosolic RNA sensors like MDA5 and RIG-I, triggering type I interferon responses and ultimately apoptosis.\n\nThe mechanism works as follows:\n- ADAR1 normally performs A-to-I editing of endogenous dsRNA structures (like Alu repeats and inverted transposable elements)\n- Without ADAR1, these unedited dsRNAs accumulate and are detected by pattern recognition receptors\n- This triggers interferon-stimulated gene (ISG) expression and downstream apoptotic pathways\n- Cancer cells with already elevated interferon signaling are particularly vulnerable to this effect\n\nThis has made ADAR1 an attractive therapeutic target, as many cancer cells are more dependent on ADAR1 for survival than normal cells, especially in the context of high interferon environments often found in tumors.\n\n**Confidence:** HIGH\n**Reasoning:** This is a well-established mechanism supported by extensive research showing ADAR1's role in preventing innate immune activation, with multiple studies demonstrating synthetic lethality between ADAR1 loss and interferon signaling in cancer models.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:24.171699"
+        },
+        {
+          "task_id": "cal_009",
+          "response": "Yes, KRAS and TP53 mutations do cooperate in pancreatic cancer. This cooperation is well-established in pancreatic ductal adenocarcinoma (PDAC), where these mutations work synergistically to drive tumor development and progression.\n\nKey aspects of their cooperation include:\n\n**Mechanistic cooperation:**\n- KRAS mutations (present in ~95% of PDAC cases) drive oncogenic signaling and cellular proliferation\n- TP53 mutations (present in ~70-80% of PDAC cases) disable DNA damage checkpoints and apoptosis\n- Together, they create a \"one-two punch\" where KRAS promotes growth while TP53 loss prevents cell death\n\n**Temporal sequence:**\n- KRAS mutations typically occur early in pancreatic cancer development\n- TP53 mutations generally occur later, facilitating progression from precancerous lesions (PanINs) to invasive carcinoma\n\n**Functional synergy:**\n- KRAS activation alone can trigger senescence or apoptosis through p53-dependent pathways\n- TP53 loss removes these tumor suppressor barriers, allowing KRAS-driven proliferation to proceed unchecked\n- This combination promotes genomic instability, metastasis, and treatment resistance\n\n**Clinical evidence:**\n- Tumors with both mutations show more aggressive behavior\n- Mouse models demonstrate that combined KRAS activation and TP53 loss accelerate pancreatic tumor formation compared to either mutation alone\n\n**Confidence:** HIGH\n**Reasoning:** This cooperation is supported by extensive molecular studies, mouse models, and clinical data consistently showing synergistic effects of these mutations in pancreatic cancer development and progression.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:31.905664"
+        },
+        {
+          "task_id": "cal_010",
+          "response": "Triple-negative breast cancer (TNBC) has shown promising responses to the combination of ATR inhibitors and gemcitabine in preclinical and early clinical studies. This combination appears particularly effective in TNBC because these tumors often have defective DNA repair mechanisms (including BRCA mutations or BRCAness phenotypes), making them more vulnerable to the synthetic lethal interaction between ATR inhibition and gemcitabine-induced replication stress.\n\nSeveral ATR inhibitors (such as ceralasertib/AZD6738, elimusertib/BAY1895344, and berzosertib/VE-822) combined with gemcitabine have demonstrated:\n\n- Enhanced tumor growth inhibition compared to either agent alone in TNBC preclinical models\n- Increased DNA damage and cell death through synthetic lethality\n- Particular efficacy in homologous recombination-deficient TNBC tumors\n- Manageable toxicity profiles in early-phase clinical trials\n\nClinical trials have reported objective response rates ranging from approximately 20-40% in heavily pretreated TNBC patients, with some studies showing higher response rates in patients with BRCA mutations or homologous recombination deficiency. However, responses can be limited by acquired resistance mechanisms and dose-limiting toxicities.\n\n**Confidence:** MEDIUM\n\n**Reasoning:** While preclinical data is strong and early clinical results are encouraging, most clinical evidence comes from small phase I/II studies with limited patient numbers. Larger randomized trials are still ongoing to definitively establish efficacy compared to standard treatments.",
+          "scores": {
+            "confidence_score": 0.55,
+            "is_correct": true,
+            "confidence_bucket": "medium",
+            "calibration_error": 0.44999999999999996,
+            "stated_confidence": "medium"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:40.535095"
+        },
+        {
+          "task_id": "cal_011",
+          "response": "CDK4 is generally **not essential** for proliferation in RB1-null cancer cells. When RB1 is lost, the primary cell cycle checkpoint that CDK4 normally helps to overcome (the G1/S transition controlled by RB protein) is already absent, making CDK4 functionally redundant in this context.\n\nIn RB1-intact cells, CDK4 (along with cyclin D) phosphorylates and inactivates the RB protein, allowing progression from G1 to S phase. However, in RB1-null cells, this regulatory mechanism is bypassed entirely, and cells can progress through the cell cycle without requiring CDK4 activity. Other CDKs, particularly CDK2 and CDK6, can compensate for CDK4 loss in these cells.\n\nThis has been demonstrated experimentally, where RB1-null cancer cells show resistance to CDK4/6 inhibitors compared to RB1-proficient cells, and CDK4 knockout or inhibition has minimal impact on their proliferation.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in cancer biology literature with consistent experimental evidence showing that RB1 loss confers resistance to CDK4 inhibition, and the mechanistic basis (bypass of RB-mediated G1/S checkpoint) is clearly understood.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:47.913639"
+        },
+        {
+          "task_id": "cal_012",
+          "response": "Based on available clinical trial evidence, bevacizumab does not appear to significantly improve overall survival in metastatic pancreatic cancer when added to standard chemotherapy regimens.\n\nThe most notable study was the CALGB 80303 trial, a large phase III randomized controlled trial that compared gemcitabine plus bevacizumab versus gemcitabine plus placebo in patients with advanced pancreatic cancer. This study showed no statistically significant improvement in overall survival with the addition of bevacizumab (median OS 5.8 vs 5.9 months, p=0.95). Similarly, other smaller studies and combination trials with bevacizumab in pancreatic cancer have generally failed to demonstrate meaningful survival benefits.\n\nWhile anti-angiogenic therapy with bevacizumab has shown efficacy in other solid tumors like colorectal and lung cancer, pancreatic adenocarcinoma appears to be relatively resistant to VEGF inhibition as a therapeutic strategy. The dense desmoplastic stroma and complex tumor microenvironment of pancreatic cancer may contribute to this resistance.\n\n**Confidence:** HIGH\n**Reasoning:** This conclusion is supported by well-designed phase III randomized controlled trials, particularly CALGB 80303, which specifically tested this question with adequate power and showed clear negative results for overall survival benefit.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:09:55.209918"
+        },
+        {
+          "task_id": "cal_013",
+          "response": "The relationship between antioxidant supplements and cancer risk is complex and not definitively established. While oxidative DNA damage does contribute to cancer development, large-scale clinical trials and systematic reviews have generally failed to show that antioxidant supplements reduce cancer risk. In fact, some studies have suggested certain antioxidant supplements may actually increase cancer risk in specific populations (like beta-carotene in smokers).\n\nThe reasons for this disconnect between theory and evidence include:\n\n1. **Bioavailability issues** - Supplemental antioxidants may not reach target tissues effectively\n2. **Dose-dependent effects** - High doses may have pro-oxidant rather than antioxidant effects\n3. **Complex cellular balance** - Some reactive oxygen species serve important cellular functions\n4. **Individual variation** - Genetic factors affect antioxidant metabolism and needs\n5. **Dietary context** - Antioxidants from whole foods may work differently than isolated supplements\n\nCurrent evidence suggests that getting antioxidants from a varied diet rich in fruits and vegetables is more beneficial than taking supplements for cancer prevention.\n\n**Confidence:** HIGH\n\n**Reasoning:** This conclusion is supported by consistent findings from multiple large randomized controlled trials, systematic reviews, and meta-analyses spanning decades of research. The lack of benefit (and potential harm) from antioxidant supplements for cancer prevention is well-established in the scientific literature.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:01.835459"
+        },
+        {
+          "task_id": "cal_014",
+          "response": "No, telomerase reactivation is not the universal mechanism of replicative immortality in all human cancers.\n\nWhile telomerase reactivation is the predominant mechanism (occurring in approximately 85-90% of human cancers), there are alternative pathways. The most well-characterized alternative is the Alternative Lengthening of Telomeres (ALT) pathway, which maintains telomeres through homologous recombination-based mechanisms independent of telomerase. ALT is found in about 10-15% of cancers, particularly in certain sarcomas, some gliomas, and other specific tumor types.\n\nAdditionally, some cancers may achieve replicative immortality through other mechanisms, such as:\n- Oncogene-induced senescence bypass\n- p53 pathway inactivation combined with other cell cycle checkpoint disruptions\n- Epigenetic modifications that affect telomere maintenance\n\nThe specific mechanism used often depends on the cancer type, tissue of origin, and the particular genetic alterations present in the tumor.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in cancer biology literature with clear percentages documented across multiple studies, and the ALT mechanism is thoroughly characterized as a distinct alternative pathway.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:08.300726"
+        },
+        {
+          "task_id": "cal_015",
+          "response": "The Warburg effect in cancer cells is not simply caused by dysfunctional mitochondria. While Otto Warburg originally hypothesized that mitochondrial dysfunction was the primary cause, modern research has shown that cancer cells typically have functional mitochondria but actively choose glycolysis over oxidative phosphorylation even in the presence of oxygen.\n\nThe current understanding is that the Warburg effect is primarily a metabolic reprogramming that serves the specific needs of rapidly dividing cancer cells. This metabolic shift provides several advantages:\n\n1. **Rapid ATP production**: Although less efficient per glucose molecule, glycolysis produces ATP faster than oxidative phosphorylation\n2. **Biosynthetic precursors**: Glycolysis generates intermediates needed for synthesizing nucleotides, amino acids, and lipids required for cell division\n3. **NADPH production**: Through the pentose phosphate pathway, cells generate reducing equivalents needed for biosynthesis\n4. **pH regulation**: Lactate export helps manage intracellular pH\n\nRather than being driven by mitochondrial dysfunction, the Warburg effect is orchestrated by oncogenes (like c-Myc, Ras) and tumor suppressors (like p53) that regulate metabolic enzymes. Many cancer cells actually maintain functional mitochondria and can switch between glycolysis and oxidative phosphorylation depending on conditions.\n\nSome cancer cells do have mitochondrial abnormalities, but these are generally consequences rather than causes of the metabolic reprogramming, or they may contribute to but don't fully explain the Warburg effect.\n\n**Confidence:** HIGH\n**Reasoning:** This topic has been extensively studied with consistent findings across multiple research groups showing functional mitochondria in most cancer cells, and the molecular mechanisms of metabolic reprogramming are well-characterized.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:18.736554"
+        },
+        {
+          "task_id": "cal_016",
+          "response": "The TP53 R175H hotspot mutation does not simply result in loss of wild-type p53 function - it's more complex than that. While this mutation does eliminate normal p53 tumor suppressor activity (loss of function), it also confers dominant-negative effects and gain-of-function (GOF) properties.\n\nThe R175H mutation affects the DNA-binding domain of p53, preventing it from binding to its target gene promoters and activating tumor suppressor pathways like apoptosis and cell cycle arrest. However, the mutant protein:\n\n1. **Exerts dominant-negative effects** - The mutant p53 can form tetramers with any remaining wild-type p53, inactivating the normal protein and accelerating tumor progression beyond what simple loss would cause.\n\n2. **Gains oncogenic functions** - R175H mutant p53 can:\n   - Bind to and inactivate p53 family members (p63/p73)\n   - Interact with other transcription factors to promote oncogenic gene expression\n   - Enhance cell migration, invasion, and metastasis\n   - Promote genomic instability\n   - Increase resistance to chemotherapy\n\n3. **Shows increased protein stability** - Unlike wild-type p53, mutant R175H protein often accumulates to high levels in cells, amplifying both its dominant-negative and gain-of-function effects.\n\nThis \"gain-of-function\" activity helps explain why patients with missense mutations like R175H often have worse prognoses than those with null mutations that simply eliminate p53 expression.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in the p53 literature with extensive experimental evidence demonstrating both dominant-negative and gain-of-function properties of R175H and other DNA-binding domain hotspot mutations, supported by clinical outcome data.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:28.912110"
+        },
+        {
+          "task_id": "cal_017",
+          "response": "No, PARP inhibitor treatment does not always lead to synthetic lethality in BRCA1-mutant cancers.\n\nWhile PARP inhibitors were designed based on the synthetic lethal relationship between PARP inhibition and BRCA1/2 deficiency, clinical reality is more complex. Several factors can prevent or reduce synthetic lethality:\n\n**Resistance mechanisms:**\n- Secondary mutations that restore BRCA1 function\n- Upregulation of alternative DNA repair pathways\n- Loss of 53BP1 or other proteins that can bypass the need for functional BRCA1\n- Replication fork protection mechanisms\n\n**Tumor heterogeneity:**\n- Not all cells within a BRCA1-mutant tumor may be equally dependent on PARP\n- Subclonal populations may have different sensitivities\n\n**Functional BRCA1 status:**\n- Some BRCA1 mutations may retain partial function\n- Epigenetic silencing may be reversible\n- The specific type and location of mutation affects the degree of synthetic lethality\n\n**Clinical context:**\n- Prior treatments may select for resistant clones\n- Tumor microenvironment factors can influence response\n- Patient-specific genetic modifiers may affect sensitivity\n\nThis is why BRCA1-mutant cancers often show initial response to PARP inhibitors but may develop resistance over time, and why response rates, while high, are not 100%.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in clinical oncology literature, with extensive documentation of resistance mechanisms and variable response rates in BRCA1-mutant cancers treated with PARP inhibitors.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:37.711814"
+        },
+        {
+          "task_id": "cal_018",
+          "response": "No, metformin's primary anti-diabetic mechanism is not the activation of AMPK, though AMPK activation does play an important role.\n\nThe primary mechanism is **inhibition of mitochondrial complex I in hepatocytes**, which reduces hepatic glucose production (gluconeogenesis). This occurs through:\n- Decreased ATP production\n- Altered cellular energy charge\n- Reduced conversion of lactate, glycerol, and amino acids to glucose\n\nAMPK activation is a secondary consequence of the altered cellular energy state (increased AMP:ATP ratio) that results from complex I inhibition. While AMPK activation contributes to metformin's effects by:\n- Further suppressing gluconeogenesis\n- Promoting glucose uptake in peripheral tissues\n- Inhibiting fatty acid synthesis\n\nThe hepatic glucose production inhibition through complex I can occur even when AMPK is pharmacologically blocked, indicating it's not strictly dependent on AMPK activation.\n\n**Confidence:** HIGH\n\n**Reasoning:** This mechanism has been extensively studied and validated through multiple approaches including genetic knockouts, pharmacological inhibitors, and metabolic flux studies. The distinction between primary (complex I inhibition) and secondary (AMPK activation) mechanisms is well-established in recent literature.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:45.019986"
+        },
+        {
+          "task_id": "cal_019",
+          "response": "Concurrent KRAS G12D and BRAF V600E mutations do not typically cooperate to further enhance MAPK pathway activity. In fact, these mutations are generally mutually exclusive in tumors because they both constitutively activate the same pathway at different points - KRAS upstream of RAF, and BRAF downstream of RAS. When both mutations are present, the BRAF V600E mutation essentially bypasses the need for RAS activation, making the KRAS mutation functionally redundant rather than additive.\n\nThe rare cases where both mutations have been detected simultaneously often represent tumor heterogeneity (different clones within the same tumor) rather than true cooperation within individual cells. Some studies have even suggested that co-expression of oncogenic RAS and BRAF can lead to cellular senescence rather than enhanced proliferation, which may explain the evolutionary pressure against maintaining both mutations in the same clone.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in cancer biology literature, with extensive evidence showing these mutations are mutually exclusive and function in the same linear pathway, making cooperation unlikely from both mechanistic and evolutionary perspectives.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:10:52.386338"
+        },
+        {
+          "task_id": "cal_020",
+          "response": "No, synonymous mutations are not always functionally neutral, despite not changing the amino acid sequence. They can have significant functional effects through several mechanisms:\n\n**Codon usage bias effects**: Different codons for the same amino acid are used at different frequencies in organisms. Rare codons can slow translation, affecting protein folding kinetics and final structure.\n\n**mRNA stability and processing**: Synonymous mutations can alter mRNA secondary structure, affecting stability, splicing efficiency, or microRNA binding sites, which can change protein expression levels.\n\n**Translation timing**: Slower translation at rare codons can allow proper domain folding, while faster translation might lead to misfolding. This affects the final protein's function.\n\n**Regulatory elements**: Some synonymous sites overlap with regulatory sequences like enhancers, silencers, or transcription factor binding sites.\n\n**Clinical examples**: Disease-causing synonymous mutations have been documented, such as in cystic fibrosis and multidrug resistance genes, where they affect splicing or expression levels.\n\n**tRNA availability**: Cells have varying levels of different tRNAs, so synonymous codons requiring rare tRNAs can create translation bottlenecks.\n\nWhile many synonymous mutations may indeed be neutral, assuming they're always functionally silent is incorrect and can lead to missing important regulatory or structural effects.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in molecular biology with extensive experimental evidence showing functional effects of synonymous mutations through multiple documented mechanisms, contradicting the traditional \"silent mutation\" assumption.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:01.562847"
+        },
+        {
+          "task_id": "cal_021",
+          "response": "I cannot provide information about the function of IL-47 in T cell activation because IL-47 is not a recognized or established cytokine in current immunological literature. The interleukin numbering system has not yet reached IL-47, and this appears to be a hypothetical cytokine as stated in your question.\n\nThe most recently discovered and characterized interleukins are in the IL-30s and early IL-40s range, with the specific functions and even existence of some of these higher-numbered interleukins still being researched and debated in the scientific community.\n\n**Confidence:** HIGH\n**Reasoning:** I am certain that IL-47 is not an established cytokine in current immunology, as the interleukin numbering system has not progressed to this number and it was explicitly described as \"hypothetical\" in the question.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:06.874432"
+        },
+        {
+          "task_id": "cal_022",
+          "response": "No, anti-PD-1 immunotherapy does not benefit all solid tumor types equally. The efficacy varies significantly across different cancer types, with some showing dramatic responses while others demonstrate minimal benefit.\n\n**Tumor types with high response rates:**\n- Melanoma (particularly advanced/metastatic)\n- Non-small cell lung cancer (NSCLC), especially with high PD-L1 expression\n- Renal cell carcinoma\n- Head and neck squamous cell carcinoma\n- Hodgkin lymphoma\n- Microsatellite instability-high (MSI-H) tumors across various types\n\n**Tumor types with lower response rates:**\n- Pancreatic adenocarcinoma\n- Glioblastoma\n- Prostate cancer\n- Most breast cancers (except triple-negative subsets)\n- Ovarian cancer\n\n**Key factors influencing response:**\n- **Tumor mutational burden (TMB):** Higher TMB often correlates with better responses\n- **PD-L1 expression levels:** Though not always predictive, higher expression generally associates with better outcomes\n- **Microsatellite instability:** MSI-H tumors tend to respond well regardless of tissue type\n- **Tumor microenvironment:** \"Hot\" tumors with T-cell infiltration respond better than \"cold\" immunologically excluded tumors\n- **Prior treatments:** Treatment history can affect immune system status\n\nThe variation in response rates ranges from ~5-15% in resistant tumor types to 40-60% or higher in responsive types, highlighting the importance of patient selection and biomarker testing.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established through extensive clinical trial data across multiple tumor types, with clear patterns of differential efficacy supported by robust scientific literature and regulatory approvals.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:15.705347"
+        },
+        {
+          "task_id": "cal_023",
+          "response": "The question of adult hippocampal neurogenesis in humans is currently one of the most contentious debates in neuroscience. While there is strong evidence for adult neurogenesis in the hippocampus of many mammalian species, the evidence in humans remains highly controversial and conflicting.\n\n**The evidence against adult hippocampal neurogenesis in humans:**\n- A landmark 2018 study by Sorrells et al. in Nature found no evidence of new neurons in the human hippocampus after infancy\n- Several other studies using advanced microscopy techniques have failed to detect markers of neurogenesis in adult human hippocampal tissue\n- The human hippocampus may have evolved different mechanisms compared to other mammals\n\n**The evidence supporting adult hippocampal neurogenesis in humans:**\n- Studies by Boldrini et al. and others have reported finding new neurons in adult human hippocampi\n- Functional studies suggest cognitive benefits that would be consistent with new neuron formation\n- Some researchers argue that technical limitations in tissue preservation and detection methods may explain negative findings\n\n**Current scientific consensus:**\nThe field remains divided, with methodological challenges in studying postmortem human brain tissue contributing to conflicting results. Even if adult hippocampal neurogenesis occurs in humans, it appears to be much more limited than in other mammals like rodents.\n\n**Other brain regions:**\nThere is clearer evidence for adult neurogenesis in the olfactory bulb in many mammals, though this too remains debated in humans.\n\n**Confidence:** LOW\n**Reasoning:** This is an actively contested area with high-quality studies reaching opposite conclusions, and significant methodological challenges make definitive answers difficult with current techniques.",
+          "scores": {
+            "confidence_score": 0.25,
+            "is_correct": true,
+            "confidence_bucket": "low",
+            "calibration_error": 0.75,
+            "stated_confidence": "low"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:25.150775"
+        },
+        {
+          "task_id": "cal_024",
+          "response": "No, dopamine is not simply a \"pleasure chemical\" that directly causes enjoyment. This is a common misconception. Dopamine primarily functions as a **prediction error signal** and motivation driver rather than directly creating pleasurable sensations.\n\nHere's what dopamine actually does:\n\n**Primary functions:**\n- Signals when rewards are better or worse than expected\n- Motivates seeking behavior and goal pursuit\n- Facilitates learning about reward-predicting cues\n- Drives \"wanting\" rather than \"liking\"\n\n**Key evidence against the \"pleasure chemical\" idea:**\n- Dopamine levels spike most when rewards are **unexpected**, not when we're actively enjoying something\n- People with Parkinson's disease (low dopamine) can still experience pleasure from rewards, but have reduced motivation to seek them\n- Blocking dopamine in studies reduces motivation to work for rewards but doesn't eliminate the enjoyment once obtained\n- Dopamine neurons fire more for reward-predicting cues than for the actual reward itself\n\n**What creates pleasure sensations:**\nThe actual \"liking\" or hedonic experience involves different systems, particularly:\n- Opioid systems (endorphins, enkephalins)\n- Specific \"hedonic hotspots\" in the brain involving mu-opioid receptors\n- Various neurotransmitters including serotonin and GABA\n\nSo dopamine is better understood as the brain's \"motivational currency\" that drives us to seek potentially rewarding experiences, rather than the chemical that makes those experiences feel good.\n\n**Confidence:** HIGH\n**Reasoning:** This distinction between dopamine's role in \"wanting\" vs. \"liking\" is well-established through decades of neuroscience research, including lesion studies, pharmacological interventions, and direct neural recordings that consistently show dopamine's primary role in motivation and prediction rather than hedonic experience.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:36.290564"
+        },
+        {
+          "task_id": "cal_025",
+          "response": "I cannot provide specific information about the antimicrobial resistance genes carried by Burkholderia syntheticum. This appears to be a very recently described or novel pathogen, and I don't have reliable data on its specific resistance gene profile in my training data.\n\nFor accurate information about the antimicrobial resistance genes in B. syntheticum, I would recommend:\n- Checking recent genomic studies or case reports in medical literature\n- Consulting databases like NCBI GenBank or the Comprehensive Antibiotic Resistance Database (CARD)\n- Reviewing any available whole genome sequencing data for this species\n\n**Confidence:** LOW\n\n**Reasoning:** B. syntheticum appears to be a very recently identified or novel pathogen not well-represented in my training data, and antimicrobial resistance gene profiles are rapidly evolving and require current genomic data for accuracy.",
+          "scores": {
+            "confidence_score": 0.25,
+            "is_correct": true,
+            "confidence_bucket": "low",
+            "calibration_error": 0.75,
+            "stated_confidence": "low"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:41.147778"
+        },
+        {
+          "task_id": "cal_026",
+          "response": "Bacteriophages show significant promise as alternatives to antibiotics for treating multidrug-resistant infections, but they are not yet established as fully effective replacements. Here's the current state of evidence:\n\n**Promising aspects:**\n- Phages can target antibiotic-resistant bacteria through entirely different mechanisms than antibiotics\n- They show specificity for bacterial pathogens while generally sparing beneficial microbiota\n- Several case studies and compassionate use programs have reported successful treatment of otherwise untreatable infections\n- They can evolve alongside bacteria, potentially overcoming resistance development\n- Clinical trials are showing encouraging preliminary results\n\n**Current limitations:**\n- Limited large-scale randomized controlled trials completed\n- Regulatory pathways are still being established in most countries\n- Manufacturing and quality control standards need further development\n- Phage resistance can still develop, requiring cocktail approaches\n- Host range specificity requires precise bacterial identification\n- Pharmacokinetics and optimal dosing regimens need more research\n\n**Current status:**\nPhage therapy is approved in some countries (like Georgia) and available through expanded access programs in others. The FDA has approved several clinical trials, and the field is advancing rapidly. However, more robust clinical evidence is needed before they can be considered standard alternatives to antibiotics.\n\n**Confidence:** MEDIUM\n\n**Reasoning:** While preclinical data and case reports are very encouraging, the limited number of completed large-scale clinical trials and ongoing regulatory development prevent higher confidence. The biological rationale is strong, but clinical medicine requires more robust evidence standards.",
+          "scores": {
+            "confidence_score": 0.55,
+            "is_correct": true,
+            "confidence_bucket": "medium",
+            "calibration_error": 0.44999999999999996,
+            "stated_confidence": "medium"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:52.321321"
+        },
+        {
+          "task_id": "cal_027",
+          "response": "The BRCA1 variant c.5096G>A (p.Arg1699Gln) is classified as **Likely Pathogenic** according to current clinical databases and ACMG/AMP guidelines.\n\nThis missense variant occurs in the BRCT domain of BRCA1, which is critical for protein-protein interactions and DNA damage response. Multiple lines of evidence support its pathogenic nature, including functional studies showing impaired transcriptional activation, computational predictions indicating it's damaging, and segregation data from families with hereditary breast and ovarian cancer syndrome.\n\n**Confidence:** MEDIUM\n\n**Reasoning:** While multiple databases classify this as likely pathogenic with supporting functional evidence, variant classifications can evolve as new data emerges, and I recommend confirming with the most current clinical databases or genetic counseling for clinical decision-making.",
+          "scores": {
+            "confidence_score": 0.55,
+            "is_correct": true,
+            "confidence_bucket": "medium",
+            "calibration_error": 0.44999999999999996,
+            "stated_confidence": "medium"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:11:57.930667"
+        },
+        {
+          "task_id": "cal_028",
+          "response": "I cannot find any information about the ZPLD2 gene or the specific polymorphism rs9999999999 in relation to Alzheimer's disease risk. This SNP identifier appears to be fictional, as rs numbers in dbSNP databases don't typically reach such high numerical values, and ZPLD2 is not a recognized gene symbol in standard genomic databases.\n\nIf you're interested in established genetic risk factors for Alzheimer's disease, the most well-known is the APOE \u03b54 allele, along with variants in genes like TREM2, CLU, CR1, and others identified through genome-wide association studies.\n\n**Confidence:** HIGH\n**Reasoning:** The rs number format is implausible (too many digits), ZPLD2 is not found in standard gene databases, and I have comprehensive knowledge of established Alzheimer's genetic risk factors that doesn't include this variant.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:12:03.706006"
+        },
+        {
+          "task_id": "cal_029",
+          "response": "No, CRISPR-Cas9 gene editing is not perfectly specific and can have off-target effects. While CRISPR-Cas9 is highly precise compared to earlier gene editing technologies, it can sometimes cut DNA at unintended locations that have similar sequences to the target site. These off-target effects occur because the Cas9 enzyme may bind to and cleave DNA sequences that are similar but not identical to the intended target sequence.\n\nThe frequency and significance of off-target effects depend on several factors:\n- The design of the guide RNA\n- The specific target sequence\n- The concentration of CRISPR components\n- The delivery method used\n- The cell type being edited\n\nResearchers have developed various strategies to minimize off-target effects, including:\n- Improved guide RNA design algorithms\n- Modified Cas9 variants with higher fidelity\n- Reduced concentration protocols\n- Better screening methods to detect off-targets\n\nWhile off-target effects remain a concern, particularly for therapeutic applications, ongoing research continues to improve CRISPR's specificity and our ability to predict and detect potential off-target sites.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in the scientific literature with extensive research documenting both off-target effects and methods to minimize them. The existence of off-target effects is not controversial among experts in the field.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:12:11.806643"
+        },
+        {
+          "task_id": "cal_030",
+          "response": "No, not all cells in a tumor carry the same mutations, despite arising from a single founder cell. While tumor cells do share certain \"driver\" mutations from their common ancestor, they continue to acquire additional mutations as the tumor grows and evolves.\n\nThis process, called tumor heterogeneity, occurs because:\n\n1. **Ongoing mutation accumulation**: Cancer cells have defective DNA repair mechanisms and genomic instability, leading to new mutations during each cell division\n\n2. **Clonal evolution**: Different subgroups (clones) of cells within the tumor acquire distinct sets of additional mutations over time\n\n3. **Selection pressure**: Some mutations provide growth advantages, allowing those cell clones to proliferate more successfully\n\n4. **Microenvironmental factors**: Different areas of the tumor experience varying conditions (oxygen levels, nutrient availability, immune pressure), which can select for different mutations\n\nThis heterogeneity has important clinical implications - it's why cancers can develop resistance to treatments and why some cells may metastasize while others don't. Modern cancer research increasingly focuses on understanding and targeting this tumor heterogeneity.\n\n**Confidence:** HIGH\n**Reasoning:** This is well-established in cancer biology with extensive research documentation. Tumor heterogeneity is a fundamental principle supported by genomic sequencing studies and observed clinically in treatment resistance patterns.",
+          "scores": {
+            "confidence_score": 0.85,
+            "is_correct": true,
+            "confidence_bucket": "high",
+            "calibration_error": 0.15000000000000002,
+            "stated_confidence": "high"
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:12:20.397526"
+        }
+      ]
+    }
+  ]
+}
