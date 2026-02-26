@@ -568,6 +568,8 @@ Provide:
         response_lower = response.lower()
 
         gene_result = extract_gene_directions(response)
+        extracted_up = [g.upper() for g in gene_result.value.get("upregulated", [])] if gene_result.success else []
+        extracted_down = [g.upper() for g in gene_result.value.get("downregulated", [])] if gene_result.success else []
 
         up_correct = 0
         down_correct = 0
@@ -576,29 +578,54 @@ Provide:
 
         for gene in gt["upregulated"]:
             gene_name = gene.split("/")[0].upper()
-            mentioned = phrase_match(gene_name, response_lower) or phrase_match(gene, response_lower)
+            all_aliases = [a.strip().upper() for a in gene.split("/")]
+            # Check for generic categories like "anti-inflammatory genes"
+            is_generic = " " in gene and not any(c.isupper() for c in gene.split("/")[0][:1] if c.isalpha())
+            if is_generic:
+                # For generic categories, check if the phrase appears in response
+                mentioned = phrase_match(gene.lower(), response_lower)
+            else:
+                mentioned = any(
+                    phrase_match(alias, response_lower) or phrase_match(alias.lower(), response_lower)
+                    for alias in all_aliases
+                )
             if mentioned:
                 up_mentioned += 1
                 if gene_result.success:
-                    if gene_name in gene_result.value.get("upregulated", []):
+                    # Check if any alias appears in extracted upregulated list
+                    in_up = any(alias in extracted_up for alias in all_aliases)
+                    in_down = any(alias in extracted_down for alias in all_aliases)
+                    if in_up:
                         up_correct += 1
-                    elif gene_name not in gene_result.value.get("downregulated", []):
-                        up_correct += 0.5
+                    elif not in_down:
+                        up_correct += 0.5  # Partial: mentioned but direction not extracted
 
         for gene in gt["downregulated"]:
             gene_name = gene.split("/")[0].upper()
-            mentioned = phrase_match(gene_name, response_lower) or phrase_match(gene, response_lower)
+            all_aliases = [a.strip().upper() for a in gene.split("/")]
+            is_generic = " " in gene and not any(c.isupper() for c in gene.split("/")[0][:1] if c.isalpha())
+            if is_generic:
+                mentioned = phrase_match(gene.lower(), response_lower)
+            else:
+                mentioned = any(
+                    phrase_match(alias, response_lower) or phrase_match(alias.lower(), response_lower)
+                    for alias in all_aliases
+                )
             if mentioned:
                 down_mentioned += 1
                 if gene_result.success:
-                    if gene_name in gene_result.value.get("downregulated", []):
+                    in_down = any(alias in extracted_down for alias in all_aliases)
+                    in_up = any(alias in extracted_up for alias in all_aliases)
+                    if in_down:
                         down_correct += 1
-                    elif gene_name not in gene_result.value.get("upregulated", []):
+                    elif not in_up:
                         down_correct += 0.5
 
         total_genes = len(gt["upregulated"]) + len(gt["downregulated"])
-        gene_mention_rate = (up_mentioned + down_mentioned) / total_genes if total_genes > 0 else 0
-        direction_accuracy = (up_correct + down_correct) / total_genes if total_genes > 0 else 0
+        total_mentioned = up_mentioned + down_mentioned
+        gene_mention_rate = total_mentioned / total_genes if total_genes > 0 else 0
+        # Direction accuracy over MENTIONED genes only (don't double-penalize unmentioned)
+        direction_accuracy = (up_correct + down_correct) / total_mentioned if total_mentioned > 0 else 0
 
         mech_terms = extract_key_terms(gt.get("mechanism", ""), min_length=5, max_terms=3)
         mechanism_mentioned = any_match(mech_terms, response_lower)

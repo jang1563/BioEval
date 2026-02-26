@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "model": "claude-sonnet-4-20250514",
+    "components": [
+      "multiturn"
+    ],
+    "data_tier": "base",
+    "split": "all",
+    "run_index": 0,
+    "n_runs": 1,
+    "use_judge": false,
+    "judge_model": null,
+    "timestamp": "2026-02-25T19:59:11.987586",
+    "elapsed_seconds": 199.7,
+    "bioeval_version": "0.3.0"
+  },
+  "summary": {
+    "total_tasks": 6,
+    "by_component": {
+      "multiturn": {
+        "num_tasks": 6,
+        "completed": 6
+      }
+    }
+  },
+  "results": [
+    {
+      "component": "multiturn",
+      "model": "claude-sonnet-4-20250514",
+      "num_tasks": 6,
+      "results": [
+        {
+          "task_id": "mt_hyp_001",
+          "response": "All turns handled successfully",
+          "scores": {
+            "overall_score": 1.0,
+            "memory_score": 0.6666666666666666,
+            "turns_passed": 4,
+            "total_turns": 4
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:56:28.238010"
+        },
+        {
+          "task_id": "mt_hyp_002",
+          "response": "Mixed performance: 2/3 turns passed",
+          "scores": {
+            "overall_score": 0.6666666666666666,
+            "memory_score": 1.0,
+            "turns_passed": 2,
+            "total_turns": 3
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:56:55.431760"
+        },
+        {
+          "task_id": "mt_exp_001",
+          "response": "Good performance: 4/5 turns passed",
+          "scores": {
+            "overall_score": 0.8,
+            "memory_score": 0.875,
+            "turns_passed": 4,
+            "total_turns": 5
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:57:41.200509"
+        },
+        {
+          "task_id": "mt_tro_001",
+          "response": "All turns handled successfully",
+          "scores": {
+            "overall_score": 1.0,
+            "memory_score": 0.6666666666666666,
+            "turns_passed": 4,
+            "total_turns": 4
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:58:16.002848"
+        },
+        {
+          "task_id": "mt_int_001",
+          "response": "All turns handled successfully",
+          "scores": {
+            "overall_score": 1.0,
+            "memory_score": 0.75,
+            "turns_passed": 3,
+            "total_turns": 3
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:58:45.650064"
+        },
+        {
+          "task_id": "mt_rev_001",
+          "response": "All turns handled successfully",
+          "scores": {
+            "overall_score": 1.0,
+            "memory_score": 1.0,
+            "turns_passed": 3,
+            "total_turns": 3
+          },
+          "error_annotations": null,
+          "timestamp": "2026-02-25T19:59:11.985110"
+        }
+      ]
+    }
+  ]
+}

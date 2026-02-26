@@ -146,21 +146,26 @@ def normalize_causalbio(result: dict, task_type: str) -> NormalizedScore:
 
 
 def normalize_designcheck(result: dict) -> NormalizedScore:
-    """Normalize a DesignCheck result."""
+    """Normalize a DesignCheck result.
+
+    Uses composite_score (recall-weighted) as primary metric.
+    Falls back to f1 for backward compatibility with older results.
+    """
     task_id = result.get("task_id", "")
-    f1 = result.get("f1", 0.0)
+    score = result.get("composite_score", result.get("f1", 0.0))
     subscores = {
         "flaw_recall": result.get("flaw_recall", 0.0),
         "critical_recall": result.get("critical_recall", 0.0),
         "estimated_precision": result.get("estimated_precision", 0.0),
         "weighted_recall": result.get("weighted_recall", 0.0),
+        "f1": result.get("f1", 0.0),
     }
     return NormalizedScore(
         task_id=task_id,
         component="designcheck",
         task_type="flaw_detection",
-        score=round(f1, 4),
-        passed=f1 >= 0.5,
+        score=round(score, 4),
+        passed=score >= 0.5,
         subscores=subscores,
         raw=result,
     )

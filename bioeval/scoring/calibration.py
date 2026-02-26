@@ -689,7 +689,23 @@ def score_calibration_task(
     else:
         bucket = "low"
 
-    calibration_error = abs(cs - (1.0 if is_correct else 0.0))
+    # Behavior-aware calibration error:
+    # For tasks where the correct answer is "I don't know", the ideal
+    # confidence is LOW, not 1.0. Measure error against the expected
+    # confidence range for each behavior type.
+    if correct_behavior == "acknowledge_unknown":
+        # Ideal confidence: < 0.3 (model should be uncertain about made-up entities)
+        expected_conf = 0.2
+    elif correct_behavior == "high_confidence_correct":
+        expected_conf = 1.0 if is_correct else 0.0
+    elif correct_behavior in ("partial_knowledge", "context_dependent", "moderate_confidence"):
+        expected_conf = 0.5
+    elif correct_behavior == "overconfidence_trap":
+        expected_conf = 0.5 if is_correct else 0.0
+    else:
+        expected_conf = 1.0 if is_correct else 0.0
+
+    calibration_error = abs(cs - expected_conf)
 
     return CalibrationResult(
         task_id=task["id"],

@@ -530,17 +530,66 @@ def extract_gene_directions(response: str) -> ParseResult:
             raw_match=str(result),
         )
 
-    # Strategy 2: Find genes near direction indicators in bullet points or lists
+    # Strategy 2: Section-tracking — headers set direction for subsequent lines
+    # Handles the common LLM pattern:
+    #   **Genes expected to be UPREGULATED:**
+    #   - GILZ ...
+    #   - FKBP5 ...
+    #   **Genes expected to be DOWNREGULATED:**
+    #   - MYC ...
+    up_keywords = ["upregulated", "up-regulated", "induced", "increased", "activated"]
+    down_keywords = ["downregulated", "down-regulated", "repressed", "decreased", "suppressed"]
+
     lines = text.split("\n")
+    current_section = None  # "up" or "down" or None
+    # Non-gene words that match gene pattern but should be excluded
+    noise_words = {
+        "KEY", "GENES", "EXPECTED", "GENE", "THE", "FOR", "AND", "ARE",
+        "WITH", "FROM", "THAT", "THIS", "NOT", "BUT", "ALL", "ANY",
+        "PREDICTED", "RESPONSE", "DRUG", "CELL", "TYPE", "VIA", "DUE",
+        "STEP", "ALSO", "BOTH", "EACH", "INTO", "OVER", "UPON",
+        "HIGH", "LOW", "NEW", "PRO", "ANTI", "TO", "BE", "OF", "OR",
+        "BY", "IN", "ON", "AT", "AS", "IF", "AN", "NO", "UP", "SO",
+        "MECHANISM", "ACTION", "FUNCTION", "PATHWAY", "PHENOTYPE",
+        "CELLULAR", "EFFECT", "EFFECTS", "CHANGE", "CHANGES",
+        "PREDICTION", "EVIDENCE", "RESULT", "RESULTS",
+        "DIRECT", "NORMAL", "CHAIN", "CAUSAL",
+    }
+
     for line in lines:
-        genes_in_line = re.findall(gene_pattern, line)
-        if not genes_in_line:
-            continue
         line_lower = line.lower()
-        if any(w in line_lower for w in ["upregulated", "up-regulated", "induced", "increased", "activated"]):
-            result["upregulated"].extend(genes_in_line)
-        elif any(w in line_lower for w in ["downregulated", "down-regulated", "repressed", "decreased", "suppressed"]):
-            result["downregulated"].extend(genes_in_line)
+        # Check if this line is a section header (sets direction for following lines)
+        is_up_header = any(w in line_lower for w in up_keywords)
+        is_down_header = any(w in line_lower for w in down_keywords)
+
+        genes_in_line = [
+            g for g in re.findall(gene_pattern, line)
+            if g not in noise_words and len(g) >= 2
+        ]
+
+        if is_up_header and not is_down_header:
+            current_section = "up"
+            # Also extract genes from this header line itself
+            if genes_in_line:
+                result["upregulated"].extend(genes_in_line)
+        elif is_down_header and not is_up_header:
+            current_section = "down"
+            if genes_in_line:
+                result["downregulated"].extend(genes_in_line)
+        elif genes_in_line and current_section:
+            # Gene line under a section header — assign to current section
+            if current_section == "up":
+                result["upregulated"].extend(genes_in_line)
+            else:
+                result["downregulated"].extend(genes_in_line)
+        else:
+            # Check if this line indicates we've moved past gene sections
+            line_lower_stripped = line_lower.strip()
+            if any(kw in line_lower_stripped for kw in [
+                "mechanism", "phenotype", "cellular", "expected experimental",
+                "edge case", "confidence", "validation", "step ",
+            ]):
+                current_section = None
 
     # Deduplicate
     result["upregulated"] = list(dict.fromkeys(result["upregulated"]))

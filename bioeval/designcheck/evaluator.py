@@ -688,12 +688,24 @@ Be thorough but focus on flaws that would actually affect the validity of the co
             if num_extracted > 0:
                 severity_accuracy = severity_accuracy / num_extracted
 
+        # --- Composite score: recall-weighted (flaw detection is recall-dominant) ---
+        # Rationale: models that find more genuine flaws beyond GT are penalized
+        # by F1/precision. Use weighted recall (70%) + quality bonuses (30%).
+        quality_bonus = (
+            0.10 * float(mentions_fix) +
+            0.10 * float(categorizes_severity) +
+            0.10 * min(1.0, estimated_precision * 2)  # soft precision credit
+        )
+        composite = 0.70 * weighted_recall + 0.30 * quality_bonus / 0.30
+        composite = min(1.0, composite)
+
         return {
             "flaw_recall": round(flaw_recall, 3),
             "critical_recall": round(critical_recall, 3),
             "weighted_recall": round(weighted_recall, 3),
             "estimated_precision": round(estimated_precision, 3),
             "f1": round(f1, 3),
+            "composite_score": round(composite, 3),
             "flaws_detected": flaws_detected,
             "flaws_extracted": num_extracted,
             "total_flaws": total_flaws,
