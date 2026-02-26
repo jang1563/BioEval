@@ -176,6 +176,12 @@ def extract_numerical_value(
     """
     # Normalize response
     text = response.replace("×", "x").replace("−", "-")
+    # Normalize Unicode superscript digits to ^N notation
+    _super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
+    text = re.sub(r'10([⁰¹²³⁴⁵⁶⁷⁸⁹]+)', lambda m: f"10^{m.group(1).translate(_super_map)}", text)
+    # Remove commas inside numbers (1,500,000 → 1500000)
+    text = re.sub(r'(\d),(\d{3})', r'\1\2', text)
+    text = re.sub(r'(\d),(\d{3})', r'\1\2', text)  # repeat for millions+
 
     # Strategy 1: Look for "answer is X" or "= X" patterns
     answer_patterns = [
@@ -587,6 +593,36 @@ def extract_flaw_list(response: str) -> ParseResult:
         ParseResult with value as list[FlawItem]
     """
     flaws = []
+
+    # Strategy 0: Handle markdown "**Flaw #N: Title**" format (common Claude pattern)
+    # Capture each flaw block with its sub-lines (problem, fix, severity, etc.)
+    md_flaw_pattern = re.compile(
+        r'\*\*(?:Flaw|Issue|Problem)\s*#?\d+[:\s]*([^*]+?)\*\*'
+        r'((?:\n(?!\*\*(?:Flaw|Issue|Problem)\s*#?\d+).+)*)',
+        re.IGNORECASE,
+    )
+    for m in md_flaw_pattern.finditer(response):
+        title = m.group(1).strip()
+        body = m.group(2).strip()
+        full_text = f"{title} {body}"
+        severity = _extract_severity(full_text.lower())
+        category = _extract_category(full_text.lower())
+        fix = _extract_fix(full_text)
+        flaws.append(FlawItem(
+            description=full_text[:500],
+            category=category,
+            severity=severity,
+            fix=fix,
+        ))
+
+    if flaws:
+        return ParseResult(
+            success=True,
+            value=flaws,
+            method="regex_markdown",
+            confidence=0.85,
+            raw_match=f"{len(flaws)} flaws extracted (markdown format)",
+        )
 
     # Strategy 1: Look for numbered/bulleted flaw items with category and severity
     # Pattern: "1. **Category: Controls** Severity: Critical ..."
