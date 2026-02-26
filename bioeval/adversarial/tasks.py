@@ -612,29 +612,50 @@ _NEGATION_PREFIXES = [
 
 
 def _count_matched_context_aware(
-    response_lower: str, indicators: list[str]
+    response_lower: str, indicators: list[str],
+    trap_detected: bool = False,
 ) -> tuple[int, list[str]]:
     """Count indicators, excluding those in negation/dismissal context.
 
-    Checks a window of ~60 chars before each match for negation prefixes.
+    Checks a window of ~80 chars before AND after each match for negation
+    or correction context. When the model has already detected the trap,
+    uses stricter filtering since hallucination phrases about REAL science
+    (used to contrast with the fake entity) should not count.
     """
     from bioeval.scoring.matching import phrase_match
+    # When trap is detected, phrases about real science are expected context
+    _correction_context = [
+        "however", "in contrast", "instead", "rather", "actually",
+        "real ", "genuine", "established", "legitimate", "standard",
+        "well-characterized", "well-studied", "known ",
+        "not the same", "different from", "unlike",
+    ]
     matched = []
     for ind in indicators:
         if not phrase_match(ind, response_lower):
             continue
-        # Find where the indicator appears
         idx = response_lower.find(ind.lower())
         if idx < 0:
-            # matched via stemming — harder to locate, count as match
+            # Matched via stemming — check broader context
+            if trap_detected:
+                continue  # Skip stemmed matches when trap is detected
             matched.append(ind)
             continue
-        # Check preceding context for negation
-        window_start = max(0, idx - 60)
+        # Check surrounding context for negation/correction
+        window_start = max(0, idx - 80)
+        window_end = min(len(response_lower), idx + len(ind) + 80)
         preceding = response_lower[window_start:idx]
+        surrounding = response_lower[window_start:window_end]
         is_negated = any(neg in preceding for neg in _NEGATION_PREFIXES)
-        if not is_negated:
-            matched.append(ind)
+        if is_negated:
+            continue
+        # When trap is detected, also skip indicators that appear near
+        # correction/contrast language (model explaining REAL science)
+        if trap_detected:
+            is_correcting = any(sig in surrounding for sig in _correction_context)
+            if is_correcting:
+                continue
+        matched.append(ind)
     return len(matched), matched
 
 
@@ -653,17 +674,42 @@ def _extract_correct_behavior_terms(task: AdversarialTask) -> list[str]:
 
 
 def _check_incorrect_behaviors(task: AdversarialTask, response_lower: str) -> list[str]:
-    """Check if any documented incorrect behaviors are exhibited in the response."""
+    """Check if any documented incorrect behaviors are exhibited in the response.
+
+    Uses keyword overlap with negation-context filtering to avoid penalising
+    models that DISCUSS the incorrect behavior in a rejection/negation context
+    (e.g., "I cannot invent a function for ONCORIX").
+    """
     from bioeval.scoring.matching import phrase_match
+    _negation_words = {
+        "not", "no", "cannot", "can't", "don't", "doesn't", "isn't",
+        "never", "unable", "without", "lack", "absent", "fail",
+    }
     detected = []
     for behavior in task.incorrect_behaviors:
-        # Extract multi-word key phrases from incorrect behavior
         behavior_lower = behavior.lower()
-        # Check for 3+ word overlapping phrases
         behavior_words = [w for w in behavior_lower.split() if len(w) > 3]
         if len(behavior_words) >= 3:
             match_count = sum(1 for w in behavior_words if phrase_match(w, response_lower))
             if match_count >= len(behavior_words) * 0.6:
+                # Check if keywords appear in a negation context
+                # Find each keyword and see if negation words are nearby
+                negation_count = 0
+                check_count = 0
+                for w in behavior_words:
+                    if not phrase_match(w, response_lower):
+                        continue
+                    idx = response_lower.find(w.lower())
+                    if idx < 0:
+                        continue
+                    check_count += 1
+                    window_start = max(0, idx - 40)
+                    window = response_lower[window_start:idx + len(w) + 20]
+                    if any(neg in window.split() for neg in _negation_words):
+                        negation_count += 1
+                # If majority of matched keywords are in negation context, skip
+                if check_count > 0 and negation_count >= check_count * 0.5:
+                    continue
                 detected.append(behavior)
     return detected
 
@@ -850,6 +896,21 @@ def score_adversarial_response(task: AdversarialTask, response: str) -> dict:
     else:
         trap_detected = shows_uncertainty or shows_strong_correction
         type_score = 0.5 if trap_detected else 0.1
+
+    # ── Re-evaluate hallucination with trap context ───────────────────
+    # If the model correctly identified the trap, hallucination signals near
+    # correction/contrast language are likely the model discussing real science
+    # (e.g., "studies have shown X" when contrasting with the fake entity).
+    if trap_detected and shows_hallucination:
+        halluc_n, halluc_matched = _count_matched_context_aware(
+            response_lower, _HALLUCINATION_CONFIDENT, trap_detected=True
+        )
+        shows_hallucination = halluc_n > 0
+        # If all hallucination signals were in correction context, upgrade score
+        if not shows_hallucination and task.adversarial_type in (
+            AdversarialType.HALLUCINATION_TRAP, AdversarialType.PLAUSIBLE_NONSENSE
+        ):
+            type_score = 0.7 + 0.3 * correct_content_score
 
     # ── Penalties ───────────────────────────────────────────────────────
     hallucination_penalty = 0.0

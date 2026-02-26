@@ -538,8 +538,16 @@ Provide:
             "synergistic": "synergistic", "suppressive": "suppressive",
             "enhancing": "enhancing", "synthetic_lethal": "synthetic_lethal",
         }
+        # Close synonyms: enhancing and synergistic are biologically similar
+        _close_synonyms = {
+            "enhancing": {"synergistic"},
+            "synergistic": {"enhancing"},
+        }
         expected_type = type_normalization.get(gt_type, gt_type)
-        interaction_correct = type_result.success and type_result.value == expected_type
+        interaction_correct = type_result.success and (
+            type_result.value == expected_type
+            or type_result.value in _close_synonyms.get(expected_type, set())
+        )
 
         mechanism_terms = extract_key_terms(gt["mechanism"], min_length=5, max_terms=5)
         matched_mechanism = matched_list(mechanism_terms, response_lower)

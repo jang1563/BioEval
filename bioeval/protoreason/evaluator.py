@@ -5,11 +5,21 @@ Tests whether LLMs can correctly execute, troubleshoot, and reason about
 experimental protocols.
 """
 
+import hashlib
 import json
 import random
 from typing import Optional
 from dataclasses import dataclass
 from scipy.stats import kendalltau
+
+
+def _deterministic_seed(s: str) -> int:
+    """Return a deterministic integer seed from a string.
+
+    Unlike ``hash()``, this is stable across Python processes
+    (Python 3.3+ randomises ``hash()`` by default via PYTHONHASHSEED).
+    """
+    return int(hashlib.sha256(s.encode()).hexdigest()[:8], 16)
 
 from bioeval.models.base import BaseEvaluator, EvalTask, EvalResult
 
@@ -253,7 +263,7 @@ Provide:
         steps = protocol["steps"].copy()
         correct_order = list(range(len(steps)))
         # Deterministic shuffle based on protocol_id for reproducibility
-        rng = random.Random(hash(f"ordering_{protocol_id}"))
+        rng = random.Random(_deterministic_seed(f"ordering_{protocol_id}"))
         rng.shuffle(steps)
         
         prompt = f"""The following steps for {protocol['name']} are in random order. 
@@ -281,7 +291,7 @@ Then briefly explain the reasoning for critical ordering decisions."""
         steps = protocol["steps"].copy()
 
         # Deterministic removal based on protocol_id for reproducibility
-        rng = random.Random(hash(f"missing_{protocol_id}"))
+        rng = random.Random(_deterministic_seed(f"missing_{protocol_id}"))
         num_to_remove = rng.randint(1, 2)
         removed_indices = rng.sample(range(len(steps)), num_to_remove)
         removed_steps = [steps[i] for i in sorted(removed_indices, reverse=True)]

@@ -184,17 +184,32 @@ def _positions_match(pos: str, gt: str) -> bool:
         return True
     # Synonym mapping for common variants
     _synonyms = {
+        # ACMG variant classification
         "pathogenic": ["pathogenic", "path"],
         "likely_pathogenic": ["likely_pathogenic", "likely pathogenic", "lp"],
         "vus": ["vus", "uncertain", "variant of uncertain significance"],
         "likely_benign": ["likely_benign", "likely benign", "lb"],
         "benign": ["benign", "ben"],
+        # Clinical/practice positions
+        "practice_changing": ["practice_changing", "practice changing", "practice-changing"],
+        "not_practice_changing": ["not_practice_changing", "not practice changing",
+                                  "not practice-changing", "not_practice-changing"],
+        # Causation/association
+        "association": ["association", "association_only", "association only"],
+        "causal": ["causal", "causal_relationship", "causal relationship"],
+        # Diagnosis positions
+        "confirmed": ["confirmed", "sah_confirmed", "sah confirmed"],
     }
     for canonical, aliases in _synonyms.items():
         if g == canonical and p in aliases:
             return True
         if p == canonical and g in aliases:
             return True
+    # Flexible substring containment (e.g., "likely pathogenic" matches "likely_pathogenic")
+    p_normalized = p.replace("_", " ").replace("-", " ")
+    g_normalized = g.replace("_", " ").replace("-", " ")
+    if p_normalized == g_normalized:
+        return True
     return False
 
 
@@ -206,6 +221,9 @@ def _partial_credit(pos: str, gt: str, ground_truth: dict) -> float:
     g = gt.lower().strip()
     _ordered_groups = [
         ["pathogenic", "likely_pathogenic", "vus", "likely_benign", "benign"],
+        ["causal", "association", "no_association"],
+        ["practice_changing", "not_practice_changing"],
+        ["confirmed", "probable", "unlikely"],
     ]
     for group in _ordered_groups:
         gl = [o.lower() for o in group]

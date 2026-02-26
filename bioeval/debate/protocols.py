@@ -149,7 +149,9 @@ class BaseDebateProtocol(ABC):
     ) -> Optional[str]:
         options = task_metadata.get("answer_options", [])
         response_lower = response_text.lower()
-        for opt in options:
+        # Sort longest-first to prevent substring matching issues
+        # e.g., "not_practice_changing" must be checked before "practice_changing"
+        for opt in sorted(options, key=len, reverse=True):
             if opt.lower() in response_lower:
                 return opt
         # Fallback: look for "my answer is X", "I conclude X"

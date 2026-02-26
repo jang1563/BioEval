@@ -642,7 +642,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
         total_critical = len([f for f in gt_flaws if f["severity"] == "critical"])
 
         flaw_recall = flaws_detected / total_flaws if total_flaws > 0 else 0
-        critical_recall = critical_detected / total_critical if total_critical > 0 else 0
+        critical_recall = critical_detected / total_critical if total_critical > 0 else 1.0
         weighted_recall = weighted_detected / weighted_total if weighted_total > 0 else 0
 
         # --- Precision estimate: how many extracted flaws match a GT flaw? ---

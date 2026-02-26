@@ -320,19 +320,23 @@ def extract_categorical_label(
         ParseResult with value as str (one of the labels)
     """
     response_lower = response.lower()
+    # Strip markdown bold markers to prevent interference with regex
+    response_clean = re.sub(r'\*\*', '', response_lower)
+
+    # Sort labels longest-first so "non-essential" is checked before "essential"
+    sorted_labels = sorted(labels, key=len, reverse=True)
 
     # Strategy 1: Look for "prediction: <label>" or "is <label>" patterns
-    for label in labels:
+    for label in sorted_labels:
         label_lower = label.lower()
         # Direct prediction statements
         patterns = [
             rf'(?:prediction|predict|classify|determine|conclude)[:\s]+.*?{re.escape(label_lower)}',
             rf'(?:gene\s+is|would\s+be|this\s+is|classified\s+as)\s+{re.escape(label_lower)}',
             rf'{re.escape(label_lower)}\s+(?:gene|in\s+this|for\s+this)',
-            rf'\*\*{re.escape(label_lower)}\*\*',  # Bold markdown
         ]
         for pattern in patterns:
-            if re.search(pattern, response_lower):
+            if re.search(pattern, response_clean):
                 return ParseResult(
                     success=True,
                     value=label,
@@ -341,32 +345,65 @@ def extract_categorical_label(
                     raw_match=label,
                 )
 
-    # Strategy 2: Count occurrences weighted by position
-    # Labels mentioned earlier in the response are more likely to be the answer
+    # Strategy 2: Count EXCLUSIVE occurrences weighted by position
+    # For labels that are substrings of other labels (e.g. "essential" in
+    # "non-essential"), only count occurrences that DON'T match longer labels.
     scores = {}
-    for label in labels:
+    # Build exclusion patterns: for each label, exclude positions where a
+    # longer label also matches at the same location
+    longer_patterns = {}
+    for label in sorted_labels:
         label_lower = label.lower()
-        positions = [m.start() for m in re.finditer(re.escape(label_lower), response_lower)]
+        longer = [l.lower() for l in sorted_labels if len(l) > len(label) and label_lower in l.lower()]
+        longer_patterns[label] = longer
+
+    for label in sorted_labels:
+        label_lower = label.lower()
+        positions = []
+        for m in re.finditer(re.escape(label_lower), response_clean):
+            pos = m.start()
+            # Check if this match is part of a longer label match
+            is_substring_of_longer = False
+            for longer_label in longer_patterns[label]:
+                # Check if a longer label spans this position
+                window_start = max(0, pos - len(longer_label))
+                window = response_clean[window_start:pos + len(label_lower) + len(longer_label)]
+                if longer_label in window:
+                    is_substring_of_longer = True
+                    break
+            if not is_substring_of_longer:
+                positions.append(pos)
+
         if positions:
-            # Weight by inverse position (earlier = higher weight)
-            resp_len = max(len(response_lower), 1)
+            resp_len = max(len(response_clean), 1)
             score = sum(1.0 - (pos / resp_len) * 0.5 for pos in positions)
             scores[label] = score
 
     if scores:
         best_label = max(scores, key=scores.get)
-        # Check for negation: "is NOT essential"
-        negation_check = _check_negation(response_lower, best_label.lower())
-        if negation_check and len(labels) == 2:
-            # Flip to the other label
-            other = [l for l in labels if l != best_label][0]
-            return ParseResult(
-                success=True,
-                value=other,
-                method="regex",
-                confidence=0.7,
-                raw_match=f"negated {best_label} -> {other}",
-            )
+        # Check for negation: "is NOT essential" — works for any number of labels
+        negation_check = _check_negation(response_clean, best_label.lower())
+        if negation_check:
+            # Find the negated counterpart (e.g., "essential" → "non-essential")
+            negated_candidates = [l for l in labels if l != best_label
+                                  and best_label.lower() in l.lower()]
+            if negated_candidates:
+                return ParseResult(
+                    success=True,
+                    value=negated_candidates[0],
+                    method="regex",
+                    confidence=0.7,
+                    raw_match=f"negated {best_label} -> {negated_candidates[0]}",
+                )
+            elif len(labels) == 2:
+                other = [l for l in labels if l != best_label][0]
+                return ParseResult(
+                    success=True,
+                    value=other,
+                    method="regex",
+                    confidence=0.7,
+                    raw_match=f"negated {best_label} -> {other}",
+                )
         return ParseResult(
             success=True,
             value=best_label,
@@ -966,20 +1003,27 @@ def extract_interaction_type(response: str) -> ParseResult:
     Returns:
         ParseResult with value as normalized interaction type string
     """
-    text = response.lower()
+    # Strip markdown to avoid ** interference with regex
+    text = re.sub(r'\*\*', '', response.lower())
 
     # Look for explicit type declarations
     type_patterns = [
-        r'(?:type\s+of\s+)?(?:genetic\s+)?interaction[:\s]+(?:is\s+)?(\w[\w\s]+)',
-        r'(?:this\s+is\s+(?:a|an)\s+)(\w[\w\s]+?)(?:\s+interaction)',
-        r'(?:classified\s+as|considered)\s+(\w[\w\s]+)',
+        r'(?:type\s+of\s+)?(?:genetic\s+)?interaction[:\s]+(?:is\s+)?(\w[\w\s/]+)',
+        r'(?:this\s+is\s+(?:a|an)\s+)(\w[\w\s/]+?)(?:\s+interaction)',
+        r'(?:classified\s+as|considered)\s+(\w[\w\s/]+)',
+        # Also match "1. Type: Enhancing" or "Answers: 1. Type: synergistic"
+        r'type[:\s]+(\w[\w\s/]+)',
     ]
+
+    # Sort INTERACTION_TYPES longest-first so "synthetic lethal" doesn't
+    # shadow "synergistic" or "enhancing"
+    sorted_types = sorted(INTERACTION_TYPES, key=len, reverse=True)
 
     for pattern in type_patterns:
         match = re.search(pattern, text)
         if match:
             found = match.group(1).strip()
-            for itype in INTERACTION_TYPES:
+            for itype in sorted_types:
                 if itype in found:
                     return ParseResult(
                         success=True,
@@ -989,16 +1033,26 @@ def extract_interaction_type(response: str) -> ParseResult:
                         raw_match=match.group(0),
                     )
 
-    # Fallback: scan for any interaction type keywords
-    for itype in INTERACTION_TYPES:
-        if itype in text:
-            return ParseResult(
-                success=True,
-                value=INTERACTION_NORMALIZATION[itype],
-                method="regex",
-                confidence=0.6,
-                raw_match=itype,
-            )
+    # Fallback: count all interaction type mentions, pick most frequent
+    # (avoids the "first match wins" problem where incidental mentions
+    # of "synthetic lethal" in therapeutic discussion overshadow the
+    # actual prediction of "synergistic")
+    type_counts = {}
+    for itype in sorted_types:
+        count = len(re.findall(re.escape(itype), text))
+        if count > 0:
+            norm = INTERACTION_NORMALIZATION[itype]
+            type_counts[norm] = type_counts.get(norm, 0) + count
+
+    if type_counts:
+        best = max(type_counts, key=type_counts.get)
+        return ParseResult(
+            success=True,
+            value=best,
+            method="regex",
+            confidence=0.6,
+            raw_match=best,
+        )
 
     return ParseResult(success=False, value=None, method="failed")
 

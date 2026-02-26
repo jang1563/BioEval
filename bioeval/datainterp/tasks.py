@@ -983,15 +983,39 @@ def _count_interp_matches(points: list[str], text: str) -> tuple[int, list[str]]
 
 
 def _count_mistakes(mistakes: list[str], text: str) -> tuple[int, list[str]]:
-    """Check if response exhibits common mistakes."""
+    """Check if response exhibits common mistakes.
+
+    Uses keyword overlap BUT requires the response to NOT contain negation
+    or correction language near the matching keywords.  This prevents
+    penalising a model that *addresses* a mistake topic correctly.
+    """
     text_lower = text.lower()
+    _correction_signals = [
+        "correctly", "appropriately", "properly", "as expected",
+        "should be", "need to", "must ", "important to", "adjusted for",
+        "accounted for", "accounting for", "after correction",
+        "applying", "applied", "using bonferroni", "using bh",
+        "after adjusting", "we adjust", "i adjust",
+    ]
     detected = []
     for mistake in mistakes:
         keywords = [w for w in mistake.lower().split() if len(w) > 3]
         if len(keywords) >= 3:
             match_count = sum(1 for kw in keywords if kw in text_lower)
             if match_count >= len(keywords) * 0.6:
-                detected.append(mistake)
+                # Check if keywords appear in a correction/negation context
+                # Find where each keyword appears and check surrounding text
+                addressed_correctly = False
+                for kw in keywords:
+                    if kw not in text_lower:
+                        continue
+                    idx = text_lower.find(kw)
+                    window = text_lower[max(0, idx - 80):min(len(text_lower), idx + 80)]
+                    if any(sig in window for sig in _correction_signals):
+                        addressed_correctly = True
+                        break
+                if not addressed_correctly:
+                    detected.append(mistake)
     return len(detected), detected
 
 
@@ -1006,6 +1030,10 @@ def _check_numerical_accuracy(task: DataInterpTask, response: str) -> float:
     checks_total = 0
 
     for key, val in expected.items():
+        # Skip booleans — isinstance(True, int) is True in Python but
+        # booleans should not be checked as numeric values
+        if isinstance(val, bool):
+            continue
         if isinstance(val, (int, float)):
             checks_total += 1
             for rn in response_numbers:
@@ -1025,7 +1053,9 @@ def _check_numerical_accuracy(task: DataInterpTask, response: str) -> float:
                     checks_passed += 1
                     break
 
-    return checks_passed / checks_total if checks_total > 0 else 0.0
+    # When expected_answer has no numeric fields, return 1.0 (nothing to fail)
+    # rather than 0.0 which would unfairly penalize 40% of the score
+    return checks_passed / checks_total if checks_total > 0 else 1.0
 
 
 def _compute_depth_score(text: str) -> float:
