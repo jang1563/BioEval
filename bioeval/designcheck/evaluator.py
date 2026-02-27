@@ -718,15 +718,22 @@ Be thorough but focus on flaws that would actually affect the validity of the co
                 severity_accuracy = severity_accuracy / num_extracted
 
         # --- Composite score: recall-weighted (flaw detection is recall-dominant) ---
-        # Rationale: models that find more genuine flaws beyond GT are penalized
-        # by F1/precision. Use weighted recall (70%) + quality bonuses (30%).
+        # Rationale: missing a real flaw is worse than a spurious one in peer review.
+        # Primary: severity-weighted recall (70%)
+        # Bonus: quality indicators up to +30% (mentions fixes, correct severity, ok precision)
+        # Penalty: heavy hallucination (estimated_precision < 0.25) deducts up to 15%
         quality_bonus = (
             0.10 * float(mentions_fix) +
             0.10 * float(categorizes_severity) +
             0.10 * min(1.0, estimated_precision * 2)  # soft precision credit
         )
-        composite = 0.70 * weighted_recall + 0.30 * quality_bonus / 0.30
-        composite = min(1.0, composite)
+        # Precision penalty: if >75% of extracted flaws are hallucinated, penalize score
+        if estimated_precision < 0.25 and num_extracted > 0:
+            precision_penalty = (0.25 - estimated_precision) * 0.6  # max 0.15 penalty
+        else:
+            precision_penalty = 0.0
+        composite = 0.70 * weighted_recall + quality_bonus - precision_penalty
+        composite = min(1.0, max(0.0, composite))
 
         return {
             "flaw_recall": round(flaw_recall, 3),
@@ -735,6 +742,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
             "estimated_precision": round(estimated_precision, 3),
             "f1": round(f1, 3),
             "composite_score": round(composite, 3),
+            "precision_penalty": round(precision_penalty, 3),
             "flaws_detected": flaws_detected,
             "flaws_extracted": num_extracted,
             "total_flaws": total_flaws,

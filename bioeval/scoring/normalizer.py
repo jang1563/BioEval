@@ -129,6 +129,7 @@ def normalize_causalbio(result: dict, task_type: str) -> NormalizedScore:
         subscores = {
             "gene_mention_rate": result.get("gene_mention_rate", 0.0),
             "direction_accuracy": result.get("direction_accuracy", 0.0),
+            "extraction_succeeded": float(result.get("extraction_succeeded", False)),
         }
     else:
         score = 0.0
@@ -156,8 +157,9 @@ def normalize_designcheck(result: dict) -> NormalizedScore:
     subscores = {
         "flaw_recall": result.get("flaw_recall", 0.0),
         "critical_recall": result.get("critical_recall", 0.0),
-        "estimated_precision": result.get("estimated_precision", 0.0),
         "weighted_recall": result.get("weighted_recall", 0.0),
+        "estimated_precision": result.get("estimated_precision", 0.0),
+        "precision_penalty": result.get("precision_penalty", 0.0),
         "f1": result.get("f1", 0.0),
     }
     return NormalizedScore(

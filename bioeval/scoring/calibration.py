@@ -41,18 +41,21 @@ class CalibrationResult:
     confidence_score: float  # Model's expressed confidence (0-1)
     is_correct: bool  # Was the answer correct
     confidence_bucket: str  # "high", "medium", "low"
-    calibration_error: float  # |confidence - accuracy|
+    calibration_error: float  # |confidence - expected_conf| (behavior-aware)
+    expected_conf: float = 0.5  # Ideal confidence for this task's correct_behavior
+    correct_behavior: str = ""  # Task's correct_behavior type
     details: dict = field(default_factory=dict)
 
 
 @dataclass
 class CalibrationMetrics:
     """Aggregate calibration metrics across tasks."""
-    expected_calibration_error: float  # ECE
+    expected_calibration_error: float  # ECE (Flex-ECE, adaptive binning)
     maximum_calibration_error: float  # MCE
     overconfidence_rate: float  # % of high-confidence wrong answers
     underconfidence_rate: float  # % of low-confidence correct answers
-    brier_score: float  # Proper scoring rule
+    brier_score: float  # Standard Brier: (confidence - correctness)^2
+    behavior_aware_brier_score: float  # Behavior-aware: (confidence - expected_conf)^2
     bucket_accuracies: dict[str, float]  # Accuracy per confidence bucket
     bucket_counts: dict[str, int]  # Count per bucket
     reliability_diagram_data: list[dict]  # For plotting
@@ -713,6 +716,8 @@ def score_calibration_task(
         is_correct=is_correct,
         confidence_bucket=bucket,
         calibration_error=calibration_error,
+        expected_conf=expected_conf,
+        correct_behavior=correct_behavior,
         details={
             "correct_behavior": correct_behavior,
             "content_detail": content_detail,
@@ -819,6 +824,7 @@ def compute_calibration_metrics(
             overconfidence_rate=0,
             underconfidence_rate=0,
             brier_score=0,
+            behavior_aware_brier_score=0,
             bucket_accuracies={},
             bucket_counts={},
             reliability_diagram_data=[],
@@ -861,9 +867,22 @@ def compute_calibration_metrics(
     low_conf_total = bucket_counts["low"]
     underconfidence_rate = low_conf_correct / low_conf_total if low_conf_total > 0 else 0
 
-    # ── Brier score ─────────────────────────────────────────────────
+    # ── Brier score (standard) ───────────────────────────────────────
+    # Standard Brier: (confidence - correctness)^2 where correctness = 1 if correct, 0 if not.
+    # NOTE: This penalizes correct low-confidence behavior on acknowledge_unknown tasks.
     brier_score = sum(
         (r.confidence_score - (1.0 if r.is_correct else 0.0)) ** 2
+        for r in results
+    ) / total
+
+    # ── Behavior-aware Brier score ───────────────────────────────────
+    # Uses expected_conf (the ideal confidence for each task's correct_behavior type)
+    # instead of binary 0/1 correctness. Correctly rewards:
+    # - Low confidence on acknowledge_unknown tasks (expected_conf=0.2)
+    # - High confidence on high_confidence_correct tasks (expected_conf=1.0)
+    # - Moderate confidence on context_dependent / partial_knowledge tasks
+    behavior_aware_brier_score = sum(
+        r.calibration_error ** 2  # already = (confidence - expected_conf)^2
         for r in results
     ) / total
 
@@ -873,6 +892,7 @@ def compute_calibration_metrics(
         overconfidence_rate=round(overconfidence_rate, 4),
         underconfidence_rate=round(underconfidence_rate, 4),
         brier_score=round(brier_score, 4),
+        behavior_aware_brier_score=round(behavior_aware_brier_score, 4),
         bucket_accuracies=bucket_accuracies,
         bucket_counts=bucket_counts,
         reliability_diagram_data=reliability_data,

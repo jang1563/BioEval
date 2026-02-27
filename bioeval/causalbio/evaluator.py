@@ -407,11 +407,14 @@ Cell type: {drug['cell_type']}
 
 Question: {question}
 
-Provide:
-1. Key genes expected to be upregulated
-2. Key genes expected to be downregulated
-3. Mechanism of drug action
-4. Expected cellular phenotype"""
+Please structure your response with these clearly labeled sections:
+
+UPREGULATED GENES: [list specific gene names, comma-separated]
+DOWNREGULATED GENES: [list specific gene names, comma-separated]
+MECHANISM: [mechanism of drug action]
+PHENOTYPE: [expected cellular phenotype]
+
+Then provide your detailed reasoning."""
 
         # Apply enhanced prompts for causal reasoning
         if self.use_enhanced_prompts:
@@ -661,10 +664,25 @@ Provide:
         phenotype_terms = [t.strip().lower() for t in phenotype.split(",") if len(t.strip()) > 3]
         phenotype_mentioned = any_match(phenotype_terms, response_lower) if phenotype_terms else False
 
+        # Combined score: weight direction accuracy heavily when extraction succeeded;
+        # fall back to mention-only scoring (capped at 0.5) when extraction failed.
+        if gene_result.success and total_mentioned > 0:
+            # Extraction worked: 60% direction + 30% gene mention + 5% mechanism + 5% phenotype
+            combined_score = (
+                0.60 * direction_accuracy
+                + 0.30 * gene_mention_rate
+                + 0.05 * float(mechanism_mentioned)
+                + 0.05 * float(phenotype_mentioned)
+            )
+        else:
+            # Extraction failed: can only credit gene mention (max 0.5)
+            combined_score = gene_mention_rate * 0.5
+
         return {
             "gene_mention_rate": round(gene_mention_rate, 3),
             "direction_accuracy": round(direction_accuracy, 3),
-            "combined_score": round((gene_mention_rate + direction_accuracy) / 2, 3),
+            "combined_score": round(min(1.0, combined_score), 3),
+            "extraction_succeeded": gene_result.success,
             "upregulated_mentioned": up_mentioned,
             "upregulated_direction_correct": up_correct,
             "downregulated_mentioned": down_mentioned,
