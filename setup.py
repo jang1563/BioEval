@@ -42,7 +42,7 @@ setup(
         "dev": [
             "pytest>=7.0.0",
             "pytest-asyncio>=0.21.0",
-            "black>=23.0.0",
+            "black>=23.0.0,<26.0.0",
             "ruff>=0.8.0",
             "mypy>=1.0.0",
             "pre-commit>=3.0.0",
