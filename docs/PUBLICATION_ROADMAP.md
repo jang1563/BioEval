@@ -23,22 +23,26 @@
 
 \* Advanced tiers return identical task IDs as base (same prompts, no unique additions).
 
-### Evaluation Results (Claude Sonnet 4, seed=42)
+### Evaluation Results (Claude Sonnet 4, seed=42) — Phase 2.0 Re-run
 
-| Component | Tasks | All Scored | Mean | Primary Metric | Rating |
-|-----------|:-----:|:----------:|:----:|----------------|:------:|
-| ProtoReason | 14 | 14/14 | 0.910 | apa / recall / num_acc / cause_cov | Strong |
-| CausalBio | 13 | 13/13 | 0.715 | effect_correct / combined / mechanism | Good |
-| Adversarial | 30 | 30/30 | 0.811 | score | Strong |
-| MultiTurn | 6 | 6/6 | 0.911 | overall_score | Strong |
-| BioSafety | 25 | 25/25 | 0.857 | score (top-level) | Strong |
-| Calibration | 30 | 30/30 | 0.720 | 1 − calibration_error | Good |
-| DataInterp | 25 | 25/25 | 0.624 | score (top-level) | Fair |
-| Debate | 25 | 25/25 | 0.453† | composite_score | Weak |
-| DesignCheck | 10 | 10/10 | 0.318† | F1 (recall=1.0, precision low) | Weak |
-| **Weighted Mean** | **178** | **178/178** | **0.705†** | | |
+| Component | Tasks | Scored | Mean | Primary Metric | Rating | vs Old |
+|-----------|:-----:|:------:|:----:|----------------|:------:|:------:|
+| ProtoReason | 14 | 10/14 | 0.978 | apa / recall / num_acc / cause_cov | Strong | +0.068 |
+| Adversarial | 30 | 30/30 | 0.923 | score | Strong | +0.112 |
+| BioSafety | 25 | 25/25 | 0.829 | score (top-level) | Strong | -0.028 |
+| CausalBio | 13 | 11/13 | 0.798 | effect_correct / combined / mechanism | Good | +0.083 |
+| MultiTurn | 6 | 6/6 | 0.772 | overall_score | Good | -0.139 |
+| DataInterp | 25 | 25/25 | 0.720 | score (top-level) | Good | +0.096 |
+| Calibration | 30 | 30/30 | 0.690 | 1 − calibration_error | Good | -0.030 |
+| DesignCheck | 10 | 10/10 | 0.535 | F1 | Fair | **+0.217** |
+| Debate | 25 | 25/25 | 0.377 | composite_score | Weak | **-0.076** |
+| **Weighted Mean** | **178** | **172/178** | **0.727** | | | +0.022 |
 
-† **Stale scores.** Phase 1 changed DesignCheck (alias matching) and Debate (formula fix) scoring. Re-run needed in Phase 2.0. Expected post-fix: DesignCheck F1 likely to improve; Debate composite drops to ~0.380 (honest — model outcome accuracy is only 16%).
+**Phase 2.0 notes:**
+- 6 tasks failed due to API connection errors (4 ProtoReason, 2 CausalBio). Retry pending.
+- **DesignCheck** improved from 0.318 to 0.535 (+68%) — alias matching fix validated.
+- **Debate** dropped from 0.453 to 0.377 as predicted — honest score reflecting 16% outcome accuracy.
+- Overall weighted mean improved from 0.705 to 0.727 despite Debate drop.
 
 **Score field structure varies by component** (see `docs/SCORE_FIELD_MAPPING.md`):
 - ProtoReason: 4 task types × 4 different metric names inside `scores{}`
@@ -120,11 +124,11 @@
 
 | # | Task | Detail | Deliverable |
 |---|------|--------|-------------|
-| 2.0 | Claude re-run (seed 42) | **NEW.** Re-run `bioeval run --all -m claude-sonnet-4-20250514 --seed 42` with fixed DesignCheck alias matching and Debate composite formula. This replaces `sonnet_all_9components.json`. | Updated baseline result JSON |
+| 2.0 | Claude re-run (seed 42) | **DONE.** Re-ran with fixed scoring. Results: `results/phase2_claude_sonnet4_seed42.json`. 172/178 scored (6 connection errors). DesignCheck: 0.318→0.535, Debate: 0.453→0.377, Overall: 0.705→0.727. | Updated baseline result JSON ✓ |
 | 2.1 | GPT-4o evaluation | Run `bioeval run --all -m gpt-4o --seed 42 --runs 3` (seeds: 42, 123, 456). Model backend: `OpenAIModel` (already implemented) | 3 result JSON files |
 | 2.2 | Open-source model | Run Llama 3 70B or Mistral Large via API. `HuggingFaceModel` backend available. 3 seeds. | 3 result JSON files |
 | 2.3 | Claude 3× repeat | Run Claude Sonnet 4 with seeds 123, 456 (seed 42 done in 2.0). CLI supports `--runs` flag for aggregation. | 2 additional result JSON files |
-| 2.4 | Statistical analysis | Per-component: mean ± 95% CI (Bootstrap 10K), model-pair Wilcoxon signed-rank, effect sizes. NOTE: for MultiTurn (N=6), report exact permutation test instead of Wilcoxon. | Statistics table + significance |
+| 2.4 | Statistical analysis | Module built: `bioeval/reporting/statistical_tests.py` with bootstrap_ci, wilcoxon_signed_rank, permutation_test, cohens_d, hedges_g, compare_models. Needs testing + integration with CLI compare command. | Statistics table + significance |
 | 2.5 | Judge validation | `bioeval judge-pack results.json --sample-size 50 --seed 42` (CLI confirmed working). 2+ domain experts score independently. Report Cohen's κ (target ≥ 0.5). Start expert recruitment now. | Judge validation report |
 | 2.6 | 3-model comparison table | Table: Component × Model with CIs. Radar chart. Per-component analysis. Update README/HTML with new scores after re-runs. | Main results table for paper |
 

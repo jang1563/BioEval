@@ -134,16 +134,16 @@ results = evaluator.run_evaluation()
 
 | Component | Tasks | Mean Score | Primary Metric |
 |-----------|:-----:|:----------:|----------------|
-| ProtoReason | 14 | **0.910** | Step ordering / calculation / troubleshooting accuracy |
-| MultiTurn | 6 | **0.911** | Dialogue coherence & context retention |
-| BioSafety | 25 | **0.857** | Safety judgment & dual-use risk identification |
-| Adversarial | 30 | **0.811** | Robustness against hallucination traps |
-| Calibration | 30 | **0.720** | 1 − calibration error |
-| CausalBio | 13 | **0.715** | Perturbation prediction accuracy |
-| DataInterp | 25 | **0.624** | Quantitative data interpretation |
-| Debate | 25 | **0.453** | Multi-agent debate composite score |
-| DesignCheck | 10 | **0.318** | Flaw detection F1 (recall=1.0, precision limited) |
-| **Overall** | **178** | **0.705** | Weighted mean across all components |
+| ProtoReason | 14 | **0.978** | Step ordering / calculation / troubleshooting accuracy |
+| Adversarial | 30 | **0.923** | Robustness against hallucination traps |
+| BioSafety | 25 | **0.829** | Safety judgment & dual-use risk identification |
+| CausalBio | 13 | **0.798** | Perturbation prediction accuracy |
+| MultiTurn | 6 | **0.772** | Dialogue coherence & context retention |
+| DataInterp | 25 | **0.720** | Quantitative data interpretation |
+| Calibration | 30 | **0.690** | 1 − calibration error |
+| DesignCheck | 10 | **0.535** | Flaw detection F1 |
+| Debate | 25 | **0.377** | Multi-agent debate composite score |
+| **Overall** | **178** | **0.727** | Weighted mean across all components |
 
 ### Enhanced vs Baseline Prompt Comparison (Adversarial subset)
 

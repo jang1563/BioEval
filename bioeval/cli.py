@@ -448,37 +448,22 @@ def _aggregate(all_results: list[dict]) -> dict:
 
 
 def cmd_compare(args):
-    """Compare two evaluation result files."""
+    """Compare two evaluation result files with statistical tests."""
     with open(args.baseline) as f:
         baseline = json.load(f)
     with open(args.enhanced) as f:
         enhanced = json.load(f)
 
-    print(f"\n{'=' * 60}")
-    print("BioEval Comparison")
-    print(f"{'=' * 60}")
-    print(f"Baseline: {args.baseline}")
-    print(f"  Model: {baseline.get('metadata', {}).get('model', 'unknown')}")
-    print(f"Enhanced: {args.enhanced}")
-    print(f"  Model: {enhanced.get('metadata', {}).get('model', 'unknown')}")
-    print()
+    from bioeval.reporting.statistical_tests import compare_models, print_comparison
 
-    # Compare by component
-    b_components = {r["component"]: r for r in baseline.get("results", [])}
-    e_components = {r["component"]: r for r in enhanced.get("results", [])}
+    comparison = compare_models(baseline, enhanced)
 
-    all_components = sorted(set(list(b_components.keys()) + list(e_components.keys())))
-    for comp in all_components:
-        b = b_components.get(comp, {})
-        e = e_components.get(comp, {})
-        b_tasks = b.get("num_tasks", 0)
-        e_tasks = e.get("num_tasks", 0)
-        print(f"{comp}:")
-        print(f"  Baseline: {b_tasks} tasks")
-        print(f"  Enhanced: {e_tasks} tasks")
-        print()
-
-    print("(Detailed statistical comparison available after Phase 2)")
+    if hasattr(args, "json") and args.json:
+        print(json.dumps(comparison, indent=2, default=str))
+    else:
+        print(f"\nBaseline: {args.baseline}")
+        print(f"Enhanced: {args.enhanced}")
+        print_comparison(comparison)
 
 
 def cmd_demo(args):
@@ -566,6 +551,7 @@ def main():
     compare_parser = subparsers.add_parser("compare", help="Compare two result files")
     compare_parser.add_argument("baseline", help="Baseline results JSON")
     compare_parser.add_argument("enhanced", help="Enhanced results JSON")
+    compare_parser.add_argument("--json", action="store_true", help="Output comparison as JSON")
 
     # --- demo ---
     subparsers.add_parser("demo", help="Show pre-cached results (no API key needed)")

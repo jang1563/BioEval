@@ -111,10 +111,20 @@ def compute_aggregates(normalized: list[NormalizedScore]) -> dict:
     p50 = sorted_scores[n // 2] if n >= 2 else sorted_scores[0]
     p75 = sorted_scores[3 * n // 4] if n >= 4 else sorted_scores[-1]
 
+    # Bootstrap CI
+    try:
+        from bioeval.reporting.statistical_tests import bootstrap_ci
+
+        ci = bootstrap_ci(scores)
+    except Exception:
+        ci = {"lower": round(mean - 1.96 * std / math.sqrt(n), 4), "upper": round(mean + 1.96 * std / math.sqrt(n), 4)}
+
     return {
         "n": n,
         "mean": round(mean, 4),
         "std": round(std, 4),
+        "ci_lower": ci.get("lower", round(mean - 1.96 * std / math.sqrt(n), 4)),
+        "ci_upper": ci.get("upper", round(mean + 1.96 * std / math.sqrt(n), 4)),
         "min": round(min(scores), 4),
         "max": round(max(scores), 4),
         "p25": round(p25, 4),

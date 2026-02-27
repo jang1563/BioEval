@@ -55,7 +55,8 @@ class ResponseCache:
     def _init_db(self):
         """Initialize SQLite database."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS responses (
                     cache_key TEXT PRIMARY KEY,
                     model TEXT,
@@ -65,13 +66,18 @@ class ResponseCache:
                     created_at TEXT,
                     task_id TEXT
                 )
-            """)
-            conn.execute("""
+            """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_task_id ON responses(task_id)
-            """)
-            conn.execute("""
+            """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_model ON responses(model)
-            """)
+            """
+            )
 
     def _compute_key(self, model: str, prompt: str, system: Optional[str] = None) -> str:
         """Compute cache key from model and prompt."""
