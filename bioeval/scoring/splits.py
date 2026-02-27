@@ -66,9 +66,12 @@ def get_split_summary(tasks: list[Any], id_attr: str = "id") -> dict:
 # MULTI-RUN AGGREGATION WITH BAYESIAN CIs
 # =============================================================================
 
+
 def beta_binomial_ci(
-    successes: int, trials: int,
-    alpha_prior: float = 1.0, beta_prior: float = 1.0,
+    successes: int,
+    trials: int,
+    alpha_prior: float = 1.0,
+    beta_prior: float = 1.0,
     credible_level: float = 0.95,
 ) -> dict:
     """Compute Bayesian Beta-Binomial credible interval.
@@ -88,6 +91,7 @@ def beta_binomial_ci(
     # For small n, use quantile function
     try:
         from scipy.stats import beta as beta_dist
+
         tail = (1 - credible_level) / 2
         lower = beta_dist.ppf(tail, alpha_post, beta_post)
         upper = beta_dist.ppf(1 - tail, alpha_post, beta_post)
@@ -166,12 +170,14 @@ def aggregate_multi_run(run_results: list[dict]) -> dict:
                         score_count += 1
 
             if score_count > 0:
-                run_scores.append({
-                    "mean_score": score_sum / score_count,
-                    "pass_rate": n_passed / n_tasks if n_tasks > 0 else 0,
-                    "n_tasks": n_tasks,
-                    "n_passed": n_passed,
-                })
+                run_scores.append(
+                    {
+                        "mean_score": score_sum / score_count,
+                        "pass_rate": n_passed / n_tasks if n_tasks > 0 else 0,
+                        "n_tasks": n_tasks,
+                        "n_passed": n_passed,
+                    }
+                )
 
         if not run_scores:
             aggregated["by_component"][comp] = {"n_runs": 0}
@@ -182,7 +188,11 @@ def aggregate_multi_run(run_results: list[dict]) -> dict:
         pass_rates = [rs["pass_rate"] for rs in run_scores]
 
         overall_mean = sum(mean_scores) / len(mean_scores)
-        overall_std = math.sqrt(sum((s - overall_mean) ** 2 for s in mean_scores) / max(1, len(mean_scores) - 1)) if len(mean_scores) > 1 else 0.0
+        overall_std = (
+            math.sqrt(sum((s - overall_mean) ** 2 for s in mean_scores) / max(1, len(mean_scores) - 1))
+            if len(mean_scores) > 1
+            else 0.0
+        )
 
         # Beta-Binomial CI on pass rate
         total_passed = sum(rs["n_passed"] for rs in run_scores)

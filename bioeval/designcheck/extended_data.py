@@ -35,25 +35,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "missing_positive_control",
                 "severity": "major",
                 "explanation": "No positive control for apoptosis (e.g. staurosporine, camptothecin) to validate staining",
-                "fix": "Include a known apoptosis inducer as a positive control"
+                "fix": "Include a known apoptosis inducer as a positive control",
             },
             {
                 "category": "technical",
                 "type": "inadequate_gating",
                 "severity": "critical",
                 "explanation": "Quadrant gates set on unstained cells — compensation controls (single-stain) are required for FITC/PI overlap",
-                "fix": "Include single-colour Annexin V-FITC only and PI-only controls for compensation"
+                "fix": "Include single-colour Annexin V-FITC only and PI-only controls for compensation",
             },
             {
                 "category": "technical",
                 "type": "insufficient_events",
                 "severity": "minor",
                 "explanation": "10,000 events may be low if rare populations are of interest and debris is not excluded",
-                "fix": "Collect at least 20,000-50,000 events with forward/side scatter gating to exclude debris"
+                "fix": "Collect at least 20,000-50,000 events with forward/side scatter gating to exclude debris",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # RNA-seq EXPERIMENT
     # -------------------------------------------------------------------------
@@ -84,25 +83,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "insufficient_replicates",
                 "severity": "critical",
                 "explanation": "n=2 biological replicates provides very low statistical power for DESeq2; FDR correction is unreliable with only 2 replicates",
-                "fix": "Use at least n=3 biological replicates per condition (n=4 recommended)"
+                "fix": "Use at least n=3 biological replicates per condition (n=4 recommended)",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "'Profoundly reshapes the transcriptome' overstates findings — 48h treatment will include many secondary/indirect effects",
-                "fix": "Include earlier time points (4h, 12h) to separate direct vs indirect effects"
+                "fix": "Include earlier time points (4h, 12h) to separate direct vs indirect effects",
             },
             {
                 "category": "confounders",
                 "type": "cell_cycle_confound",
                 "severity": "major",
                 "explanation": "CDK4/6 inhibition causes G1 arrest — observed DEGs may reflect cell cycle state rather than direct drug targets",
-                "fix": "Account for cell cycle changes; compare to serum-starved G1-arrested cells as additional control"
+                "fix": "Account for cell cycle changes; compare to serum-starved G1-arrested cells as additional control",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # IMMUNOHISTOCHEMISTRY
     # -------------------------------------------------------------------------
@@ -132,25 +130,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "scorer_bias",
                 "severity": "critical",
                 "explanation": "Single pathologist scorer with no blinding to outcome — scorer bias may inflate association",
-                "fix": "Use at least two independent blinded pathologists and report inter-rater agreement (kappa)"
+                "fix": "Use at least two independent blinded pathologists and report inter-rater agreement (kappa)",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "'Reliably predicts' is too strong — 50% of non-responders are also PD-L1-positive (low specificity)",
-                "fix": "Report sensitivity, specificity, PPV, and NPV; acknowledge limited predictive power"
+                "fix": "Report sensitivity, specificity, PPV, and NPV; acknowledge limited predictive power",
             },
             {
                 "category": "confounders",
                 "type": "selection_bias",
                 "severity": "major",
                 "explanation": "Retrospective case-control design — sampling 25/25 does not reflect real prevalence or response rates",
-                "fix": "Use consecutive unselected cohort to avoid sampling bias"
+                "fix": "Use consecutive unselected cohort to avoid sampling bias",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # XENOGRAFT / IN VIVO
     # -------------------------------------------------------------------------
@@ -179,25 +176,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "non_random_allocation",
                 "severity": "critical",
                 "explanation": "Mice allocated sequentially (first 10 vs last 10) rather than randomised — cage/position effects and growth rate bias",
-                "fix": "Randomise mice to groups when tumours reach target volume using stratified randomisation"
+                "fix": "Randomise mice to groups when tumours reach target volume using stratified randomisation",
             },
             {
                 "category": "technical",
                 "type": "single_pdx_model",
                 "severity": "major",
                 "explanation": "One PDX from one patient cannot represent population-level response",
-                "fix": "Test in 3-5 independent PDX models from different patients"
+                "fix": "Test in 3-5 independent PDX models from different patients",
             },
             {
                 "category": "confounders",
                 "type": "operator_effect",
                 "severity": "major",
                 "explanation": "No blinding during tumour measurement or group allocation",
-                "fix": "Blind tumour measurements; have different personnel handle dosing and measurement"
+                "fix": "Blind tumour measurements; have different personnel handle dosing and measurement",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # PROTEOMICS
     # -------------------------------------------------------------------------
@@ -228,25 +224,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "multiple_testing",
                 "severity": "critical",
                 "explanation": "5,000 phosphosites tested by ANOVA with p<0.05 cutoff expects ~250 false positives — no FDR correction mentioned",
-                "fix": "Apply Benjamini-Hochberg FDR correction; report q-values"
+                "fix": "Apply Benjamini-Hochberg FDR correction; report q-values",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
                 "severity": "critical",
                 "explanation": "n=2 per time point provides very limited statistical power for 5,000 comparisons",
-                "fix": "Use at least n=3 biological replicates per time point"
+                "fix": "Use at least n=3 biological replicates per time point",
             },
             {
                 "category": "technical",
                 "type": "run_order_effect",
                 "severity": "major",
                 "explanation": "If samples are run sequentially, LC-MS sensitivity can drift over the batch; no randomisation of run order mentioned",
-                "fix": "Randomise sample run order and include QC standard injections between samples"
+                "fix": "Randomise sample run order and include QC standard injections between samples",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # ChIP-seq
     # -------------------------------------------------------------------------
@@ -277,25 +272,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "missing_negative_control",
                 "severity": "critical",
                 "explanation": "No input DNA control — essential for MACS2 peak calling to distinguish true signal from open chromatin / sonication bias",
-                "fix": "Sequence input DNA control at comparable or greater depth"
+                "fix": "Sequence input DNA control at comparable or greater depth",
             },
             {
                 "category": "technical",
                 "type": "low_sequencing_depth",
                 "severity": "major",
                 "explanation": "15 million reads is below ENCODE guidelines (20M+ for point-source TFs); may miss lower-affinity binding sites",
-                "fix": "Sequence to at least 20-30 million uniquely mapped reads"
+                "fix": "Sequence to at least 20-30 million uniquely mapped reads",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
                 "severity": "major",
                 "explanation": "Single replicate — ENCODE requires at least 2 biological replicates with IDR analysis",
-                "fix": "Perform in at least 2 biological replicates; use IDR for reproducibility"
+                "fix": "Perform in at least 2 biological replicates; use IDR for reproducibility",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # ORGANOID MODEL
     # -------------------------------------------------------------------------
@@ -326,25 +320,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "single_dose",
                 "severity": "critical",
                 "explanation": "Single 1 μM dose ignores potency differences — some drugs have IC50 > 1 μM and would be missed; others may appear active only due to toxicity",
-                "fix": "Use dose-response curves (6-8 concentrations) to determine IC50 for each drug"
+                "fix": "Use dose-response curves (6-8 concentrations) to determine IC50 for each drug",
             },
             {
                 "category": "controls",
                 "type": "missing_positive_control",
                 "severity": "major",
                 "explanation": "No positive control drug with known activity to benchmark assay sensitivity",
-                "fix": "Include a known cytotoxic agent and a drug matching the patient's actual treatment regimen"
+                "fix": "Include a known cytotoxic agent and a drug matching the patient's actual treatment regimen",
             },
             {
                 "category": "statistics",
                 "type": "pseudoreplication",
                 "severity": "major",
                 "explanation": "Triplicate wells are technical replicates from one organoid line from one patient — no biological replication",
-                "fix": "Test across multiple independent organoid cultures or multiple passages for biological variability"
+                "fix": "Test across multiple independent organoid cultures or multiple passages for biological variability",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # CRISPR BASE EDITING
     # -------------------------------------------------------------------------
@@ -373,25 +366,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "inappropriate_control",
                 "severity": "critical",
                 "explanation": "Parental cells are wrong control — they didn't undergo transfection, sorting, or selection stress; differences may reflect these procedures",
-                "fix": "Use non-targeting sgRNA + CBE4max control processed identically (transfected, sorted, sequenced)"
+                "fix": "Use non-targeting sgRNA + CBE4max control processed identically (transfected, sorted, sequenced)",
             },
             {
                 "category": "technical",
                 "type": "bystander_edits",
                 "severity": "major",
                 "explanation": "Cytosine base editors can edit other C residues in the editing window (positions 4-8) — bystander edits in TP53 could confound",
-                "fix": "Check Sanger trace for bystander edits in the editing window; sequence full TP53 exon"
+                "fix": "Check Sanger trace for bystander edits in the editing window; sequence full TP53 exon",
             },
             {
                 "category": "technical",
                 "type": "off_target_editing",
                 "severity": "major",
                 "explanation": "No assessment of off-target C>T edits at predicted genomic sites",
-                "fix": "Check top 5-10 predicted off-target sites by amplicon sequencing"
+                "fix": "Check top 5-10 predicted off-target sites by amplicon sequencing",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # CELL LINE AUTHENTICATION
     # -------------------------------------------------------------------------
@@ -421,25 +413,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "cell_line_authentication",
                 "severity": "critical",
                 "explanation": "Old freezer stocks (3-7 years) with no authentication — cell lines may be misidentified or cross-contaminated (estimated 15-20% misidentification rate in literature)",
-                "fix": "Perform STR profiling on all cell lines before experiments; compare to ATCC reference profiles"
+                "fix": "Perform STR profiling on all cell lines before experiments; compare to ATCC reference profiles",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
                 "severity": "major",
                 "explanation": "Each cell line tested once — single experiment IC50 values have substantial variability",
-                "fix": "Repeat entire experiment on at least 3 independent occasions"
+                "fix": "Repeat entire experiment on at least 3 independent occasions",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "Claiming HER2 predicts PARPi sensitivity from 5 cell lines (2 HER2+) is severe overfitting — biological correlation requires larger panel",
-                "fix": "Test in ≥20 cell lines or use public datasets (GDSC, CCLE) for biomarker-response correlation"
+                "fix": "Test in ≥20 cell lines or use public datasets (GDSC, CCLE) for biomarker-response correlation",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # SPATIAL TRANSCRIPTOMICS
     # -------------------------------------------------------------------------
@@ -470,29 +461,27 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "underpowered",
                 "severity": "critical",
                 "explanation": "n=1 per group — any difference could reflect individual patient variation rather than MSI/MSS biology",
-                "fix": "Include ≥5 patients per group to account for inter-patient variability"
+                "fix": "Include ≥5 patients per group to account for inter-patient variability",
             },
             {
                 "category": "technical",
                 "type": "single_section_bias",
                 "severity": "major",
                 "explanation": "One tissue section per patient may not represent tumour heterogeneity — immune infiltrate varies by region",
-                "fix": "Profile multiple sections from different tumour regions per patient"
+                "fix": "Profile multiple sections from different tumour regions per patient",
             },
             {
                 "category": "interpretation",
                 "type": "correlation_causation",
                 "severity": "major",
                 "explanation": "'Explaining immunotherapy responsiveness' is causal language from observational spatial data with n=2",
-                "fix": "State as hypothesis; validate with clinical immunotherapy outcome data"
+                "fix": "State as hypothesis; validate with clinical immunotherapy outcome data",
             },
         ],
     },
-
     # =========================================================================
     # BATCH 2: 10 additional designs (design_021 - design_030)
     # =========================================================================
-
     # -------------------------------------------------------------------------
     # CRISPR SCREEN
     # -------------------------------------------------------------------------
@@ -522,25 +511,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "missing_nontargeting_control",
                 "severity": "critical",
                 "explanation": "No non-targeting control sgRNAs mentioned for baseline — essential for MAGeCK null distribution and FDR calibration",
-                "fix": "Ensure non-targeting sgRNAs (~1000) are included and used as negative controls in MAGeCK analysis"
+                "fix": "Ensure non-targeting sgRNAs (~1000) are included and used as negative controls in MAGeCK analysis",
             },
             {
                 "category": "technical",
                 "type": "no_baseline_reference",
                 "severity": "major",
                 "explanation": "No T0 (pre-treatment) baseline sample to distinguish resistance genes from essential genes depleted during growth",
-                "fix": "Collect a T0 sample at start of drug treatment to separate essentiality from drug-specific effects"
+                "fix": "Collect a T0 sample at start of drug treatment to separate essentiality from drug-specific effects",
             },
             {
                 "category": "technical",
                 "type": "library_coverage",
                 "severity": "major",
                 "explanation": "No mention of library representation or coverage (cells per sgRNA) — low coverage leads to noise and false negatives",
-                "fix": "Maintain ≥500x library representation (38M+ cells); verify coverage by sequencing plasmid library"
+                "fix": "Maintain ≥500x library representation (38M+ cells); verify coverage by sequencing plasmid library",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # ANIMAL STUDY RANDOMIZATION
     # -------------------------------------------------------------------------
@@ -571,25 +559,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "cage_effect_confound",
                 "severity": "critical",
                 "explanation": "Cage-level allocation (not individual randomisation) — treatment is confounded with cage effects (microbiome, stress, dominance hierarchies)",
-                "fix": "Randomise individual mice across cages so each cage has both treatment and control animals"
+                "fix": "Randomise individual mice across cages so each cage has both treatment and control animals",
             },
             {
                 "category": "confounders",
                 "type": "non_individual_randomization",
                 "severity": "major",
                 "explanation": "Treatment started at average tumour volume across all mice — individual tumour sizes at treatment start may differ substantially",
-                "fix": "Enrol mice individually when each reaches target volume; stratify randomisation by tumour size"
+                "fix": "Enrol mice individually when each reaches target volume; stratify randomisation by tumour size",
             },
             {
                 "category": "technical",
                 "type": "no_blinding",
                 "severity": "major",
                 "explanation": "No mention of blinding for tumour measurement — knowing treatment assignment can bias calliper measurements",
-                "fix": "Have tumour measurements performed by personnel blinded to treatment group"
+                "fix": "Have tumour measurements performed by personnel blinded to treatment group",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # METABOLOMICS BATCH EFFECTS
     # -------------------------------------------------------------------------
@@ -621,25 +608,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "batch_effect_confound",
                 "severity": "critical",
                 "explanation": "Disease status is completely confounded with batch (T2D=batch1, controls=batch2) — observed differences may reflect batch, not biology",
-                "fix": "Randomise samples across batches; include pooled QC samples; use batch correction methods (ComBat)"
+                "fix": "Randomise samples across batches; include pooled QC samples; use batch correction methods (ComBat)",
             },
             {
                 "category": "confounders",
                 "type": "site_confound",
                 "severity": "critical",
                 "explanation": "T2D from Hospital A, controls from Hospital B — site differences (diet, demographics, sample handling) are confounded with disease",
-                "fix": "Recruit cases and controls from the same site/cohort; match on key confounders"
+                "fix": "Recruit cases and controls from the same site/cohort; match on key confounders",
             },
             {
                 "category": "statistics",
                 "type": "multiple_testing",
                 "severity": "major",
                 "explanation": "2,500 features tested with uncorrected p < 0.05 — expected ~125 false positives by chance",
-                "fix": "Apply FDR correction (Benjamini-Hochberg); use permutation-based testing for robustness"
+                "fix": "Apply FDR correction (Benjamini-Hochberg); use permutation-based testing for robustness",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # CLINICAL TRIAL ITT
     # -------------------------------------------------------------------------
@@ -671,25 +657,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "no_intention_to_treat",
                 "severity": "critical",
                 "explanation": "Primary analysis used per-protocol population instead of intention-to-treat (ITT) — excludes 55 randomised patients, breaking randomisation",
-                "fix": "Primary analysis must use full ITT population (all randomised); per-protocol as sensitivity analysis"
+                "fix": "Primary analysis must use full ITT population (all randomised); per-protocol as sensitivity analysis",
             },
             {
                 "category": "statistics",
                 "type": "differential_dropout",
                 "severity": "major",
                 "explanation": "More dropouts in antibiotic X arm (35 vs 20) — differential dropout suggests tolerability issues that PP analysis hides",
-                "fix": "Report dropout reasons per arm; perform worst-case ITT sensitivity analysis (assume dropouts = failures)"
+                "fix": "Report dropout reasons per arm; perform worst-case ITT sensitivity analysis (assume dropouts = failures)",
             },
             {
                 "category": "interpretation",
                 "type": "non_inferiority_misuse",
                 "severity": "major",
                 "explanation": "'Comparable' implies non-inferiority but no non-inferiority margin was pre-specified — p=0.48 only shows no significant difference",
-                "fix": "If non-inferiority is the goal, pre-specify margin (e.g., -10%) and calculate CI for difference"
+                "fix": "If non-inferiority is the goal, pre-specify margin (e.g., -10%) and calculate CI for difference",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # SINGLE-CELL RNA-seq DOUBLETS
     # -------------------------------------------------------------------------
@@ -720,25 +705,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "doublet_contamination",
                 "severity": "critical",
                 "explanation": "Co-expression of neuron (MAP2) and macrophage (CD68) markers is the hallmark signature of doublets — two cells captured in one droplet",
-                "fix": "Run doublet detection (DoubletFinder, Scrublet) before cluster annotation; loading 20K for 10K recovery gives ~8% expected doublet rate"
+                "fix": "Run doublet detection (DoubletFinder, Scrublet) before cluster annotation; loading 20K for 10K recovery gives ~8% expected doublet rate",
             },
             {
                 "category": "technical",
                 "type": "high_doublet_rate",
                 "severity": "major",
                 "explanation": "Loading 20,000 cells to recover 10,000 on 10X Chromium exceeds recommended overloading — expected doublet rate ~8-10%",
-                "fix": "Load fewer cells (recommended 6,000-8,000 for 10,000 target) or explicitly account for doublet rate"
+                "fix": "Load fewer cells (recommended 6,000-8,000 for 10,000 target) or explicitly account for doublet rate",
             },
             {
                 "category": "interpretation",
                 "type": "novel_cell_type_claim",
                 "severity": "major",
                 "explanation": "Claiming a novel cell type from scRNA-seq alone without validation is premature — requires orthogonal confirmation",
-                "fix": "Validate with multiplex FISH (smFISH), immunofluorescence co-staining, or spatial transcriptomics"
+                "fix": "Validate with multiplex FISH (smFISH), immunofluorescence co-staining, or spatial transcriptomics",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # IHC NO ISOTYPE CONTROL
     # -------------------------------------------------------------------------
@@ -769,25 +753,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "no_isotype_control",
                 "severity": "critical",
                 "explanation": "No isotype control or secondary-only control — cannot distinguish specific BioX staining from non-specific antibody binding",
-                "fix": "Include rabbit IgG isotype control and secondary-antibody-only control on serial sections"
+                "fix": "Include rabbit IgG isotype control and secondary-antibody-only control on serial sections",
             },
             {
                 "category": "technical",
                 "type": "polyclonal_antibody",
                 "severity": "major",
                 "explanation": "Rabbit polyclonal antibodies have batch-to-batch variability and higher non-specific binding risk — problematic for clinical biomarker development",
-                "fix": "Validate with a monoclonal antibody; perform Western blot to confirm antibody specificity (single band at expected MW)"
+                "fix": "Validate with a monoclonal antibody; perform Western blot to confirm antibody specificity (single band at expected MW)",
             },
             {
                 "category": "technical",
                 "type": "single_scorer",
                 "severity": "major",
                 "explanation": "Semi-quantitative scoring by a single pathologist — subjective scoring without inter-rater reliability assessment",
-                "fix": "Use at least two independent pathologists; report inter-rater kappa; consider digital image analysis"
+                "fix": "Use at least two independent pathologists; report inter-rater kappa; consider digital image analysis",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # PROTEOMICS REPLICATES
     # -------------------------------------------------------------------------
@@ -818,25 +801,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "no_biological_replicates",
                 "severity": "critical",
                 "explanation": "Each cell line measured once — 3 cell lines per group means cell line variability is confounded with subtype differences; n=3 is underpowered for 6,000 tests",
-                "fix": "Include 2-3 biological replicates per cell line; alternatively, use ≥6 cell lines per subtype with replicated measurements"
+                "fix": "Include 2-3 biological replicates per cell line; alternatively, use ≥6 cell lines per subtype with replicated measurements",
             },
             {
                 "category": "statistics",
                 "type": "multiple_testing",
                 "severity": "major",
                 "explanation": "6,000 proteins tested with p < 0.01 cutoff expects ~60 false positives — no FDR correction mentioned",
-                "fix": "Apply Benjamini-Hochberg correction; report q-values; use limma for proteomics statistical testing"
+                "fix": "Apply Benjamini-Hochberg correction; report q-values; use limma for proteomics statistical testing",
             },
             {
                 "category": "interpretation",
                 "type": "cell_line_vs_tissue",
                 "severity": "major",
                 "explanation": "Cell line proteomes may not reflect in vivo tumour differences — cultured cells lack microenvironment context",
-                "fix": "Validate key findings in patient tumour tissue samples (IHC or tissue proteomics)"
+                "fix": "Validate key findings in patient tumour tissue samples (IHC or tissue proteomics)",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # DRUG COMBINATION
     # -------------------------------------------------------------------------
@@ -866,25 +848,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "missing_single_agent",
                 "severity": "critical",
                 "explanation": "No single-agent dose-response curves shown for individual drugs — CI calculation requires accurate single-agent IC50s",
-                "fix": "Generate full dose-response curves for each drug alone alongside the combination experiment"
+                "fix": "Generate full dose-response curves for each drug alone alongside the combination experiment",
             },
             {
                 "category": "technical",
                 "type": "fixed_ratio_only",
                 "severity": "major",
                 "explanation": "Only 1:1 ratio tested — synergy may be ratio-dependent; optimal combination ratio unknown",
-                "fix": "Test multiple ratios (e.g., 1:3, 1:1, 3:1) or use a full dose matrix design (e.g., 6×6)"
+                "fix": "Test multiple ratios (e.g., 1:3, 1:1, 3:1) or use a full dose matrix design (e.g., 6×6)",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "'Should advance to clinical trials' from in vitro synergy in one cell line ignores PK/PD, toxicity, and in vivo validation requirements",
-                "fix": "Validate in multiple cell lines and in vivo models before clinical translation claims"
+                "fix": "Validate in multiple cell lines and in vivo models before clinical translation claims",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # LONGITUDINAL SURVIVORSHIP BIAS
     # -------------------------------------------------------------------------
@@ -914,25 +895,24 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "survivorship_bias",
                 "severity": "critical",
                 "explanation": "Analysing only 45/80 patients with complete data introduces severe survivorship bias — patients who died or progressed early (worst outcomes) are excluded",
-                "fix": "Use all 80 patients with landmark analysis or joint modelling of longitudinal biomarker + survival"
+                "fix": "Use all 80 patients with landmark analysis or joint modelling of longitudinal biomarker + survival",
             },
             {
                 "category": "confounders",
                 "type": "informative_censoring",
                 "severity": "major",
                 "explanation": "Dropout is likely informative (disease progression or death) rather than random — complete-case analysis is biased",
-                "fix": "Report reasons for missing data per time point; use multiple imputation or inverse-probability weighting"
+                "fix": "Report reasons for missing data per time point; use multiple imputation or inverse-probability weighting",
             },
             {
                 "category": "statistics",
                 "type": "guarantee_time_bias",
                 "severity": "major",
                 "explanation": "Requiring survival to cycle 9 for inclusion guarantees a minimum survival time — biases OS comparison",
-                "fix": "Use time-varying covariate models or landmark analysis at a fixed earlier time point"
+                "fix": "Use time-varying covariate models or landmark analysis at a fixed earlier time point",
             },
         ],
     },
-
     # -------------------------------------------------------------------------
     # ELISA STANDARD CURVE
     # -------------------------------------------------------------------------
@@ -963,21 +943,21 @@ EXTENDED_FLAWED_DESIGNS = [
                 "type": "extrapolation_beyond_range",
                 "severity": "critical",
                 "explanation": "Samples above 200 pg/mL (kit max) were extrapolated — ELISA curves are sigmoidal and plateau at high concentrations; extrapolation is unreliable and underestimates true values",
-                "fix": "Dilute samples above the standard range and re-run; never extrapolate beyond the standard curve"
+                "fix": "Dilute samples above the standard range and re-run; never extrapolate beyond the standard curve",
             },
             {
                 "category": "technical",
                 "type": "out_of_range_data",
                 "severity": "major",
                 "explanation": "Baseline mean (380 pg/mL) and max (850 pg/mL) are far above the 200 pg/mL kit range — most baseline values are unreliable",
-                "fix": "Pre-dilute samples (1:5 or 1:10) based on expected concentration range; report how many samples fell within range"
+                "fix": "Pre-dilute samples (1:5 or 1:10) based on expected concentration range; report how many samples fell within range",
             },
             {
                 "category": "statistics",
                 "type": "parametric_on_skewed",
                 "severity": "major",
                 "explanation": "Cytokine data is typically right-skewed (range 45-850) — paired t-test assumes normality of differences",
-                "fix": "Log-transform data or use Wilcoxon signed-rank test for paired comparison"
+                "fix": "Log-transform data or use Wilcoxon signed-rank test for paired comparison",
             },
         ],
     },

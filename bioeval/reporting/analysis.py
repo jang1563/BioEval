@@ -20,6 +20,7 @@ from bioeval.scoring.normalizer import normalize_result, NormalizedScore
 # RESULT LOADING & NORMALIZATION
 # =============================================================================
 
+
 def load_and_normalize(result_path: str) -> dict:
     """Load a result JSON file and normalize all scores.
 
@@ -90,6 +91,7 @@ def load_and_normalize(result_path: str) -> dict:
 # =============================================================================
 # AGGREGATE STATISTICS
 # =============================================================================
+
 
 def compute_aggregates(normalized: list[NormalizedScore]) -> dict:
     """Compute aggregate statistics from normalized scores."""
@@ -175,6 +177,7 @@ def analyze_results(result_path: str) -> dict:
 # CALIBRATION ANALYSIS (ECE)
 # =============================================================================
 
+
 def _compute_ece(cal_scores: list[NormalizedScore], n_bins: int = 5) -> dict:
     """Compute Expected Calibration Error from calibration results."""
     # Extract confidence and correctness from raw results
@@ -199,8 +202,7 @@ def _compute_ece(cal_scores: list[NormalizedScore], n_bins: int = 5) -> dict:
         in_bin = [(c, cor) for c, cor in points if lo <= c < hi or (i == n_bins - 1 and c == hi)]
 
         if not in_bin:
-            bins.append({"bin_range": f"[{lo:.1f}, {hi:.1f})", "n": 0,
-                         "avg_confidence": 0, "avg_accuracy": 0, "gap": 0})
+            bins.append({"bin_range": f"[{lo:.1f}, {hi:.1f})", "n": 0, "avg_confidence": 0, "avg_accuracy": 0, "gap": 0})
             continue
 
         avg_conf = sum(c for c, _ in in_bin) / len(in_bin)
@@ -211,13 +213,15 @@ def _compute_ece(cal_scores: list[NormalizedScore], n_bins: int = 5) -> dict:
         total_ece += weight * gap
         max_ce = max(max_ce, gap)
 
-        bins.append({
-            "bin_range": f"[{lo:.1f}, {hi:.1f})",
-            "n": len(in_bin),
-            "avg_confidence": round(avg_conf, 3),
-            "avg_accuracy": round(avg_acc, 3),
-            "gap": round(gap, 3),
-        })
+        bins.append(
+            {
+                "bin_range": f"[{lo:.1f}, {hi:.1f})",
+                "n": len(in_bin),
+                "avg_confidence": round(avg_conf, 3),
+                "avg_accuracy": round(avg_acc, 3),
+                "gap": round(gap, 3),
+            }
+        )
 
     # Overconfidence/underconfidence
     overconf = sum(1 for c, cor in points if c >= 0.7 and cor < 0.5)
@@ -237,6 +241,7 @@ def _compute_ece(cal_scores: list[NormalizedScore], n_bins: int = 5) -> dict:
 # CROSS-MODEL COMPARISON
 # =============================================================================
 
+
 def compare_models(result_paths: list[str]) -> dict:
     """Compare results from multiple model evaluations.
 
@@ -253,10 +258,7 @@ def compare_models(result_paths: list[str]) -> dict:
         models[model_name] = analysis
 
     # Build comparison table
-    components = sorted(set(
-        comp for a in models.values()
-        for comp in a.get("by_component", {})
-    ))
+    components = sorted(set(comp for a in models.values() for comp in a.get("by_component", {})))
 
     comparison = {
         "models": list(models.keys()),
@@ -283,6 +285,7 @@ def compare_models(result_paths: list[str]) -> dict:
 # =============================================================================
 # CONTAMINATION DETECTION
 # =============================================================================
+
 
 def detect_contamination(result_path: str) -> dict:
     """Check for potential data contamination by comparing public vs private splits.
@@ -340,6 +343,7 @@ def detect_contamination(result_path: str) -> dict:
 # TEXT FORMATTING
 # =============================================================================
 
+
 def print_analysis(result_path: str):
     """Print formatted analysis of a result file."""
     analysis = analyze_results(result_path)
@@ -353,22 +357,22 @@ def print_analysis(result_path: str):
     print(f"Date: {meta.get('timestamp', 'unknown')}")
 
     overall = analysis["overall"]
-    print(f"\nOverall: mean={overall['mean']:.3f} (std={overall['std']:.3f}), "
-          f"pass_rate={overall['pass_rate']:.1%} ({overall['n_passed']}/{overall['n']})")
+    print(
+        f"\nOverall: mean={overall['mean']:.3f} (std={overall['std']:.3f}), "
+        f"pass_rate={overall['pass_rate']:.1%} ({overall['n_passed']}/{overall['n']})"
+    )
 
     print(f"\n{'─' * 65}")
     print(f"{'Component':<15} {'N':>4} {'Mean':>7} {'Std':>7} {'Pass%':>7} {'Med':>7}")
     print(f"{'─' * 65}")
     for comp in sorted(analysis["by_component"]):
         c = analysis["by_component"][comp]
-        print(f"{comp:<15} {c['n']:>4} {c['mean']:>7.3f} {c['std']:>7.3f} "
-              f"{c['pass_rate']:>6.1%} {c['median']:>7.3f}")
+        print(f"{comp:<15} {c['n']:>4} {c['mean']:>7.3f} {c['std']:>7.3f} " f"{c['pass_rate']:>6.1%} {c['median']:>7.3f}")
 
         # Sub-types
         for tt in sorted(c.get("by_task_type", {})):
             tc = c["by_task_type"][tt]
-            print(f"  └ {tt:<12} {tc['n']:>4} {tc['mean']:>7.3f} {tc['std']:>7.3f} "
-                  f"{tc['pass_rate']:>6.1%}")
+            print(f"  └ {tt:<12} {tc['n']:>4} {tc['mean']:>7.3f} {tc['std']:>7.3f} " f"{tc['pass_rate']:>6.1%}")
 
     # Calibration
     if "calibration_analysis" in analysis:
@@ -382,9 +386,11 @@ def print_analysis(result_path: str):
         for b in cal["bins"]:
             if b["n"] > 0:
                 bar = "█" * int(b["avg_accuracy"] * 20)
-                print(f"    {b['bin_range']:<12} n={b['n']:>2} "
-                      f"conf={b['avg_confidence']:.2f} acc={b['avg_accuracy']:.2f} "
-                      f"gap={b['gap']:.2f} {bar}")
+                print(
+                    f"    {b['bin_range']:<12} n={b['n']:>2} "
+                    f"conf={b['avg_confidence']:.2f} acc={b['avg_accuracy']:.2f} "
+                    f"gap={b['gap']:.2f} {bar}"
+                )
 
     # Contamination
     contam = detect_contamination(result_path)

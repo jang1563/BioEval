@@ -33,21 +33,20 @@ PROTOCOLS = {
             "Wash membrane 3x with TBST for 10 minutes each",
             "Incubate with HRP-conjugated secondary antibody for 1 hour at RT",
             "Wash membrane 3x with TBST for 10 minutes each",
-            "Develop using ECL substrate and image immediately"
+            "Develop using ECL substrate and image immediately",
         ],
         "critical_steps": [4, 10, 11, 13],  # Most important for success
         "safety": [
             "RIPA buffer contains detergents - avoid skin contact",
             "Acrylamide is neurotoxic - handle gels with gloves",
-            "Methanol is flammable - use in ventilated area"
+            "Methanol is flammable - use in ventilated area",
         ],
         "common_failures": [
             "No bands: transfer failure, antibody issue, protein degradation",
             "High background: insufficient blocking, antibody too concentrated",
-            "Non-specific bands: antibody cross-reactivity, protein degradation"
-        ]
+            "Non-specific bands: antibody cross-reactivity, protein degradation",
+        ],
     },
-    
     "qpcr": {
         "name": "Quantitative PCR (qPCR)",
         "category": "molecular_biology",
@@ -73,20 +72,19 @@ PROTOCOLS = {
             "Run qPCR: 95°C 10min, then 40 cycles of 95°C 15s + 60°C 1min",
             "Perform melt curve analysis: 65°C to 95°C gradient",
             "Verify single peak in melt curve for primer specificity",
-            "Analyze using ΔΔCt method with appropriate reference genes"
+            "Analyze using ΔΔCt method with appropriate reference genes",
         ],
         "critical_steps": [3, 4, 10, 17, 18, 20],
         "safety": [
             "TRIzol contains phenol and guanidine - use in fume hood",
-            "Chloroform is volatile and toxic - use in fume hood"
+            "Chloroform is volatile and toxic - use in fume hood",
         ],
         "common_failures": [
             "High Ct values: RNA degradation, failed RT, primer issues",
             "Multiple melt peaks: primer dimers, non-specific amplification",
-            "NTC amplification: contamination, primer dimers"
-        ]
+            "NTC amplification: contamination, primer dimers",
+        ],
     },
-    
     "crispr_knockout": {
         "name": "CRISPR-Cas9 Gene Knockout",
         "category": "molecular_biology",
@@ -110,21 +108,20 @@ PROTOCOLS = {
             "PCR amplify target region and sequence",
             "Identify clones with frameshift mutations",
             "Verify knockout by Western blot for protein absence",
-            "Confirm phenotype with rescue experiment (re-express wild-type gene)"
+            "Confirm phenotype with rescue experiment (re-express wild-type gene)",
         ],
         "critical_steps": [1, 4, 10, 17, 18, 19],
         "safety": [
             "Lentivirus is BSL-2 - work in certified biosafety cabinet",
             "Decontaminate all materials with 10% bleach",
-            "Use appropriate PPE and follow institutional biosafety protocols"
+            "Use appropriate PPE and follow institutional biosafety protocols",
         ],
         "common_failures": [
             "No knockout clones: inefficient sgRNA, poor transduction",
             "In-frame deletions: may retain partial function",
-            "Off-target effects: verify with multiple sgRNAs"
-        ]
+            "Off-target effects: verify with multiple sgRNAs",
+        ],
     },
-    
     "chip_seq": {
         "name": "Chromatin Immunoprecipitation (ChIP-seq)",
         "category": "molecular_biology",
@@ -150,20 +147,16 @@ PROTOCOLS = {
             "Purify DNA by phenol-chloroform extraction or column",
             "Quantify DNA and assess enrichment by qPCR",
             "Prepare sequencing library following standard protocol",
-            "Sequence with appropriate depth (20-40M reads for TFs)"
+            "Sequence with appropriate depth (20-40M reads for TFs)",
         ],
         "critical_steps": [1, 7, 8, 10, 12, 14],
-        "safety": [
-            "Formaldehyde is toxic and carcinogenic - use in fume hood",
-            "Phenol is corrosive - handle with care"
-        ],
+        "safety": ["Formaldehyde is toxic and carcinogenic - use in fume hood", "Phenol is corrosive - handle with care"],
         "common_failures": [
             "No enrichment: poor antibody, over-crosslinking, insufficient cells",
             "High background: insufficient washing, non-specific binding",
-            "Poor fragment size: optimize sonication conditions"
-        ]
+            "Poor fragment size: optimize sonication conditions",
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # CELL CULTURE
     # -------------------------------------------------------------------------
@@ -185,20 +178,19 @@ PROTOCOLS = {
             "Place in 37°C incubator with 5% CO2",
             "Check cells after 24 hours for attachment and viability",
             "Change medium after 24 hours to remove dead cells and debris",
-            "Allow cells to recover for 2-3 passages before experiments"
+            "Allow cells to recover for 2-3 passages before experiments",
         ],
         "critical_steps": [4, 5, 7, 8],
         "safety": [
             "Liquid nitrogen causes severe cryogenic burns - wear appropriate PPE",
-            "DMSO is cytotoxic - remove promptly by centrifugation"
+            "DMSO is cytotoxic - remove promptly by centrifugation",
         ],
         "common_failures": [
             "Low viability: cells thawed too slowly, DMSO exposure too long",
             "No attachment: wrong culture vessel, poor cell quality",
-            "Contamination: non-sterile technique"
-        ]
+            "Contamination: non-sterile technique",
+        ],
     },
-    
     "cell_culture_transfection": {
         "name": "Lipofection (Plasmid Transfection)",
         "category": "cell_culture",
@@ -216,20 +208,16 @@ PROTOCOLS = {
             "Replace with complete medium containing serum",
             "Incubate for 24-72 hours depending on experiment",
             "Assess transfection efficiency using fluorescent reporter if available",
-            "Proceed with downstream analysis (Western, qPCR, functional assays)"
+            "Proceed with downstream analysis (Western, qPCR, functional assays)",
         ],
         "critical_steps": [1, 5, 6, 10],
-        "safety": [
-            "Lipofectamine can cause skin irritation",
-            "Follow institutional guidelines for recombinant DNA work"
-        ],
+        "safety": ["Lipofectamine can cause skin irritation", "Follow institutional guidelines for recombinant DNA work"],
         "common_failures": [
             "Low efficiency: wrong cell density, DNA:lipid ratio off, poor DNA quality",
             "High toxicity: too much lipofectamine, serum-free too long",
-            "Variable results: inconsistent complex formation time"
-        ]
+            "Variable results: inconsistent complex formation time",
+        ],
     },
-    
     "primary_cell_isolation": {
         "name": "Primary Cell Isolation (from tissue)",
         "category": "cell_culture",
@@ -250,21 +238,20 @@ PROTOCOLS = {
             "Plate cells at appropriate density in specialized medium",
             "For enrichment, perform FACS or magnetic bead selection",
             "Culture in conditions optimized for cell type",
-            "Validate cell identity by marker expression or morphology"
+            "Validate cell identity by marker expression or morphology",
         ],
         "critical_steps": [2, 4, 6, 7, 13],
         "safety": [
             "Human/animal tissue may contain pathogens - use BSL-2 practices",
             "Enzymes can cause skin irritation",
-            "Follow institutional guidelines for human tissue handling"
+            "Follow institutional guidelines for human tissue handling",
         ],
         "common_failures": [
             "Low yield: over-digestion destroying cells, tissue too old",
             "Poor viability: prolonged processing, harsh digestion",
-            "Contamination: non-sterile tissue handling"
-        ]
+            "Contamination: non-sterile tissue handling",
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # GENOMICS / SEQUENCING
     # -------------------------------------------------------------------------
@@ -289,20 +276,16 @@ PROTOCOLS = {
             "Quantify library using qPCR or Qubit",
             "Assess library quality on Bioanalyzer or TapeStation",
             "Pool libraries at equimolar concentrations if multiplexing",
-            "Sequence on appropriate platform (typically PE150)"
+            "Sequence on appropriate platform (typically PE150)",
         ],
         "critical_steps": [1, 4, 6, 13, 14, 15],
-        "safety": [
-            "Work in RNase-free environment",
-            "Some reagents are irritants - follow kit safety guidelines"
-        ],
+        "safety": ["Work in RNase-free environment", "Some reagents are irritants - follow kit safety guidelines"],
         "common_failures": [
             "Low complexity: PCR over-amplification, low input",
             "Adapter dimers: insufficient size selection",
-            "3' bias: RNA degradation before library prep"
-        ]
+            "3' bias: RNA degradation before library prep",
+        ],
     },
-    
     "single_cell_rnaseq": {
         "name": "Single-cell RNA-seq (10x Genomics)",
         "category": "genomics",
@@ -324,20 +307,16 @@ PROTOCOLS = {
             "Size select library (target 400bp)",
             "QC library on Bioanalyzer",
             "Quantify library by qPCR",
-            "Sequence on NovaSeq or NextSeq (50,000 reads/cell target)"
+            "Sequence on NovaSeq or NextSeq (50,000 reads/cell target)",
         ],
         "critical_steps": [2, 3, 4, 5, 9, 10],
-        "safety": [
-            "Handle cells according to biosafety level",
-            "Some reagents are proprietary - follow 10x guidelines"
-        ],
+        "safety": ["Handle cells according to biosafety level", "Some reagents are proprietary - follow 10x guidelines"],
         "common_failures": [
             "Low cell recovery: poor cell quality, wrong concentration",
             "High doublet rate: overloading chip",
-            "Low gene detection: dead cells, ambient RNA"
-        ]
+            "Low gene detection: dead cells, ambient RNA",
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # PROTEOMICS
     # -------------------------------------------------------------------------
@@ -360,21 +339,20 @@ PROTOCOLS = {
             "Dry peptides in speed-vac",
             "Resuspend in 0.1% formic acid for LC-MS",
             "Quantify peptides using A280 or colorimetric assay",
-            "Inject 1-2μg peptides for standard proteomics run"
+            "Inject 1-2μg peptides for standard proteomics run",
         ],
         "critical_steps": [4, 5, 9, 10, 11],
         "safety": [
             "Iodoacetamide is toxic and light-sensitive",
             "Acetonitrile is flammable - use in fume hood",
-            "Formic acid is corrosive - handle with care"
+            "Formic acid is corrosive - handle with care",
         ],
         "common_failures": [
             "Low identification: incomplete digestion, sample loss in cleanup",
             "Missed cleavages: insufficient trypsin, suboptimal pH",
-            "Oxidation artifacts: sample exposure to air"
-        ]
+            "Oxidation artifacts: sample exposure to air",
+        ],
     },
-    
     "coip": {
         "name": "Co-Immunoprecipitation (Co-IP)",
         "category": "proteomics",
@@ -394,20 +372,16 @@ PROTOCOLS = {
             "Use increasing stringency washes if background is high",
             "Elute proteins with 2X Laemmli buffer at 95°C for 5 minutes",
             "Analyze by Western blot for interacting proteins",
-            "Include input and IgG controls on same blot"
+            "Include input and IgG controls on same blot",
         ],
         "critical_steps": [1, 6, 8, 9, 12],
-        "safety": [
-            "Work at 4°C to preserve protein interactions",
-            "NP-40 is an irritant"
-        ],
+        "safety": ["Work at 4°C to preserve protein interactions", "NP-40 is an irritant"],
         "common_failures": [
             "No interaction detected: interaction disrupted by lysis conditions",
             "High background: insufficient washing, non-specific binding",
-            "False positive: antibody heavy chain co-migrating with target"
-        ]
+            "False positive: antibody heavy chain co-migrating with target",
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # IMAGING
     # -------------------------------------------------------------------------
@@ -434,20 +408,19 @@ PROTOCOLS = {
             "Mount coverslips with anti-fade mounting medium",
             "Seal edges with nail polish",
             "Image using fluorescence or confocal microscope",
-            "Store slides at 4°C protected from light"
+            "Store slides at 4°C protected from light",
         ],
         "critical_steps": [4, 6, 8, 10, 13],
         "safety": [
             "Paraformaldehyde is toxic - use in fume hood",
-            "Protect samples from light after adding fluorescent antibodies"
+            "Protect samples from light after adding fluorescent antibodies",
         ],
         "common_failures": [
             "No signal: wrong antibody, over-fixation, epitope masked",
             "High background: insufficient blocking, antibody too concentrated",
-            "Photobleaching: excessive light exposure, no anti-fade"
-        ]
+            "Photobleaching: excessive light exposure, no anti-fade",
+        ],
     },
-    
     "live_cell_imaging": {
         "name": "Live Cell Time-Lapse Imaging",
         "category": "imaging",
@@ -470,19 +443,19 @@ PROTOCOLS = {
             "Start time-lapse acquisition",
             "Monitor for focus drift and cell health during acquisition",
             "Save raw data in lossless format",
-            "Analyze using appropriate tracking/quantification software"
+            "Analyze using appropriate tracking/quantification software",
         ],
         "critical_steps": [3, 4, 9, 12, 13, 17],
         "safety": [
             "Laser light can damage eyes - follow microscope safety protocols",
-            "Some fluorescent dyes are toxic - handle appropriately"
+            "Some fluorescent dyes are toxic - handle appropriately",
         ],
         "common_failures": [
             "Focus drift: incomplete temperature equilibration, unstable stage",
             "Cell death: phototoxicity, wrong medium, temperature fluctuation",
-            "Bleaching: laser power too high, intervals too frequent"
-        ]
-    }
+            "Bleaching: laser power too high, intervals too frequent",
+        ],
+    },
 }
 
 
@@ -498,7 +471,7 @@ CALCULATION_TASKS = [
         "difficulty": "easy",
         "question": "Prepare 500 mL of 1X PBS from a 10X PBS stock.",
         "answer": {"10X_PBS": "50 mL", "water": "450 mL"},
-        "reasoning": "C1V1 = C2V2. 10X × V1 = 1X × 500mL. V1 = 50 mL"
+        "reasoning": "C1V1 = C2V2. 10X × V1 = 1X × 500mL. V1 = 50 mL",
     },
     {
         "id": "calc_002",
@@ -506,7 +479,7 @@ CALCULATION_TASKS = [
         "difficulty": "easy",
         "question": "Dilute a 100 μM primer stock to make 500 μL of 10 μM working solution.",
         "answer": {"stock": "50 μL", "water": "450 μL"},
-        "reasoning": "C1V1 = C2V2. 100μM × V1 = 10μM × 500μL. V1 = 50 μL"
+        "reasoning": "C1V1 = C2V2. 100μM × V1 = 10μM × 500μL. V1 = 50 μL",
     },
     {
         "id": "calc_003",
@@ -514,9 +487,8 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "You have a 5 mg/mL antibody stock. Prepare 10 mL of a 1:1000 dilution for Western blot.",
         "answer": {"stock": "10 μL", "buffer": "9.99 mL", "final_concentration": "5 μg/mL"},
-        "reasoning": "1:1000 means 1 part stock + 999 parts diluent. For 10mL: 10μL stock + 9990μL buffer"
+        "reasoning": "1:1000 means 1 part stock + 999 parts diluent. For 10mL: 10μL stock + 9990μL buffer",
     },
-    
     # Protein quantification
     {
         "id": "calc_004",
@@ -524,7 +496,7 @@ CALCULATION_TASKS = [
         "difficulty": "easy",
         "question": "Your BCA assay gives an absorbance that corresponds to 2.5 mg/mL protein. You need to load 30 μg per lane. What volume should you load?",
         "answer": {"volume": "12 μL"},
-        "reasoning": "Volume = mass / concentration = 30 μg / 2.5 μg/μL = 12 μL"
+        "reasoning": "Volume = mass / concentration = 30 μg / 2.5 μg/μL = 12 μL",
     },
     {
         "id": "calc_005",
@@ -532,9 +504,8 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "You have 500 μL of cell lysate at 4 mg/mL. You need to run 6 Western blot lanes with 40 μg each, plus save 100 μg for IP. Do you have enough?",
         "answer": {"total_available": "2000 μg", "total_needed": "340 μg", "sufficient": "yes"},
-        "reasoning": "Available: 500μL × 4mg/mL = 2000μg. Needed: (6 × 40) + 100 = 340μg. Yes, sufficient."
+        "reasoning": "Available: 500μL × 4mg/mL = 2000μg. Needed: (6 × 40) + 100 = 340μg. Yes, sufficient.",
     },
-    
     # Cell counting
     {
         "id": "calc_006",
@@ -542,7 +513,7 @@ CALCULATION_TASKS = [
         "difficulty": "easy",
         "question": "You count 180 cells total in 4 corner squares of a hemocytometer (each 1mm × 1mm × 0.1mm). What is the cell concentration?",
         "answer": {"concentration": "4.5 × 10^5 cells/mL"},
-        "reasoning": "Average per square = 180/4 = 45. Volume per square = 0.1μL. Concentration = 45/0.0001mL = 4.5 × 10^5 cells/mL"
+        "reasoning": "Average per square = 180/4 = 45. Volume per square = 0.1μL. Concentration = 45/0.0001mL = 4.5 × 10^5 cells/mL",
     },
     {
         "id": "calc_007",
@@ -550,7 +521,7 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "You need to seed a 6-well plate at 2 × 10^5 cells/well. Your cell suspension is 8 × 10^5 cells/mL. Each well needs 2 mL final volume. Calculate volumes needed.",
         "answer": {"cells_per_well": "250 μL", "medium_per_well": "1750 μL", "total_cell_suspension": "1.5 mL"},
-        "reasoning": "Cells needed per well: 2×10^5. Volume: 2×10^5 / 8×10^5 = 0.25 mL. Medium: 2 - 0.25 = 1.75 mL. Total for 6 wells: 6 × 0.25 = 1.5 mL"
+        "reasoning": "Cells needed per well: 2×10^5. Volume: 2×10^5 / 8×10^5 = 0.25 mL. Medium: 2 - 0.25 = 1.75 mL. Total for 6 wells: 6 × 0.25 = 1.5 mL",
     },
     {
         "id": "calc_008",
@@ -558,9 +529,8 @@ CALCULATION_TASKS = [
         "difficulty": "hard",
         "question": "HeLa cells double every 24 hours. You seed 5 × 10^4 cells in a T75 flask (75 cm²). If cells reach confluence at 10^5 cells/cm², how many days until confluence?",
         "answer": {"days": "approximately 4 days", "cells_at_confluence": "7.5 × 10^6"},
-        "reasoning": "Confluence = 75cm² × 10^5 = 7.5×10^6 cells. Doublings needed: log2(7.5×10^6 / 5×10^4) = log2(150) ≈ 7.2 doublings = 4.3 days"
+        "reasoning": "Confluence = 75cm² × 10^5 = 7.5×10^6 cells. Doublings needed: log2(7.5×10^6 / 5×10^4) = log2(150) ≈ 7.2 doublings = 4.3 days",
     },
-    
     # Molecular biology
     {
         "id": "calc_009",
@@ -568,7 +538,7 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "Your RNA concentration is 850 ng/μL with 260/280 = 2.0. For cDNA synthesis, you need 1 μg RNA in 20 μL reaction. Calculate volumes.",
         "answer": {"rna_volume": "1.18 μL", "water_volume": "18.82 μL", "quality": "good"},
-        "reasoning": "RNA volume = 1000ng / 850ng/μL = 1.18μL. Water = 20 - 1.18 = 18.82μL. 260/280 = 2.0 indicates pure RNA."
+        "reasoning": "RNA volume = 1000ng / 850ng/μL = 1.18μL. Water = 20 - 1.18 = 18.82μL. 260/280 = 2.0 indicates pure RNA.",
     },
     {
         "id": "calc_010",
@@ -576,9 +546,8 @@ CALCULATION_TASKS = [
         "difficulty": "hard",
         "question": "Calculate the molarity of a 250 bp double-stranded DNA fragment at 50 ng/μL. (Average MW of dsDNA: 660 Da per bp)",
         "answer": {"molarity": "303 nM"},
-        "reasoning": "MW = 250bp × 660Da/bp = 165,000 Da. Molarity = (50ng/μL × 10^6) / 165,000 = 303 nM"
+        "reasoning": "MW = 250bp × 660Da/bp = 165,000 Da. Molarity = (50ng/μL × 10^6) / 165,000 = 303 nM",
     },
-    
     # qPCR analysis
     {
         "id": "calc_011",
@@ -586,7 +555,7 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "Calculate fold change using ΔΔCt method. Target gene: Control Ct=25, Treated Ct=22. Reference gene: Control Ct=18, Treated Ct=18.",
         "answer": {"delta_ct_control": "7", "delta_ct_treated": "4", "delta_delta_ct": "-3", "fold_change": "8"},
-        "reasoning": "ΔCt(control) = 25-18 = 7. ΔCt(treated) = 22-18 = 4. ΔΔCt = 4-7 = -3. Fold change = 2^-(-3) = 8"
+        "reasoning": "ΔCt(control) = 25-18 = 7. ΔCt(treated) = 22-18 = 4. ΔΔCt = 4-7 = -3. Fold change = 2^-(-3) = 8",
     },
     {
         "id": "calc_012",
@@ -594,9 +563,8 @@ CALCULATION_TASKS = [
         "difficulty": "hard",
         "question": "Your qPCR standard curve has slope = -3.4 and R² = 0.998. Calculate the efficiency. Is this acceptable?",
         "answer": {"efficiency": "96.8%", "acceptable": "yes"},
-        "reasoning": "Efficiency = 10^(-1/slope) - 1 = 10^(-1/-3.4) - 1 = 10^0.294 - 1 = 0.968 = 96.8%. Acceptable range: 90-110%"
+        "reasoning": "Efficiency = 10^(-1/slope) - 1 = 10^(-1/-3.4) - 1 = 10^0.294 - 1 = 0.968 = 96.8%. Acceptable range: 90-110%",
     },
-    
     # Transfection / Virus
     {
         "id": "calc_013",
@@ -604,7 +572,7 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "For lentiviral transduction, you want MOI = 0.5. You have 2 × 10^5 target cells and viral titer of 10^8 TU/mL. What volume of virus needed?",
         "answer": {"virus_volume": "1 μL", "infectious_units_needed": "10^5"},
-        "reasoning": "Infectious units = cells × MOI = 2×10^5 × 0.5 = 10^5 TU. Volume = 10^5 / 10^8 = 10^-3 mL = 1 μL"
+        "reasoning": "Infectious units = cells × MOI = 2×10^5 × 0.5 = 10^5 TU. Volume = 10^5 / 10^8 = 10^-3 mL = 1 μL",
     },
     {
         "id": "calc_014",
@@ -612,9 +580,8 @@ CALCULATION_TASKS = [
         "difficulty": "hard",
         "question": "For a 6-well plate transfection, you use 2.5 μg DNA and 7.5 μL Lipofectamine per well (1:3 ratio). Scale up for a 10 cm dish (surface area 78.5 cm² vs 9.6 cm² per 6-well).",
         "answer": {"dna": "20.4 μg", "lipofectamine": "61.2 μL"},
-        "reasoning": "Scale factor = 78.5/9.6 = 8.18. DNA = 2.5 × 8.18 = 20.4 μg. Lipofectamine = 7.5 × 8.18 = 61.2 μL"
+        "reasoning": "Scale factor = 78.5/9.6 = 8.18. DNA = 2.5 × 8.18 = 20.4 μg. Lipofectamine = 7.5 × 8.18 = 61.2 μL",
     },
-    
     # Solution preparation
     {
         "id": "calc_015",
@@ -622,7 +589,7 @@ CALCULATION_TASKS = [
         "difficulty": "medium",
         "question": "Prepare 100 mL of 50 mM Tris-HCl pH 7.5 from Tris base (MW = 121.14 g/mol). How much Tris base do you weigh?",
         "answer": {"mass": "0.606 g"},
-        "reasoning": "Moles = 0.05M × 0.1L = 0.005 mol. Mass = 0.005 × 121.14 = 0.606 g. Adjust pH with HCl after dissolving."
+        "reasoning": "Moles = 0.05M × 0.1L = 0.005 mol. Mass = 0.005 × 121.14 = 0.606 g. Adjust pH with HCl after dissolving.",
     },
     {
         "id": "calc_016",
@@ -631,13 +598,13 @@ CALCULATION_TASKS = [
         "question": "Prepare 500 mL of RIPA buffer: 50 mM Tris pH 8.0, 150 mM NaCl, 1% NP-40, 0.5% sodium deoxycholate. You have 1M Tris pH 8.0, 5M NaCl, 10% NP-40, 10% sodium deoxycholate stocks.",
         "answer": {
             "1M_Tris": "25 mL",
-            "5M_NaCl": "15 mL", 
+            "5M_NaCl": "15 mL",
             "10%_NP40": "50 mL",
             "10%_deoxycholate": "25 mL",
-            "water": "385 mL"
+            "water": "385 mL",
         },
-        "reasoning": "Tris: 0.05M × 500mL / 1M = 25mL. NaCl: 0.15M × 500mL / 5M = 15mL. NP-40: 1% × 500mL / 10% = 50mL. Deoxycholate: 0.5% × 500mL / 10% = 25mL"
-    }
+        "reasoning": "Tris: 0.05M × 500mL / 1M = 25mL. NaCl: 0.15M × 500mL / 5M = 15mL. NP-40: 1% × 500mL / 10% = 50mL. Deoxycholate: 0.5% × 500mL / 10% = 25mL",
+    },
 ]
 
 
@@ -659,19 +626,19 @@ TROUBLESHOOTING_TASKS = [
             "Secondary antibody doesn't match primary species",
             "ECL substrate expired or mixed incorrectly",
             "Over-blocking prevented antibody binding",
-            "Target protein not expressed in sample"
+            "Target protein not expressed in sample",
         ],
         "diagnostic_steps": [
             "Stain membrane with Ponceau S to verify protein transfer",
             "Check gel after transfer for remaining protein",
             "Try fresh primary antibody or higher concentration",
             "Verify secondary antibody species matches primary",
-            "Test ECL with fresh reagents"
+            "Test ECL with fresh reagents",
         ],
-        "most_likely": "Transfer failure - verify with Ponceau S staining first"
+        "most_likely": "Transfer failure - verify with Ponceau S staining first",
     },
     {
-        "id": "trouble_002", 
+        "id": "trouble_002",
         "protocol": "western_blot",
         "scenario": "Very high background obscuring specific bands",
         "details": "Target: phospho-ERK, Primary: rabbit anti-pERK 1:1000 overnight, Blocking: 5% milk in TBST for 30 min, Washes: 3x5min TBST",
@@ -681,17 +648,16 @@ TROUBLESHOOTING_TASKS = [
             "Primary antibody concentration too high",
             "Insufficient washing - increase washes to 3x10min",
             "Secondary antibody non-specific binding",
-            "Membrane dried out during incubation"
+            "Membrane dried out during incubation",
         ],
         "diagnostic_steps": [
             "Switch to 5% BSA blocking for phospho-proteins",
             "Increase blocking time to 1 hour",
             "Titrate primary antibody (try 1:2000, 1:5000)",
-            "Increase wash stringency and duration"
+            "Increase wash stringency and duration",
         ],
-        "most_likely": "Using milk for phospho-protein - milk contains casein which is phosphorylated and blocks phospho-antibody binding"
+        "most_likely": "Using milk for phospho-protein - milk contains casein which is phosphorylated and blocks phospho-antibody binding",
     },
-    
     # qPCR problems
     {
         "id": "trouble_003",
@@ -704,16 +670,16 @@ TROUBLESHOOTING_TASKS = [
             "Primers not working - wrong design, degraded, or wrong concentration",
             "qPCR master mix problem - enzyme degraded",
             "Template diluted too much",
-            "Annealing temperature too high"
+            "Annealing temperature too high",
         ],
         "diagnostic_steps": [
             "Check RNA quality on gel or Bioanalyzer (before RT)",
             "Verify cDNA synthesis with PCR and gel",
             "Test primers with plasmid containing target sequence",
             "Check primer concentration in reaction (should be 200-500nM final)",
-            "Run temperature gradient to optimize annealing"
+            "Run temperature gradient to optimize annealing",
         ],
-        "most_likely": "cDNA synthesis failure - run conventional PCR on cDNA and visualize on gel"
+        "most_likely": "cDNA synthesis failure - run conventional PCR on cDNA and visualize on gel",
     },
     {
         "id": "trouble_004",
@@ -725,18 +691,17 @@ TROUBLESHOOTING_TASKS = [
             "Non-specific amplification - primers binding elsewhere in genome",
             "Genomic DNA contamination - intron-spanning primers should prevent",
             "Primer degradation creating truncated products",
-            "Template has splice variants"
+            "Template has splice variants",
         ],
         "diagnostic_steps": [
             "Run qPCR products on agarose gel to see band sizes",
             "Check NTC for primer dimer peak",
             "Include -RT control to rule out genomic DNA",
             "Redesign primers with better specificity",
-            "Increase annealing temperature to improve specificity"
+            "Increase annealing temperature to improve specificity",
         ],
-        "most_likely": "Primer dimers or non-specific products - verify by running products on gel"
+        "most_likely": "Primer dimers or non-specific products - verify by running products on gel",
     },
-    
     # Cell culture problems
     {
         "id": "trouble_005",
@@ -750,16 +715,16 @@ TROUBLESHOOTING_TASKS = [
             "Medium pH off (check if color is orange, not pink or yellow)",
             "Cells are senescent or unhealthy",
             "Contamination affecting cell health",
-            "Serum lot problem - try different lot"
+            "Serum lot problem - try different lot",
         ],
         "diagnostic_steps": [
             "Reduce trypsin exposure time in next passage",
             "Verify trypsin is neutralized (>4x volume serum-containing medium)",
             "Check flask labeling for TC treatment",
             "Test with fresh medium and serum",
-            "Examine cells for signs of contamination"
+            "Examine cells for signs of contamination",
         ],
-        "most_likely": "Over-trypsinization - reduce time and check cells frequently during dissociation"
+        "most_likely": "Over-trypsinization - reduce time and check cells frequently during dissociation",
     },
     {
         "id": "trouble_006",
@@ -771,18 +736,17 @@ TROUBLESHOOTING_TASKS = [
             "Water bath contamination",
             "Pipette contaminated",
             "Incubator contamination",
-            "Non-sterile technique"
+            "Non-sterile technique",
         ],
         "diagnostic_steps": [
             "Discard the shared medium bottle",
             "Clean and disinfect water bath",
             "Clean incubator with appropriate disinfectant",
             "Plate medium sample to identify organism",
-            "Review aseptic technique with all users"
+            "Review aseptic technique with all users",
         ],
-        "most_likely": "Shared medium bottle - discard immediately and use fresh"
+        "most_likely": "Shared medium bottle - discard immediately and use fresh",
     },
-    
     # Transfection problems
     {
         "id": "trouble_007",
@@ -795,18 +759,17 @@ TROUBLESHOOTING_TASKS = [
             "DNA quality poor (check 260/280, run gel)",
             "Complex formation time wrong",
             "Serum in medium during complex formation",
-            "Cells too old (high passage)"
+            "Cells too old (high passage)",
         ],
         "diagnostic_steps": [
             "Optimize cell density at transfection (try 60-70%)",
             "Test range of DNA:lipid ratios",
             "Check DNA quality (should have 260/280 ~1.8)",
             "Ensure serum-free medium for complex formation",
-            "Use low passage cells"
+            "Use low passage cells",
         ],
-        "most_likely": "Cell density too high - cells at 90% may be contact-inhibited and less receptive"
+        "most_likely": "Cell density too high - cells at 90% may be contact-inhibited and less receptive",
     },
-    
     # ChIP problems
     {
         "id": "trouble_008",
@@ -819,18 +782,17 @@ TROUBLESHOOTING_TASKS = [
             "Under-crosslinking losing protein-DNA interactions",
             "Sonication conditions not optimal",
             "Insufficient starting material",
-            "Elution incomplete"
+            "Elution incomplete",
         ],
         "diagnostic_steps": [
             "Verify antibody is ChIP-validated",
             "Test crosslinking time series (5, 10, 15 min)",
             "Verify sonication by running on gel",
             "Check input DNA amount",
-            "Use positive control antibody (e.g., anti-H3)"
+            "Use positive control antibody (e.g., anti-H3)",
         ],
-        "most_likely": "Antibody not ChIP-grade - verify with validated ChIP-seq antibody"
+        "most_likely": "Antibody not ChIP-grade - verify with validated ChIP-seq antibody",
     },
-    
     # Immunofluorescence problems
     {
         "id": "trouble_009",
@@ -842,18 +804,17 @@ TROUBLESHOOTING_TASKS = [
             "Fixation not complete - protein relocalized during permeabilization",
             "Secondary antibody binding to nuclear components",
             "Primary antibody cross-reacting with nuclear protein",
-            "Antibody concentration too high"
+            "Antibody concentration too high",
         ],
         "diagnostic_steps": [
             "Reduce Triton concentration (try 0.05%)",
             "Try different fixation (methanol instead of PFA)",
             "Run secondary-only control",
             "Titrate primary antibody",
-            "Validate antibody specificity by knockdown"
+            "Validate antibody specificity by knockdown",
         ],
-        "most_likely": "Over-permeabilization - reduce Triton concentration or time"
+        "most_likely": "Over-permeabilization - reduce Triton concentration or time",
     },
-    
     # Cloning problems
     {
         "id": "trouble_010",
@@ -867,17 +828,17 @@ TROUBLESHOOTING_TASKS = [
             "Competent cells not competent",
             "Insert:vector ratio wrong",
             "Ligation product toxic to cells",
-            "Antibiotic resistance gene problem"
+            "Antibiotic resistance gene problem",
         ],
         "diagnostic_steps": [
             "Transform uncut plasmid to verify competent cells",
             "Transform cut+religated vector to verify ligation",
             "Run digested products on gel to verify complete cutting",
             "Try different insert:vector ratios (3:1, 5:1)",
-            "Check ligase activity with control reaction"
+            "Check ligase activity with control reaction",
         ],
-        "most_likely": "Test competent cells with intact plasmid first to verify transformation efficiency"
-    }
+        "most_likely": "Test competent cells with intact plasmid first to verify transformation efficiency",
+    },
 ]
 
 
@@ -895,8 +856,8 @@ SAFETY_TASKS = [
             "Avoid skin contact with unpolymerized acrylamide",
             "Work in well-ventilated area",
             "Dispose of unpolymerized acrylamide as hazardous waste",
-            "Polymerized gels are less hazardous but still use gloves"
-        ]
+            "Polymerized gels are less hazardous but still use gloves",
+        ],
     },
     {
         "id": "safety_002",
@@ -907,8 +868,8 @@ SAFETY_TASKS = [
             "Must work in chemical fume hood",
             "Wear lab coat, gloves, and eye protection",
             "Phenol causes severe burns - have neutralizing solution available",
-            "Dispose of organic waste properly - don't pour down sink"
-        ]
+            "Dispose of organic waste properly - don't pour down sink",
+        ],
     },
     {
         "id": "safety_003",
@@ -920,8 +881,8 @@ SAFETY_TASKS = [
             "Institutional biosafety committee approval required",
             "Decontaminate all materials with 10% bleach before disposal",
             "No sharps - use filtered pipettes",
-            "Staff must complete biosafety training"
-        ]
+            "Staff must complete biosafety training",
+        ],
     },
     {
         "id": "safety_004",
@@ -932,8 +893,8 @@ SAFETY_TASKS = [
             "Wear double gloves when handling",
             "Designated EtBr area and equipment",
             "Dispose as hazardous waste - never down drain",
-            "Consider safer alternatives (SYBR Safe, GelRed)"
-        ]
+            "Consider safer alternatives (SYBR Safe, GelRed)",
+        ],
     },
     {
         "id": "safety_005",
@@ -944,9 +905,9 @@ SAFETY_TASKS = [
             "Always wear UV-protective face shield",
             "Wear long sleeves or lab coat",
             "Keep lid closed when UV is on",
-            "Limit exposure time"
-        ]
-    }
+            "Limit exposure time",
+        ],
+    },
 ]
 
 
@@ -978,7 +939,7 @@ def get_task_statistics():
         "calculation_tasks": len(CALCULATION_TASKS),
         "troubleshooting_tasks": len(TROUBLESHOOTING_TASKS),
         "safety_tasks": len(SAFETY_TASKS),
-        "total_protocol_steps": sum(len(p["steps"]) for p in PROTOCOLS.values())
+        "total_protocol_steps": sum(len(p["steps"]) for p in PROTOCOLS.values()),
     }
 
 

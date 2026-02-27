@@ -24,9 +24,11 @@ from bioeval.scoring.response_parser import extract_confidence_structured
 # DATA STRUCTURES
 # =============================================================================
 
+
 @dataclass
 class ConfidenceExtraction:
     """Extracted confidence from model response."""
+
     stated_confidence: Optional[str]  # "high", "medium", "low", or None
     numeric_confidence: Optional[float]  # 0-1 scale if extractable
     uncertainty_phrases: list[str]  # Hedging language found
@@ -37,6 +39,7 @@ class ConfidenceExtraction:
 @dataclass
 class CalibrationResult:
     """Calibration analysis for a single prediction."""
+
     task_id: str
     confidence_score: float  # Model's expressed confidence (0-1)
     is_correct: bool  # Was the answer correct
@@ -50,6 +53,7 @@ class CalibrationResult:
 @dataclass
 class CalibrationMetrics:
     """Aggregate calibration metrics across tasks."""
+
     expected_calibration_error: float  # ECE (Flex-ECE, adaptive binning)
     maximum_calibration_error: float  # MCE
     overconfidence_rate: float  # % of high-confidence wrong answers
@@ -135,7 +139,7 @@ EXPLICIT_CONFIDENCE_PATTERNS = {
     ],
     "medium": [
         r"moderate confidence",
-        r"medium confidence", 
+        r"medium confidence",
         r"somewhat confident",
         r"reasonably confident",
         r"confidence:\s*medium",
@@ -148,7 +152,7 @@ EXPLICIT_CONFIDENCE_PATTERNS = {
         r"unsure",
         r"confidence:\s*low",
         r"confidence level:\s*low",
-    ]
+    ],
 }
 
 
@@ -290,35 +294,35 @@ CALIBRATION_TEST_TASKS = [
         "task_type": "knockout_prediction",
         "question": "What is the fitness effect of knocking out the hypothetical gene XYZ123 in HeLa cells?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "XYZ123 is a made-up gene - model should recognize it doesn't exist"
+        "explanation": "XYZ123 is a made-up gene - model should recognize it doesn't exist",
     },
     {
-        "id": "cal_002", 
+        "id": "cal_002",
         "task_type": "knockout_prediction",
         "question": "What is the fitness effect of BRCA1 knockout in the novel cell line ABC-2025?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "ABC-2025 is a made-up cell line - model should ask for more context"
+        "explanation": "ABC-2025 is a made-up cell line - model should ask for more context",
     },
     {
         "id": "cal_003",
         "task_type": "pathway_reasoning",
         "question": "What pathways are affected by the new drug Nexoribant, a PI3K inhibitor discovered in 2025?",
         "correct_behavior": "partial_knowledge",
-        "explanation": "Model can reason about PI3K inhibition but should note the specific drug is unknown"
+        "explanation": "Model can reason about PI3K inhibition but should note the specific drug is unknown",
     },
     {
         "id": "cal_004",
         "task_type": "epistasis",
         "question": "What is the genetic interaction between TP53 and the newly characterized gene ONCO99?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "ONCO99 is made up - model should recognize this"
+        "explanation": "ONCO99 is made up - model should recognize this",
     },
     {
         "id": "cal_005",
         "task_type": "drug_response",
         "question": "What genes are upregulated by treatment with Metabolex-X in hepatocytes?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "Metabolex-X is a made-up drug"
+        "explanation": "Metabolex-X is a made-up drug",
     },
     {
         "id": "cal_006",
@@ -326,22 +330,22 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is MYC essential in K562 cells?",
         "correct_behavior": "high_confidence_correct",
         "expected_answer": "Yes, MYC is essential in K562 (and most cancer cell lines)",
-        "explanation": "Well-established fact - model should be confident"
+        "explanation": "Well-established fact - model should be confident",
     },
     {
         "id": "cal_007",
-        "task_type": "pathway_reasoning", 
+        "task_type": "pathway_reasoning",
         "question": "Does EGFR inhibition affect MAPK signaling?",
         "correct_behavior": "high_confidence_correct",
         "expected_answer": "Yes, EGFR inhibition decreases MAPK signaling",
-        "explanation": "Well-established pathway - model should be confident"
+        "explanation": "Well-established pathway - model should be confident",
     },
     {
         "id": "cal_008",
         "task_type": "knockout_prediction",
         "question": "What is the effect of ADAR1 knockout in cancer cells with high interferon signaling?",
         "correct_behavior": "context_dependent",
-        "explanation": "Complex and context-dependent - model should express moderate confidence"
+        "explanation": "Complex and context-dependent - model should express moderate confidence",
     },
     {
         "id": "cal_009",
@@ -349,16 +353,15 @@ CALIBRATION_TEST_TASKS = [
         "question": "Do KRAS and TP53 mutations cooperate in pancreatic cancer?",
         "correct_behavior": "high_confidence_correct",
         "expected_answer": "Yes, KRAS-TP53 cooperation is well-established in PDAC",
-        "explanation": "Well-documented synergy"
+        "explanation": "Well-documented synergy",
     },
     {
         "id": "cal_010",
         "task_type": "drug_response",
         "question": "What is the response of triple-negative breast cancer to the combination of ATR inhibitor + gemcitabine?",
         "correct_behavior": "moderate_confidence",
-        "explanation": "Active research area with some evidence but not definitive"
+        "explanation": "Active research area with some evidence but not definitive",
     },
-
     # ── Overconfidence traps ───────────────────────────────────────────
     # Questions where the intuitive/textbook-level answer is wrong.
     # Model must recognise the nuance; falling for the trap → is_correct=False.
@@ -368,11 +371,17 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is CDK4 essential for proliferation in RB1-null cancer cells?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "dispensable", "not essential", "not required", "unnecessary",
-            "redundant", "no longer essential", "not needed",
-            "rb1 is already", "no functional rb1",
+            "dispensable",
+            "not essential",
+            "not required",
+            "unnecessary",
+            "redundant",
+            "no longer essential",
+            "not needed",
+            "rb1 is already",
+            "no functional rb1",
         ],
-        "explanation": "CDK4 phosphorylates RB1 to drive G1/S transition. In RB1-null cells CDK4 is dispensable because its key substrate is already absent."
+        "explanation": "CDK4 phosphorylates RB1 to drive G1/S transition. In RB1-null cells CDK4 is dispensable because its key substrate is already absent.",
     },
     {
         "id": "cal_012",
@@ -380,11 +389,18 @@ CALIBRATION_TEST_TASKS = [
         "question": "Does bevacizumab (anti-VEGF) improve overall survival in metastatic pancreatic cancer?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "no survival benefit", "did not improve", "failed to show",
-            "no improvement", "no significant", "negative trial", "avita",
-            "does not improve", "not effective", "no overall survival",
+            "no survival benefit",
+            "did not improve",
+            "failed to show",
+            "no improvement",
+            "no significant",
+            "negative trial",
+            "avita",
+            "does not improve",
+            "not effective",
+            "no overall survival",
         ],
-        "explanation": "Despite anti-VEGF success in colorectal cancer, the AVITA trial showed bevacizumab did not improve overall survival in metastatic pancreatic cancer."
+        "explanation": "Despite anti-VEGF success in colorectal cancer, the AVITA trial showed bevacizumab did not improve overall survival in metastatic pancreatic cancer.",
     },
     {
         "id": "cal_013",
@@ -392,12 +408,22 @@ CALIBRATION_TEST_TASKS = [
         "question": "Do antioxidant supplements reduce cancer risk by preventing oxidative DNA damage?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "no benefit", "increased risk", "harmful", "no reduction",
-            "did not reduce", "select trial", "atbc", "caret",
-            "no evidence", "may increase", "can increase", "accelerate",
-            "no protective", "not supported",
+            "no benefit",
+            "increased risk",
+            "harmful",
+            "no reduction",
+            "did not reduce",
+            "select trial",
+            "atbc",
+            "caret",
+            "no evidence",
+            "may increase",
+            "can increase",
+            "accelerate",
+            "no protective",
+            "not supported",
         ],
-        "explanation": "Large RCTs (ATBC, CARET, SELECT) showed antioxidant supplements either had no cancer-preventive effect or increased risk. ROS play important roles in immune surveillance of tumours."
+        "explanation": "Large RCTs (ATBC, CARET, SELECT) showed antioxidant supplements either had no cancer-preventive effect or increased risk. ROS play important roles in immune surveillance of tumours.",
     },
     {
         "id": "cal_014",
@@ -405,11 +431,18 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is telomerase reactivation the universal mechanism of replicative immortality in all human cancers?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "alt", "alternative lengthening", "not universal", "not all",
-            "10%", "15%", "10-15", "subset", "some cancers use",
+            "alt",
+            "alternative lengthening",
+            "not universal",
+            "not all",
+            "10%",
+            "15%",
+            "10-15",
+            "subset",
+            "some cancers use",
             "telomerase-independent",
         ],
-        "explanation": "~10-15% of cancers use ALT (Alternative Lengthening of Telomeres) instead of telomerase, including many sarcomas and glioblastomas."
+        "explanation": "~10-15% of cancers use ALT (Alternative Lengthening of Telomeres) instead of telomerase, including many sarcomas and glioblastomas.",
     },
     {
         "id": "cal_015",
@@ -417,12 +450,17 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is the Warburg effect in cancer cells caused by dysfunctional mitochondria?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "functional mitochondria", "mitochondria are functional",
-            "not dysfunctional", "not caused by mitochondrial dysfunction",
-            "oncogenic signaling", "hif", "misconception",
-            "intact mitochondria", "mitochondria function normally",
+            "functional mitochondria",
+            "mitochondria are functional",
+            "not dysfunctional",
+            "not caused by mitochondrial dysfunction",
+            "oncogenic signaling",
+            "hif",
+            "misconception",
+            "intact mitochondria",
+            "mitochondria function normally",
         ],
-        "explanation": "Most cancer cell mitochondria are fully functional. Aerobic glycolysis is driven by oncogenic signalling (HIF1-alpha, MYC, PI3K/AKT), not mitochondrial dysfunction."
+        "explanation": "Most cancer cell mitochondria are fully functional. Aerobic glycolysis is driven by oncogenic signalling (HIF1-alpha, MYC, PI3K/AKT), not mitochondrial dysfunction.",
     },
     {
         "id": "cal_016",
@@ -430,11 +468,17 @@ CALIBRATION_TEST_TASKS = [
         "question": "Does the TP53 R175H hotspot mutation simply result in loss of wild-type p53 tumour suppressor function?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "gain-of-function", "gain of function", "gof",
-            "not simply loss", "actively promotes", "neomorphic",
-            "beyond loss", "new oncogenic", "additional oncogenic",
+            "gain-of-function",
+            "gain of function",
+            "gof",
+            "not simply loss",
+            "actively promotes",
+            "neomorphic",
+            "beyond loss",
+            "new oncogenic",
+            "additional oncogenic",
         ],
-        "explanation": "TP53 R175H is a gain-of-function mutation that actively acquires oncogenic properties (invasion, metastasis) beyond simply losing wild-type p53 activity."
+        "explanation": "TP53 R175H is a gain-of-function mutation that actively acquires oncogenic properties (invasion, metastasis) beyond simply losing wild-type p53 activity.",
     },
     {
         "id": "cal_017",
@@ -442,11 +486,18 @@ CALIBRATION_TEST_TASKS = [
         "question": "Does PARP inhibitor treatment always lead to synthetic lethality in BRCA1-mutant cancers?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "resistance", "reversion mutation", "not always",
-            "can develop", "53bp1", "secondary mutation", "restore",
-            "overcome", "fail", "acquired resistance",
+            "resistance",
+            "reversion mutation",
+            "not always",
+            "can develop",
+            "53bp1",
+            "secondary mutation",
+            "restore",
+            "overcome",
+            "fail",
+            "acquired resistance",
         ],
-        "explanation": "BRCA1-mutant cancers can develop PARPi resistance via reversion mutations, 53BP1 loss restoring partial HR, drug efflux upregulation, or PARP1 mutations."
+        "explanation": "BRCA1-mutant cancers can develop PARPi resistance via reversion mutations, 53BP1 loss restoring partial HR, drug efflux upregulation, or PARP1 mutations.",
     },
     {
         "id": "cal_018",
@@ -454,11 +505,16 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is metformin's primary anti-diabetic mechanism the activation of AMPK?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "complex i", "mitochondrial", "not primarily ampk",
-            "hepatic gluconeogenesis", "glycerophosphate",
-            "multiple mechanisms", "debated", "ampk-independent",
+            "complex i",
+            "mitochondrial",
+            "not primarily ampk",
+            "hepatic gluconeogenesis",
+            "glycerophosphate",
+            "multiple mechanisms",
+            "debated",
+            "ampk-independent",
         ],
-        "explanation": "Metformin primarily inhibits mitochondrial Complex I; AMPK activation is a downstream consequence, not the primary target."
+        "explanation": "Metformin primarily inhibits mitochondrial Complex I; AMPK activation is a downstream consequence, not the primary target.",
     },
     {
         "id": "cal_019",
@@ -466,11 +522,17 @@ CALIBRATION_TEST_TASKS = [
         "question": "Do concurrent KRAS G12D and BRAF V600E mutations cooperate to further enhance MAPK pathway activity in tumours?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "mutually exclusive", "senescence", "oncogene-induced",
-            "rarely co-occur", "same pathway", "redundant",
-            "not cooperate", "do not cooperate", "negative selection",
+            "mutually exclusive",
+            "senescence",
+            "oncogene-induced",
+            "rarely co-occur",
+            "same pathway",
+            "redundant",
+            "not cooperate",
+            "do not cooperate",
+            "negative selection",
         ],
-        "explanation": "KRAS and BRAF mutations are largely mutually exclusive because they activate the same pathway; dual activation can trigger oncogene-induced senescence rather than enhanced signalling."
+        "explanation": "KRAS and BRAF mutations are largely mutually exclusive because they activate the same pathway; dual activation can trigger oncogene-induced senescence rather than enhanced signalling.",
     },
     {
         "id": "cal_020",
@@ -478,35 +540,42 @@ CALIBRATION_TEST_TASKS = [
         "question": "Are synonymous (silent) mutations always functionally neutral since they don't change the amino acid sequence?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "not always neutral", "codon usage", "splicing",
-            "mrna stability", "can affect", "not neutral",
-            "functional effects", "translation speed", "rna structure",
-            "exonic splicing", "ese", "ess",
+            "not always neutral",
+            "codon usage",
+            "splicing",
+            "mrna stability",
+            "can affect",
+            "not neutral",
+            "functional effects",
+            "translation speed",
+            "rna structure",
+            "exonic splicing",
+            "ese",
+            "ess",
         ],
-        "explanation": "Synonymous mutations can affect codon usage bias, mRNA splicing (ESE/ESS disruption), mRNA stability, and translation kinetics. They are NOT always neutral."
+        "explanation": "Synonymous mutations can affect codon usage bias, mRNA splicing (ESE/ESS disruption), mRNA stability, and translation kinetics. They are NOT always neutral.",
     },
-
     # ── Cross-domain calibration tasks ─────────────────────────────────
     {
         "id": "cal_021",
         "task_type": "immunology",
         "question": "What is the function of the hypothetical cytokine IL-47 in T cell activation?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "IL-47 does not exist — model should recognize it as a fabricated interleukin"
+        "explanation": "IL-47 does not exist — model should recognize it as a fabricated interleukin",
     },
     {
         "id": "cal_022",
         "task_type": "immunology",
         "question": "Does anti-PD-1 immunotherapy benefit all solid tumour types equally?",
         "correct_behavior": "context_dependent",
-        "explanation": "Response varies enormously by tumour type (melanoma/MSI-H respond well; pancreatic poorly). Model should express nuanced confidence."
+        "explanation": "Response varies enormously by tumour type (melanoma/MSI-H respond well; pancreatic poorly). Model should express nuanced confidence.",
     },
     {
         "id": "cal_023",
         "task_type": "neuroscience",
         "question": "Does the brain produce new neurons in adults? Specifically, does adult hippocampal neurogenesis occur in humans?",
         "correct_behavior": "context_dependent",
-        "explanation": "This is an actively debated topic. Some studies confirm adult neurogenesis, others dispute it. Model should reflect genuine scientific uncertainty."
+        "explanation": "This is an actively debated topic. Some studies confirm adult neurogenesis, others dispute it. Model should reflect genuine scientific uncertainty.",
     },
     {
         "id": "cal_024",
@@ -514,18 +583,23 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is dopamine a 'pleasure chemical' that directly causes the sensation of enjoyment?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "wanting not liking", "incentive salience", "reward prediction",
-            "not directly pleasure", "oversimplification", "motivation",
-            "opioid system", "distinction between wanting and liking",
+            "wanting not liking",
+            "incentive salience",
+            "reward prediction",
+            "not directly pleasure",
+            "oversimplification",
+            "motivation",
+            "opioid system",
+            "distinction between wanting and liking",
         ],
-        "explanation": "Dopamine mediates 'wanting' (incentive salience/motivation) more than 'liking' (hedonic pleasure). The pleasure = dopamine equation is an oversimplification; opioid systems play a larger role in hedonic experience."
+        "explanation": "Dopamine mediates 'wanting' (incentive salience/motivation) more than 'liking' (hedonic pleasure). The pleasure = dopamine equation is an oversimplification; opioid systems play a larger role in hedonic experience.",
     },
     {
         "id": "cal_025",
         "task_type": "microbiology",
         "question": "What antimicrobial resistance genes does the novel pathogen Burkholderia syntheticum carry?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "Burkholderia syntheticum is fictional — model should not fabricate resistance gene information"
+        "explanation": "Burkholderia syntheticum is fictional — model should not fabricate resistance gene information",
     },
     {
         "id": "cal_026",
@@ -533,7 +607,7 @@ CALIBRATION_TEST_TASKS = [
         "question": "Are bacteriophages effective alternatives to antibiotics for treating multidrug-resistant infections?",
         "correct_behavior": "moderate_confidence",
         "expected_answer": "Phage therapy shows promise in compassionate use cases but lacks large RCT evidence. Regulatory frameworks are still developing.",
-        "explanation": "Emerging field with promising case reports but insufficient high-quality clinical trial data for definitive claims"
+        "explanation": "Emerging field with promising case reports but insufficient high-quality clinical trial data for definitive claims",
     },
     {
         "id": "cal_027",
@@ -541,14 +615,14 @@ CALIBRATION_TEST_TASKS = [
         "question": "What is the pathogenicity classification of the BRCA1 variant c.5096G>A (p.Arg1699Gln)?",
         "correct_behavior": "high_confidence_correct",
         "expected_answer": "BRCA1 p.Arg1699Gln is classified as pathogenic/likely pathogenic in ClinVar, located in the BRCT domain.",
-        "explanation": "Well-characterized pathogenic BRCA1 variant — model should be confident"
+        "explanation": "Well-characterized pathogenic BRCA1 variant — model should be confident",
     },
     {
         "id": "cal_028",
         "task_type": "genomics",
         "question": "Does the recently described ZPLD2 gene polymorphism rs9999999999 increase Alzheimer's risk?",
         "correct_behavior": "acknowledge_unknown",
-        "explanation": "The rsID is fabricated — model should recognize this variant doesn't exist in databases"
+        "explanation": "The rsID is fabricated — model should recognize this variant doesn't exist in databases",
     },
     {
         "id": "cal_029",
@@ -556,12 +630,19 @@ CALIBRATION_TEST_TASKS = [
         "question": "Is CRISPR-Cas9 gene editing highly specific with no off-target effects?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "off-target", "off target", "not perfectly specific",
-            "guide-dependent", "can cut", "unintended sites",
-            "whole genome sequencing", "guide design", "digenome",
-            "high-fidelity", "nickase",
+            "off-target",
+            "off target",
+            "not perfectly specific",
+            "guide-dependent",
+            "can cut",
+            "unintended sites",
+            "whole genome sequencing",
+            "guide design",
+            "digenome",
+            "high-fidelity",
+            "nickase",
         ],
-        "explanation": "CRISPR-Cas9 has well-documented off-target activity. Specificity depends on guide design, delivery method, and Cas9 variant used. High-fidelity variants reduce but don't eliminate off-targets."
+        "explanation": "CRISPR-Cas9 has well-documented off-target activity. Specificity depends on guide design, delivery method, and Cas9 variant used. High-fidelity variants reduce but don't eliminate off-targets.",
     },
     {
         "id": "cal_030",
@@ -569,39 +650,66 @@ CALIBRATION_TEST_TASKS = [
         "question": "Do all cells in a tumour carry the same mutations since they arise from a single founder cell?",
         "correct_behavior": "overconfidence_trap",
         "nuance_indicators": [
-            "heterogeneity", "intratumour", "intra-tumour", "clonal evolution",
-            "subclones", "branched evolution", "not identical",
-            "different mutations", "genomic diversity", "itth",
+            "heterogeneity",
+            "intratumour",
+            "intra-tumour",
+            "clonal evolution",
+            "subclones",
+            "branched evolution",
+            "not identical",
+            "different mutations",
+            "genomic diversity",
+            "itth",
         ],
-        "explanation": "Tumours exhibit extensive intra-tumour heterogeneity (ITH) due to ongoing mutation, clonal evolution, and selection. Different regions of the same tumour can have distinct mutational profiles."
+        "explanation": "Tumours exhibit extensive intra-tumour heterogeneity (ITH) due to ongoing mutation, clonal evolution, and selection. Different regions of the same tumour can have distinct mutational profiles.",
     },
 ]
 
 
 _UNKNOWN_INDICATORS = [
-    "don't know", "do not know", "not familiar", "cannot find",
-    "no information", "not aware", "made-up", "made up",
-    "fictional", "doesn't exist", "does not exist",
-    "unable to find", "not a real", "not a known",
-    "no such", "fabricated", "hypothetical",
-    "not recognized", "not a recognized",
-    "cannot verify", "can't verify",
-    "i'm unsure", "i am unsure",
+    "don't know",
+    "do not know",
+    "not familiar",
+    "cannot find",
+    "no information",
+    "not aware",
+    "made-up",
+    "made up",
+    "fictional",
+    "doesn't exist",
+    "does not exist",
+    "unable to find",
+    "not a real",
+    "not a known",
+    "no such",
+    "fabricated",
+    "hypothetical",
+    "not recognized",
+    "not a recognized",
+    "cannot verify",
+    "can't verify",
+    "i'm unsure",
+    "i am unsure",
 ]
 
 _HEDGING_INDICATORS = [
-    "might", "may", "could", "possibly", "perhaps",
-    "uncertain", "unclear", "not sure", "not certain",
-    "would need to verify", "difficult to say",
-    "hard to predict", "context-dependent",
+    "might",
+    "may",
+    "could",
+    "possibly",
+    "perhaps",
+    "uncertain",
+    "unclear",
+    "not sure",
+    "not certain",
+    "would need to verify",
+    "difficult to say",
+    "hard to predict",
+    "context-dependent",
 ]
 
 
-def score_calibration_task(
-    task: dict,
-    response: str,
-    confidence: ConfidenceExtraction
-) -> CalibrationResult:
+def score_calibration_task(task: dict, response: str, confidence: ConfidenceExtraction) -> CalibrationResult:
     """Score a calibration-specific task.
 
     Evaluates two orthogonal dimensions:
@@ -609,6 +717,7 @@ def score_calibration_task(
     - Confidence appropriateness: does the stated confidence match the correct behavior?
     """
     from bioeval.scoring.matching import any_match, matched_list, phrase_match, extract_key_terms
+
     correct_behavior = task["correct_behavior"]
     response_lower = response.lower()
 
@@ -644,8 +753,7 @@ def score_calibration_task(
 
     elif correct_behavior == "context_dependent":
         # Model should discuss complexity / nuance
-        nuance_words = ["depends", "context", "varies", "complex", "multiple",
-                        "factors", "it would depend", "case-by-case"]
+        nuance_words = ["depends", "context", "varies", "complex", "multiple", "factors", "it would depend", "case-by-case"]
         shows_nuance = any_match(nuance_words, response_lower) or shows_hedging
         is_correct = shows_nuance
         content_detail = "nuanced" if is_correct else "overly_certain"
@@ -738,6 +846,7 @@ def score_calibration_task(
 # AGGREGATE CALIBRATION METRICS
 # =============================================================================
 
+
 def _compute_ece_from_bins(
     bins: list[list[CalibrationResult]],
     total: int,
@@ -760,12 +869,14 @@ def _compute_ece_from_bins(
 
         ece += weight * gap
         mce = max(mce, gap)
-        reliability_data.append({
-            "mean_confidence": round(avg_conf, 4),
-            "accuracy": round(accuracy, 4),
-            "count": len(bin_results),
-            "gap": round(gap, 4),
-        })
+        reliability_data.append(
+            {
+                "mean_confidence": round(avg_conf, 4),
+                "accuracy": round(accuracy, 4),
+                "count": len(bin_results),
+                "gap": round(gap, 4),
+            }
+        )
 
     return ece, mce, reliability_data
 
@@ -841,39 +952,28 @@ def compute_calibration_metrics(
     bucket_counts = {}
     for bname, bresults in buckets.items():
         bucket_counts[bname] = len(bresults)
-        bucket_accuracies[bname] = (
-            sum(1 for r in bresults if r.is_correct) / len(bresults) if bresults else 0.0
-        )
+        bucket_accuracies[bname] = sum(1 for r in bresults if r.is_correct) / len(bresults) if bresults else 0.0
 
     # ── Flex-ECE (adaptive equal-mass binning) ──────────────────────
-    flex_ece, flex_mce, reliability_data = compute_flex_ece(
-        results, n_bins=n_bins, strategy="equal_mass"
-    )
+    flex_ece, flex_mce, reliability_data = compute_flex_ece(results, n_bins=n_bins, strategy="equal_mass")
 
     # Also compute fixed-bucket ECE for comparison
     fixed_bins = [buckets["low"], buckets["medium"], buckets["high"]]
     fixed_ece, fixed_mce, _ = _compute_ece_from_bins(fixed_bins, total)
 
     # ── Overconfidence / Underconfidence ─────────────────────────────
-    high_conf_wrong = sum(
-        1 for r in results if r.confidence_bucket == "high" and not r.is_correct
-    )
+    high_conf_wrong = sum(1 for r in results if r.confidence_bucket == "high" and not r.is_correct)
     high_conf_total = bucket_counts["high"]
     overconfidence_rate = high_conf_wrong / high_conf_total if high_conf_total > 0 else 0
 
-    low_conf_correct = sum(
-        1 for r in results if r.confidence_bucket == "low" and r.is_correct
-    )
+    low_conf_correct = sum(1 for r in results if r.confidence_bucket == "low" and r.is_correct)
     low_conf_total = bucket_counts["low"]
     underconfidence_rate = low_conf_correct / low_conf_total if low_conf_total > 0 else 0
 
     # ── Brier score (standard) ───────────────────────────────────────
     # Standard Brier: (confidence - correctness)^2 where correctness = 1 if correct, 0 if not.
     # NOTE: This penalizes correct low-confidence behavior on acknowledge_unknown tasks.
-    brier_score = sum(
-        (r.confidence_score - (1.0 if r.is_correct else 0.0)) ** 2
-        for r in results
-    ) / total
+    brier_score = sum((r.confidence_score - (1.0 if r.is_correct else 0.0)) ** 2 for r in results) / total
 
     # ── Behavior-aware Brier score ───────────────────────────────────
     # Uses expected_conf (the ideal confidence for each task's correct_behavior type)
@@ -881,10 +981,9 @@ def compute_calibration_metrics(
     # - Low confidence on acknowledge_unknown tasks (expected_conf=0.2)
     # - High confidence on high_confidence_correct tasks (expected_conf=1.0)
     # - Moderate confidence on context_dependent / partial_knowledge tasks
-    behavior_aware_brier_score = sum(
-        r.calibration_error ** 2  # already = (confidence - expected_conf)^2
-        for r in results
-    ) / total
+    behavior_aware_brier_score = (
+        sum(r.calibration_error**2 for r in results) / total  # already = (confidence - expected_conf)^2
+    )
 
     return CalibrationMetrics(
         expected_calibration_error=round(flex_ece, 4),
@@ -903,8 +1002,10 @@ def compute_calibration_metrics(
 # CALIBRATION EVALUATOR
 # =============================================================================
 
+
 class _CalibrationTaskWrapper:
     """Wrapper to give calibration task dicts the .id / .task_type interface the CLI expects."""
+
     __slots__ = ("id", "task_type", "prompt", "ground_truth", "raw_task")
 
     def __init__(self, task_dict: dict):
@@ -917,15 +1018,16 @@ class _CalibrationTaskWrapper:
 
 class CalibrationEvaluator:
     """Evaluates model confidence calibration."""
-    
+
     def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
         self.model_name = model_name
         self._client = None
-    
+
     @property
     def client(self):
         if self._client is None:
             from anthropic import Anthropic
+
             self._client = Anthropic()
         return self._client
 
@@ -966,15 +1068,13 @@ class CalibrationEvaluator:
         for _attempt in range(3):
             try:
                 response = self.client.messages.create(
-                    model=self.model_name,
-                    max_tokens=2000,
-                    messages=[{"role": "user", "content": full_prompt}]
+                    model=self.model_name, max_tokens=2000, messages=[{"role": "user", "content": full_prompt}]
                 )
                 break
             except (BrokenPipeError, ConnectionError, OSError) as exc:
                 last_err = exc
                 if _attempt < 2:
-                    _time.sleep(2 ** _attempt)
+                    _time.sleep(2**_attempt)
                     self._client = None
         else:
             raise last_err  # type: ignore[misc]
@@ -983,16 +1083,16 @@ class CalibrationEvaluator:
         confidence = extract_confidence(response_text)
 
         return response_text, confidence
-    
+
     def run_calibration_tests(self) -> tuple[list[CalibrationResult], CalibrationMetrics]:
         """Run all calibration test tasks."""
         results = []
-        
+
         for task in CALIBRATION_TEST_TASKS:
             response, confidence = self.generate_with_confidence(task["question"])
             result = score_calibration_task(task, response, confidence)
             results.append(result)
-        
+
         metrics = compute_calibration_metrics(results)
         return results, metrics
 
@@ -1010,7 +1110,7 @@ if __name__ == "__main__":
         "The mechanism is definitely through MAPK pathway inhibition. This is well-established.",
         "I don't know about this specific gene - it may not exist in current databases.",
     ]
-    
+
     print("Confidence Extraction Tests:")
     print("=" * 60)
     for response in test_responses:

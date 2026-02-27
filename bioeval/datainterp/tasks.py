@@ -25,6 +25,7 @@ from enum import Enum
 
 class DataInterpType(Enum):
     """Types of data interpretation tasks."""
+
     QPCR_ANALYSIS = "qpcr_analysis"
     DOSE_RESPONSE = "dose_response"
     STATISTICAL_TEST = "statistical_test"
@@ -35,14 +36,15 @@ class DataInterpType(Enum):
 @dataclass
 class DataInterpTask:
     """Single data interpretation task."""
+
     id: str
     interp_type: DataInterpType
-    scenario: str                           # Context + question
-    data_table: str                         # Structured data (text table)
-    expected_answer: dict                   # Numerical answers + interpretation
-    interpretation_points: list[str]        # Required interpretation elements
-    common_mistakes: list[str]              # Mistakes to penalize
-    difficulty: str                         # easy, medium, hard
+    scenario: str  # Context + question
+    data_table: str  # Structured data (text table)
+    expected_answer: dict  # Numerical answers + interpretation
+    interpretation_points: list[str]  # Required interpretation elements
+    common_mistakes: list[str]  # Mistakes to penalize
+    difficulty: str  # easy, medium, hard
     domain: str
 
 
@@ -79,8 +81,13 @@ DATA_INTERP_TASKS = [
             "direction": "upregulated",
         },
         interpretation_points=[
-            "delta ct", "fold change", "upregulated", "2^",
-            "gapdh", "reference", "biological replicate",
+            "delta ct",
+            "fold change",
+            "upregulated",
+            "2^",
+            "gapdh",
+            "reference",
+            "biological replicate",
         ],
         common_mistakes=[
             "forgot to subtract reference gene",
@@ -113,8 +120,14 @@ DATA_INTERP_TASKS = [
             "acceptable": True,
         },
         interpretation_points=[
-            "slope", "efficiency", "10^(-1/slope)", "90%", "110%",
-            "linear", "acceptable", "r-squared",
+            "slope",
+            "efficiency",
+            "10^(-1/slope)",
+            "90%",
+            "110%",
+            "linear",
+            "acceptable",
+            "r-squared",
         ],
         common_mistakes=[
             "used wrong efficiency formula",
@@ -146,8 +159,14 @@ DATA_INTERP_TASKS = [
             "actb_variation": 0.3,
         },
         interpretation_points=[
-            "gapdh", "unstable", "actb", "stable", "reference gene validation",
-            "condition", "normalization", "misleading",
+            "gapdh",
+            "unstable",
+            "actb",
+            "stable",
+            "reference gene validation",
+            "condition",
+            "normalization",
+            "misleading",
         ],
         common_mistakes=[
             "used gapdh without noting its instability",
@@ -179,8 +198,13 @@ DATA_INTERP_TASKS = [
             "variability_concern": True,
         },
         interpretation_points=[
-            "fold change", "standard deviation", "variability", "replicate",
-            "biological", "statistical", "confidence",
+            "fold change",
+            "standard deviation",
+            "variability",
+            "replicate",
+            "biological",
+            "statistical",
+            "confidence",
         ],
         common_mistakes=[
             "averaged fold-changes instead of delta ct values",
@@ -212,8 +236,15 @@ DATA_INTERP_TASKS = [
             ],
         },
         interpretation_points=[
-            "outlier", "replicate", "ntc", "non-template", "melt curve",
-            "non-specific", "primer dimer", "exclude", "repeat",
+            "outlier",
+            "replicate",
+            "ntc",
+            "non-template",
+            "melt curve",
+            "non-specific",
+            "primer dimer",
+            "exclude",
+            "repeat",
         ],
         common_mistakes=[
             "failed to notice Treatment A replicate outlier",
@@ -223,7 +254,6 @@ DATA_INTERP_TASKS = [
         difficulty="hard",
         domain="quality_control",
     ),
-
     # ----- DOSE-RESPONSE (5 tasks) -----
     DataInterpTask(
         id="di_dr_001",
@@ -247,8 +277,13 @@ DATA_INTERP_TASKS = [
             "max_inhibition": 94.8,
         },
         interpretation_points=[
-            "ic50", "sigmoidal", "dose-response", "log",
-            "viability", "inhibition", "concentration",
+            "ic50",
+            "sigmoidal",
+            "dose-response",
+            "log",
+            "viability",
+            "inhibition",
+            "concentration",
         ],
         common_mistakes=[
             "reported IC50 on linear scale without noting log relationship",
@@ -280,8 +315,14 @@ DATA_INTERP_TASKS = [
             "similar_efficacy": True,
         },
         interpretation_points=[
-            "potency", "efficacy", "ic50", "drug b", "more potent",
-            "maximum", "plateau", "selectivity",
+            "potency",
+            "efficacy",
+            "ic50",
+            "drug b",
+            "more potent",
+            "maximum",
+            "plateau",
+            "selectivity",
         ],
         common_mistakes=[
             "confused potency with efficacy",
@@ -313,8 +354,14 @@ DATA_INTERP_TASKS = [
             "inhibitory_range": [1.0, 100],
         },
         interpretation_points=[
-            "hormesis", "biphasic", "stimulat", "low dose", "high dose",
-            "u-shape", "j-shape", "non-monotonic",
+            "hormesis",
+            "biphasic",
+            "stimulat",
+            "low dose",
+            "high dose",
+            "u-shape",
+            "j-shape",
+            "non-monotonic",
         ],
         common_mistakes=[
             "ignored the low-dose stimulation",
@@ -347,8 +394,13 @@ DATA_INTERP_TASKS = [
             "assessment": "favorable",
         },
         interpretation_points=[
-            "therapeutic index", "selectivity", "cancer", "normal",
-            "ic50", "window", "safety margin",
+            "therapeutic index",
+            "selectivity",
+            "cancer",
+            "normal",
+            "ic50",
+            "window",
+            "safety margin",
         ],
         common_mistakes=[
             "calculated only cancer IC50 without comparing to normal",
@@ -380,8 +432,15 @@ DATA_INTERP_TASKS = [
             "resistance_fold": [10, 50],
         },
         interpretation_points=[
-            "resistance", "fold", "shift", "rightward", "ic50",
-            "mechanism", "efflux", "target mutation", "bypass",
+            "resistance",
+            "fold",
+            "shift",
+            "rightward",
+            "ic50",
+            "mechanism",
+            "efflux",
+            "target mutation",
+            "bypass",
         ],
         common_mistakes=[
             "didn't quantify the fold-change in IC50",
@@ -390,7 +449,6 @@ DATA_INTERP_TASKS = [
         difficulty="hard",
         domain="oncology",
     ),
-
     # ----- STATISTICAL TEST (5 tasks) -----
     DataInterpTask(
         id="di_st_001",
@@ -417,8 +475,14 @@ DATA_INTERP_TASKS = [
             "effect_size": 170,
         },
         interpretation_points=[
-            "t-test", "normal", "independent", "p < 0.05", "significant",
-            "confidence interval", "difference", "reject null",
+            "t-test",
+            "normal",
+            "independent",
+            "p < 0.05",
+            "significant",
+            "confidence interval",
+            "difference",
+            "reject null",
         ],
         common_mistakes=[
             "used paired t-test for independent groups",
@@ -454,8 +518,13 @@ DATA_INTERP_TASKS = [
             "medium_vs_high": "not significant",
         },
         interpretation_points=[
-            "anova", "post-hoc", "tukey", "multiple comparison",
-            "pairwise", "dose-dependent", "significant",
+            "anova",
+            "post-hoc",
+            "tukey",
+            "multiple comparison",
+            "pairwise",
+            "dose-dependent",
+            "significant",
         ],
         common_mistakes=[
             "only reported ANOVA without post-hoc interpretation",
@@ -493,8 +562,13 @@ DATA_INTERP_TASKS = [
             "overclaimed": ["GENE2", "GENE3", "GENE4", "GENE5"],
         },
         interpretation_points=[
-            "multiple comparison", "bonferroni", "false discovery", "fdr",
-            "correction", "type i error", "inflated",
+            "multiple comparison",
+            "bonferroni",
+            "false discovery",
+            "fdr",
+            "correction",
+            "type i error",
+            "inflated",
         ],
         common_mistakes=[
             "accepted all p < 0.05 as significant without correction",
@@ -532,9 +606,15 @@ DATA_INTERP_TASKS = [
             "causal_claim_valid": False,
         },
         interpretation_points=[
-            "correlation", "causation", "confounder", "r-squared",
-            "variance explained", "smoking", "adjustment",
-            "observational", "residual confounding",
+            "correlation",
+            "causation",
+            "confounder",
+            "r-squared",
+            "variance explained",
+            "smoking",
+            "adjustment",
+            "observational",
+            "residual confounding",
         ],
         common_mistakes=[
             "equated statistical significance with causal relationship",
@@ -571,8 +651,14 @@ DATA_INTERP_TASKS = [
             "interim_affects_alpha": True,
         },
         interpretation_points=[
-            "power", "sample size", "dropout", "inflate", "interim",
-            "alpha spending", "type i", "effect size",
+            "power",
+            "sample size",
+            "dropout",
+            "inflate",
+            "interim",
+            "alpha spending",
+            "type i",
+            "effect size",
         ],
         common_mistakes=[
             "didn't adjust sample size for dropouts",
@@ -582,7 +668,6 @@ DATA_INTERP_TASKS = [
         difficulty="hard",
         domain="clinical_trials",
     ),
-
     # ----- SURVIVAL ANALYSIS (5 tasks) -----
     DataInterpTask(
         id="di_sa_001",
@@ -606,8 +691,14 @@ DATA_INTERP_TASKS = [
             "risk_reduction_pct": 28,
         },
         interpretation_points=[
-            "median", "overall survival", "hazard ratio", "0.72",
-            "risk reduction", "28%", "significant", "log-rank",
+            "median",
+            "overall survival",
+            "hazard ratio",
+            "0.72",
+            "risk reduction",
+            "28%",
+            "significant",
+            "log-rank",
         ],
         common_mistakes=[
             "misinterpreted HR direction (lower = better for treatment)",
@@ -644,8 +735,12 @@ DATA_INTERP_TASKS = [
             "rmst_difference": 2.9,
         },
         interpretation_points=[
-            "delayed separation", "immunotherapy", "late benefit",
-            "plateau", "log-rank", "restricted mean",
+            "delayed separation",
+            "immunotherapy",
+            "late benefit",
+            "plateau",
+            "log-rank",
+            "restricted mean",
         ],
         common_mistakes=[
             "ignored the early overlap pattern",
@@ -677,8 +772,14 @@ DATA_INTERP_TASKS = [
             "treatment_benefit": "25% risk reduction",
         },
         interpretation_points=[
-            "hazard ratio", "cox", "proportional hazards", "multivariable",
-            "adjusted", "stage", "independent predictor", "protective",
+            "hazard ratio",
+            "cox",
+            "proportional hazards",
+            "multivariable",
+            "adjusted",
+            "stage",
+            "independent predictor",
+            "protective",
         ],
         common_mistakes=[
             "interpreted HR > 1 as protective",
@@ -713,8 +814,14 @@ DATA_INTERP_TASKS = [
             "arm_b_better_late": True,
         },
         interpretation_points=[
-            "crossing", "non-proportional", "log-rank", "limitation",
-            "weighted", "landmark", "restricted mean", "hazard",
+            "crossing",
+            "non-proportional",
+            "log-rank",
+            "limitation",
+            "weighted",
+            "landmark",
+            "restricted mean",
+            "hazard",
         ],
         common_mistakes=[
             "concluded no difference based only on log-rank p-value",
@@ -746,8 +853,14 @@ DATA_INTERP_TASKS = [
             "cumulative_12mo": 0.528,
         },
         interpretation_points=[
-            "life table", "conditional", "cumulative", "product",
-            "kaplan-meier", "censored", "withdrawal", "adjusted",
+            "life table",
+            "conditional",
+            "cumulative",
+            "product",
+            "kaplan-meier",
+            "censored",
+            "withdrawal",
+            "adjusted",
         ],
         common_mistakes=[
             "didn't adjust for withdrawals at risk",
@@ -757,7 +870,6 @@ DATA_INTERP_TASKS = [
         difficulty="medium",
         domain="oncology",
     ),
-
     # ----- MULTI-ASSAY INTEGRATION (5 tasks) -----
     DataInterpTask(
         id="di_ma_001",
@@ -781,8 +893,13 @@ DATA_INTERP_TASKS = [
             "explanation": "post-transcriptional regulation",
         },
         interpretation_points=[
-            "discordant", "post-transcriptional", "stabilization",
-            "mdm2", "degradation", "protein stability", "half-life",
+            "discordant",
+            "post-transcriptional",
+            "stabilization",
+            "mdm2",
+            "degradation",
+            "protein stability",
+            "half-life",
         ],
         common_mistakes=[
             "assumed mRNA and protein must correlate",
@@ -815,9 +932,14 @@ DATA_INTERP_TASKS = [
             "overall_correlation": "moderate",
         },
         interpretation_points=[
-            "post-transcriptional", "translation", "protein stability",
-            "turnover", "correlation", "discordant",
-            "multi-omics", "complementary",
+            "post-transcriptional",
+            "translation",
+            "protein stability",
+            "turnover",
+            "correlation",
+            "discordant",
+            "multi-omics",
+            "complementary",
         ],
         common_mistakes=[
             "expected perfect RNA-protein correlation",
@@ -853,8 +975,14 @@ DATA_INTERP_TASKS = [
             "free_cmax_below_ic50": True,
         },
         interpretation_points=[
-            "free fraction", "exposure", "pharmacokinetic", "cmax",
-            "ic50", "coverage", "protein binding", "translation",
+            "free fraction",
+            "exposure",
+            "pharmacokinetic",
+            "cmax",
+            "ic50",
+            "coverage",
+            "protein binding",
+            "translation",
         ],
         common_mistakes=[
             "compared total plasma concentration to in vitro IC50",
@@ -891,8 +1019,14 @@ DATA_INTERP_TASKS = [
             "immunotherapy_candidate": True,
         },
         interpretation_points=[
-            "inflamed", "exhaustion", "pd-1", "checkpoint",
-            "treg", "immunotherapy", "cd8", "response",
+            "inflamed",
+            "exhaustion",
+            "pd-1",
+            "checkpoint",
+            "treg",
+            "immunotherapy",
+            "cd8",
+            "response",
         ],
         common_mistakes=[
             "only analyzed flow or gene expression, not both",
@@ -920,15 +1054,20 @@ DATA_INTERP_TASKS = [
             "Oxidative stress (Nrf2)  | 0.003             | 0.005          | Up in obese"
         ),
         expected_answer={
-            "converging_pathways": ["fatty acid oxidation", "de novo lipogenesis",
-                                     "gluconeogenesis", "oxidative stress"],
+            "converging_pathways": ["fatty acid oxidation", "de novo lipogenesis", "gluconeogenesis", "oxidative stress"],
             "discordant_pathways": ["TCA cycle", "amino acid catabolism"],
             "metabolic_phenotype": "lipogenic shift with oxidative stress",
         },
         interpretation_points=[
-            "converging", "multi-omics", "pathway", "lipogenesis",
-            "oxidative stress", "metabolic", "integration",
-            "discordant", "complementary",
+            "converging",
+            "multi-omics",
+            "pathway",
+            "lipogenesis",
+            "oxidative stress",
+            "metabolic",
+            "integration",
+            "discordant",
+            "complementary",
         ],
         common_mistakes=[
             "only reported one omics layer",
@@ -946,16 +1085,25 @@ DATA_INTERP_TASKS = [
 # =============================================================================
 
 _DEPTH_INDICATORS = [
-    "furthermore", "additionally", "importantly", "specifically",
-    "in particular", "for example", "such as", "including",
-    "moreover", "it is critical", "it is essential", "notably",
+    "furthermore",
+    "additionally",
+    "importantly",
+    "specifically",
+    "in particular",
+    "for example",
+    "such as",
+    "including",
+    "moreover",
+    "it is critical",
+    "it is essential",
+    "notably",
 ]
 
 
 def _extract_numbers(text: str) -> list[float]:
     """Extract all numerical values from text."""
     patterns = [
-        r'[-+]?\d+\.?\d*(?:[eE][-+]?\d+)?',
+        r"[-+]?\d+\.?\d*(?:[eE][-+]?\d+)?",
     ]
     numbers = []
     for pat in patterns:
@@ -991,11 +1139,25 @@ def _count_mistakes(mistakes: list[str], text: str) -> tuple[int, list[str]]:
     """
     text_lower = text.lower()
     _correction_signals = [
-        "correctly", "appropriately", "properly", "as expected",
-        "should be", "need to", "must ", "important to", "adjusted for",
-        "accounted for", "accounting for", "after correction",
-        "applying", "applied", "using bonferroni", "using bh",
-        "after adjusting", "we adjust", "i adjust",
+        "correctly",
+        "appropriately",
+        "properly",
+        "as expected",
+        "should be",
+        "need to",
+        "must ",
+        "important to",
+        "adjusted for",
+        "accounted for",
+        "accounting for",
+        "after correction",
+        "applying",
+        "applied",
+        "using bonferroni",
+        "using bh",
+        "after adjusting",
+        "we adjust",
+        "i adjust",
     ]
     detected = []
     for mistake in mistakes:
@@ -1010,7 +1172,7 @@ def _count_mistakes(mistakes: list[str], text: str) -> tuple[int, list[str]]:
                     if kw not in text_lower:
                         continue
                     idx = text_lower.find(kw)
-                    window = text_lower[max(0, idx - 80):min(len(text_lower), idx + 80)]
+                    window = text_lower[max(0, idx - 80) : min(len(text_lower), idx + 80)]
                     if any(sig in window for sig in _correction_signals):
                         addressed_correctly = True
                         break
@@ -1142,6 +1304,7 @@ def score_datainterp_response(task: DataInterpTask, response: str) -> dict:
 # EVALUATOR CLASS
 # =============================================================================
 
+
 class DataInterpEvaluator:
     """Evaluator for data interpretation tasks."""
 
@@ -1153,6 +1316,7 @@ class DataInterpEvaluator:
     def client(self):
         if self._client is None:
             import anthropic
+
             self._client = anthropic.Anthropic()
         return self._client
 

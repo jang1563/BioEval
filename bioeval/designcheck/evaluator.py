@@ -21,33 +21,33 @@ FLAW_CATEGORIES = {
         "missing_negative_control": "No untreated or vehicle control included",
         "missing_positive_control": "No positive control to validate assay works",
         "inappropriate_control": "Control doesn't match experimental conditions",
-        "missing_isotype_control": "Antibody experiments without isotype control"
+        "missing_isotype_control": "Antibody experiments without isotype control",
     },
     "statistics": {
         "underpowered": "Sample size too small to detect expected effect",
         "pseudoreplication": "Technical replicates treated as biological",
         "wrong_test": "Statistical test doesn't match data distribution",
         "multiple_testing": "No correction for multiple comparisons",
-        "p_hacking": "Selective reporting or analysis"
+        "p_hacking": "Selective reporting or analysis",
     },
     "confounders": {
         "batch_effect": "Conditions processed in different batches",
         "time_confound": "Samples collected at different times",
         "passage_number": "Cells at different passage numbers compared",
-        "operator_effect": "Different people performing conditions"
+        "operator_effect": "Different people performing conditions",
     },
     "technical": {
         "wrong_antibody": "Antibody species mismatch or wrong application",
         "incompatible_buffers": "Buffer conditions inappropriate for assay",
         "wrong_cell_line": "Cell line doesn't model biology of interest",
-        "insufficient_replicates": "Only 1-2 replicates per condition"
+        "insufficient_replicates": "Only 1-2 replicates per condition",
     },
     "interpretation": {
         "correlation_causation": "Correlation interpreted as causation",
         "overstatement": "Conclusions exceed what data supports",
         "cherry_picking": "Selective presentation of data",
-        "confirmation_bias": "Ignoring contradictory evidence"
-    }
+        "confirmation_bias": "Ignoring contradictory evidence",
+    },
 }
 
 
@@ -83,25 +83,24 @@ FLAWED_DESIGNS = [
                 "type": "missing_negative_control",
                 "severity": "critical",
                 "explanation": "No vehicle (DMSO) control to account for solvent effects",
-                "fix": "Include DMSO-only control at highest concentration used"
+                "fix": "Include DMSO-only control at highest concentration used",
             },
             {
                 "category": "statistics",
                 "type": "pseudoreplication",
                 "severity": "critical",
                 "explanation": "3 wells are technical replicates, not biological replicates",
-                "fix": "Repeat experiment on 3 different days or with 3 different cell passages"
+                "fix": "Repeat experiment on 3 different days or with 3 different cell passages",
             },
             {
                 "category": "controls",
                 "type": "missing_positive_control",
                 "severity": "major",
                 "explanation": "No known cytotoxic drug to validate assay performance",
-                "fix": "Include a known cytotoxic agent like staurosporine"
-            }
-        ]
+                "fix": "Include a known cytotoxic agent like staurosporine",
+            },
+        ],
     },
-    
     {
         "id": "design_002",
         "title": "Knockout Phenotype Study",
@@ -128,25 +127,24 @@ FLAWED_DESIGNS = [
                 "type": "inappropriate_control",
                 "severity": "critical",
                 "explanation": "Parental cells didn't undergo same selection process - could be selection effects",
-                "fix": "Use non-targeting sgRNA control that underwent same selection"
+                "fix": "Use non-targeting sgRNA control that underwent same selection",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
-                "severity": "critical", 
+                "severity": "critical",
                 "explanation": "Only one knockout clone - could be clonal effects unrelated to Gene X",
-                "fix": "Test 2-3 independent knockout clones with different sgRNAs"
+                "fix": "Test 2-3 independent knockout clones with different sgRNAs",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "500 DEGs doesn't mean Gene X 'regulates' them - many are indirect effects",
-                "fix": "Distinguish direct vs indirect targets, validate key targets"
-            }
-        ]
+                "fix": "Distinguish direct vs indirect targets, validate key targets",
+            },
+        ],
     },
-    
     {
         "id": "design_003",
         "title": "Western Blot Quantification",
@@ -173,25 +171,24 @@ FLAWED_DESIGNS = [
                 "type": "insufficient_replicates",
                 "severity": "critical",
                 "explanation": "n=1 provides no statistical power - result could be noise",
-                "fix": "Perform at least n=3 biological replicates"
+                "fix": "Perform at least n=3 biological replicates",
             },
             {
                 "category": "statistics",
                 "type": "wrong_test",
                 "severity": "critical",
                 "explanation": "No statistical test performed - can't claim 50% reduction",
-                "fix": "Perform t-test or equivalent on normalized values from replicates"
+                "fix": "Perform t-test or equivalent on normalized values from replicates",
             },
             {
                 "category": "technical",
                 "type": "incompatible_buffers",
                 "severity": "minor",
                 "explanation": "Didn't specify if bands are in linear range of detection",
-                "fix": "Include loading curve to verify linear range"
-            }
-        ]
+                "fix": "Include loading curve to verify linear range",
+            },
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # STATISTICAL ISSUES
     # -------------------------------------------------------------------------
@@ -219,25 +216,24 @@ FLAWED_DESIGNS = [
                 "type": "multiple_testing",
                 "severity": "critical",
                 "explanation": "300 comparisons (50 genes × 6 time points) with no correction",
-                "fix": "Apply Bonferroni or FDR correction; expect ~15 false positives at p<0.05"
+                "fix": "Apply Bonferroni or FDR correction; expect ~15 false positives at p<0.05",
             },
             {
                 "category": "statistics",
                 "type": "wrong_test",
                 "severity": "major",
                 "explanation": "Multiple t-tests for time course - should use ANOVA or longitudinal model",
-                "fix": "Use repeated measures ANOVA or mixed effects model"
+                "fix": "Use repeated measures ANOVA or mixed effects model",
             },
             {
                 "category": "confounders",
                 "type": "batch_effect",
                 "severity": "major",
                 "explanation": "Not stated whether time points were collected in same batch",
-                "fix": "Collect all time points from same stimulation or include batch in model"
-            }
-        ]
+                "fix": "Collect all time points from same stimulation or include batch in model",
+            },
+        ],
     },
-    
     {
         "id": "design_005",
         "title": "Clinical Biomarker Study",
@@ -259,25 +255,24 @@ FLAWED_DESIGNS = [
                 "type": "multiple_testing",
                 "severity": "critical",
                 "explanation": "1000 tests expect 50 false positives at p<0.05",
-                "fix": "Apply FDR correction or permutation testing"
+                "fix": "Apply FDR correction or permutation testing",
             },
             {
                 "category": "statistics",
                 "type": "p_hacking",
                 "severity": "critical",
                 "explanation": "Classifier tested on same data used for feature selection (overfitting)",
-                "fix": "Use independent validation cohort or proper cross-validation"
+                "fix": "Use independent validation cohort or proper cross-validation",
             },
             {
                 "category": "statistics",
                 "type": "underpowered",
                 "severity": "major",
                 "explanation": "n=40 for 1000 features is severely underpowered",
-                "fix": "Larger sample size or dimensionality reduction before testing"
-            }
-        ]
+                "fix": "Larger sample size or dimensionality reduction before testing",
+            },
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # CONFOUNDER ISSUES
     # -------------------------------------------------------------------------
@@ -301,25 +296,24 @@ FLAWED_DESIGNS = [
                 "type": "time_confound",
                 "severity": "critical",
                 "explanation": "Treatments tested on different days - day-to-day variation not controlled",
-                "fix": "Test both treatments in parallel on same day"
+                "fix": "Test both treatments in parallel on same day",
             },
             {
                 "category": "confounders",
                 "type": "passage_number",
                 "severity": "critical",
                 "explanation": "7 passages difference can significantly change drug sensitivity",
-                "fix": "Use cells within 2-3 passages for comparison"
+                "fix": "Use cells within 2-3 passages for comparison",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
                 "severity": "major",
                 "explanation": "No indication of replicates or statistics",
-                "fix": "Include biological replicates and statistical comparison"
-            }
-        ]
+                "fix": "Include biological replicates and statistical comparison",
+            },
+        ],
     },
-    
     {
         "id": "design_007",
         "title": "Single-cell RNA-seq Analysis",
@@ -344,25 +338,24 @@ FLAWED_DESIGNS = [
                 "type": "batch_effect",
                 "severity": "critical",
                 "explanation": "Response status perfectly confounded with batch - differences could be technical",
-                "fix": "Balance batches across conditions or include in model"
+                "fix": "Balance batches across conditions or include in model",
             },
             {
                 "category": "statistics",
                 "type": "underpowered",
                 "severity": "major",
                 "explanation": "n=3 per group insufficient for robust clinical conclusions",
-                "fix": "Larger cohort or validation in independent dataset"
+                "fix": "Larger cohort or validation in independent dataset",
             },
             {
                 "category": "interpretation",
                 "type": "correlation_causation",
                 "severity": "major",
                 "explanation": "Association doesn't prove T cells cause response",
-                "fix": "More careful language about association vs causation"
-            }
-        ]
+                "fix": "More careful language about association vs causation",
+            },
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # INTERPRETATION ISSUES
     # -------------------------------------------------------------------------
@@ -386,25 +379,24 @@ FLAWED_DESIGNS = [
                 "type": "correlation_causation",
                 "severity": "critical",
                 "explanation": "Reduced cyclin E could be effect, not cause (cells dying lose cyclin E)",
-                "fix": "Test direct binding, early time points, cyclin E overexpression rescue"
+                "fix": "Test direct binding, early time points, cyclin E overexpression rescue",
             },
             {
                 "category": "controls",
                 "type": "missing_positive_control",
                 "severity": "major",
                 "explanation": "No comparison to known cyclin E/CDK2 inhibitor",
-                "fix": "Include CDK inhibitor as positive control for comparison"
+                "fix": "Include CDK inhibitor as positive control for comparison",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "'Cyclin E inhibitor' implies direct mechanism not demonstrated",
-                "fix": "State that compound reduces cyclin E levels by unknown mechanism"
-            }
-        ]
+                "fix": "State that compound reduces cyclin E levels by unknown mechanism",
+            },
+        ],
     },
-    
     {
         "id": "design_009",
         "title": "CRISPR Screen Analysis",
@@ -429,25 +421,24 @@ FLAWED_DESIGNS = [
                 "type": "inappropriate_control",
                 "severity": "major",
                 "explanation": "Validation used pool-derived KO but screen was in library context",
-                "fix": "Validate in clean background, test if KO in naive cells causes resistance"
+                "fix": "Validate in clean background, test if KO in naive cells causes resistance",
             },
             {
                 "category": "technical",
                 "type": "insufficient_replicates",
                 "severity": "major",
                 "explanation": "No mention of screen replicates - single screen can have significant noise",
-                "fix": "Perform screen in replicate (minimum n=2)"
+                "fix": "Perform screen in replicate (minimum n=2)",
             },
             {
                 "category": "interpretation",
                 "type": "correlation_causation",
                 "severity": "minor",
                 "explanation": "'Causes' is strong - more accurate to say 'sufficient to confer'",
-                "fix": "Distinguish necessary vs sufficient causes"
-            }
-        ]
+                "fix": "Distinguish necessary vs sufficient causes",
+            },
+        ],
     },
-    
     {
         "id": "design_010",
         "title": "Mouse Tumor Study",
@@ -473,24 +464,24 @@ FLAWED_DESIGNS = [
                 "type": "wrong_test",
                 "severity": "major",
                 "explanation": "Synergy requires specific statistical test (Bliss, Loewe), not just better than vehicle",
-                "fix": "Calculate combination index or use Bliss independence model"
+                "fix": "Calculate combination index or use Bliss independence model",
             },
             {
                 "category": "statistics",
                 "type": "multiple_testing",
                 "severity": "major",
                 "explanation": "Multiple time points and comparisons without correction",
-                "fix": "Pre-specify primary endpoint or correct for multiple testing"
+                "fix": "Pre-specify primary endpoint or correct for multiple testing",
             },
             {
                 "category": "confounders",
                 "type": "operator_effect",
                 "severity": "minor",
                 "explanation": "No mention of blinding during tumor measurement",
-                "fix": "Blind tumor measurements to treatment group"
-            }
-        ]
-    }
+                "fix": "Blind tumor measurements to treatment group",
+            },
+        ],
+    },
 ]
 
 
@@ -525,8 +516,8 @@ CORRECT_DESIGNS = [
             "Positive control validates assay",
             "Technical AND biological replicates",
             "Proper statistical analysis",
-            "QC metrics reported"
-        ]
+            "QC metrics reported",
+        ],
     }
 ]
 
@@ -535,13 +526,14 @@ CORRECT_DESIGNS = [
 # EVALUATOR CLASS
 # =============================================================================
 
+
 class DesignCheckEvaluator(BaseEvaluator):
     """Evaluator for Experimental Design Critique tasks."""
-    
+
     def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
         super().__init__(model_name)
         self.flaw_categories = FLAW_CATEGORIES
-    
+
     def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:
         """Load DesignCheck evaluation tasks.
 
@@ -550,12 +542,13 @@ class DesignCheckEvaluator(BaseEvaluator):
         """
         if data_tier in ("extended", "all"):
             from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
+
             designs = FLAWED_DESIGNS + EXTENDED_FLAWED_DESIGNS
         else:
             designs = FLAWED_DESIGNS
 
         return [self._create_flaw_detection_task(d) for d in designs]
-    
+
     def _create_flaw_detection_task(self, design: dict) -> EvalTask:
         """Create a flaw detection task."""
         prompt = f"""You are reviewing the following experimental design for a peer-reviewed publication.
@@ -577,13 +570,9 @@ Please provide:
 Be thorough but focus on flaws that would actually affect the validity of the conclusions."""
 
         return EvalTask(
-            id=design["id"],
-            component="designcheck",
-            task_type="flaw_detection",
-            prompt=prompt,
-            ground_truth=design
+            id=design["id"], component="designcheck", task_type="flaw_detection", prompt=prompt, ground_truth=design
         )
-    
+
     def score_response(self, task: EvalTask, response: str) -> dict:
         """Score flaw detection response with precision, recall, and severity weighting.
 
@@ -598,7 +587,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
 
         gt_flaws = task.ground_truth.get("flaws", [])
         response_lower = response.lower()
-        stop_words = {'that', 'this', 'with', 'from', 'have', 'been', 'more', 'also', 'which', 'their'}
+        stop_words = {"that", "this", "with", "from", "have", "been", "more", "also", "which", "their"}
 
         # --- Recall: how many GT flaws did the model find? ---
         severity_weights = {"critical": 3, "major": 2, "minor": 1}
@@ -614,8 +603,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
 
             # Multi-term matching: flaw type keywords + explanation key terms
             flaw_type = flaw["type"].replace("_", " ")
-            explanation_terms = [t for t in flaw["explanation"].lower().split()
-                                if len(t) > 4 and t not in stop_words][:5]
+            explanation_terms = [t for t in flaw["explanation"].lower().split() if len(t) > 4 and t not in stop_words][:5]
 
             # A flaw is "detected" if:
             # (a) the flaw type phrase appears, OR
@@ -630,13 +618,15 @@ Be thorough but focus on flaws that would actually affect the validity of the co
                 if flaw["severity"] == "critical":
                     critical_detected += 1
 
-            flaw_match_details.append({
-                "flaw_type": flaw["type"],
-                "severity": flaw["severity"],
-                "detected": is_detected,
-                "type_match": type_match,
-                "term_matches": term_matches[:3],
-            })
+            flaw_match_details.append(
+                {
+                    "flaw_type": flaw["type"],
+                    "severity": flaw["severity"],
+                    "detected": is_detected,
+                    "type_match": type_match,
+                    "term_matches": term_matches[:3],
+                }
+            )
 
         total_flaws = len(gt_flaws)
         total_critical = len([f for f in gt_flaws if f["severity"] == "critical"])
@@ -675,8 +665,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
                 if j in matched_gt:
                     continue
                 gt_type = gt_flaw["type"].replace("_", " ")
-                gt_terms = [t for t in gt_flaw["explanation"].lower().split()
-                            if len(t) > 4 and t not in stop_words][:8]
+                gt_terms = [t for t in gt_flaw["explanation"].lower().split() if len(t) > 4 and t not in stop_words][:8]
 
                 # Check type match in extracted description
                 type_hit = phrase_match(gt_type, ex_desc)
@@ -705,7 +694,11 @@ Be thorough but focus on flaws that would actually affect the validity of the co
             f1 = 0
 
         # --- Quality checks ---
-        mentions_fix = phrase_match("fix", response_lower) or phrase_match("should", response_lower) or phrase_match("recommend", response_lower)
+        mentions_fix = (
+            phrase_match("fix", response_lower)
+            or phrase_match("should", response_lower)
+            or phrase_match("recommend", response_lower)
+        )
         categorizes_severity = phrase_match("critical", response_lower) or phrase_match("major", response_lower)
 
         # Check if severity categorization is accurate
@@ -723,9 +716,9 @@ Be thorough but focus on flaws that would actually affect the validity of the co
         # Bonus: quality indicators up to +30% (mentions fixes, correct severity, ok precision)
         # Penalty: heavy hallucination (estimated_precision < 0.25) deducts up to 15%
         quality_bonus = (
-            0.10 * float(mentions_fix) +
-            0.10 * float(categorizes_severity) +
-            0.10 * min(1.0, estimated_precision * 2)  # soft precision credit
+            0.10 * float(mentions_fix)
+            + 0.10 * float(categorizes_severity)
+            + 0.10 * min(1.0, estimated_precision * 2)  # soft precision credit
         )
         # Precision penalty: if >75% of extracted flaws are hallucinated, penalize score
         if estimated_precision < 0.25 and num_extracted > 0:
@@ -758,6 +751,7 @@ Be thorough but focus on flaws that would actually affect the validity of the co
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def get_all_flawed_designs():
     """Return all flawed experimental designs."""
     return FLAWED_DESIGNS
@@ -778,22 +772,22 @@ def get_task_statistics():
     all_flaws = []
     for design in FLAWED_DESIGNS:
         all_flaws.extend(design.get("flaws", []))
-    
+
     severity_counts = {}
     category_counts = {}
-    
+
     for flaw in all_flaws:
         sev = flaw.get("severity", "unknown")
         cat = flaw.get("category", "unknown")
         severity_counts[sev] = severity_counts.get(sev, 0) + 1
         category_counts[cat] = category_counts.get(cat, 0) + 1
-    
+
     return {
         "total_designs": len(FLAWED_DESIGNS),
         "total_flaws": len(all_flaws),
         "flaws_by_severity": severity_counts,
         "flaws_by_category": category_counts,
-        "avg_flaws_per_design": len(all_flaws) / len(FLAWED_DESIGNS) if FLAWED_DESIGNS else 0
+        "avg_flaws_per_design": len(all_flaws) / len(FLAWED_DESIGNS) if FLAWED_DESIGNS else 0,
     }
 
 

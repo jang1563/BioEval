@@ -102,7 +102,10 @@ class DebateEvaluator:
 
         # Run debate protocol
         protocol = create_protocol(
-            self.protocol_type, self.panel, self.config, self.model_pool,
+            self.protocol_type,
+            self.panel,
+            self.config,
+            self.model_pool,
         )
         trace = protocol.run_debate(dt.scenario, task_metadata)
 
@@ -112,6 +115,7 @@ class DebateEvaluator:
             trace.self_consistency_answers = sc_answers
             if sc_answers:
                 from bioeval.debate.scoring import _positions_match
+
                 gt = dt.ground_truth.get("classification", "")
                 correct = sum(1 for a in sc_answers if _positions_match(a, gt))
                 trace.self_consistency_agreement = correct / len(sc_answers)
@@ -181,8 +185,12 @@ class DebateEvaluator:
                 response_text, _ = self.model_pool.generate(first_agent, prompt)
                 # Extract position
                 from bioeval.debate.protocols import BaseDebateProtocol
+
                 protocol = create_protocol(
-                    self.protocol_type, self.panel, self.config, self.model_pool,
+                    self.protocol_type,
+                    self.panel,
+                    self.config,
+                    self.model_pool,
                 )
                 pos = protocol._extract_position(
                     response_text,
@@ -208,7 +216,10 @@ class DebateEvaluator:
         try:
             response_text, _ = self.model_pool.generate(first_agent, prompt)
             protocol = create_protocol(
-                self.protocol_type, self.panel, self.config, self.model_pool,
+                self.protocol_type,
+                self.panel,
+                self.config,
+                self.model_pool,
             )
             return protocol._extract_position(
                 response_text,

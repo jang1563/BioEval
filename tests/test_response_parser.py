@@ -26,6 +26,7 @@ from bioeval.scoring.response_parser import (
 # STEP ORDERING TESTS
 # =============================================================================
 
+
 class TestStepOrdering:
     def test_comma_separated(self):
         response = "The correct order is: 3, 1, 5, 2, 4"
@@ -90,6 +91,7 @@ Next is step 5, followed by step 2. Finally, step 4."""
 # NUMERICAL VALUE TESTS
 # =============================================================================
 
+
 class TestNumericalValue:
     def test_answer_pattern(self):
         response = "Using the dilution formula: V1 = (500 × 1) / 10 = 50 mL of stock solution."
@@ -130,6 +132,7 @@ class TestNumericalValue:
 # CATEGORICAL LABEL TESTS
 # =============================================================================
 
+
 class TestCategoricalLabel:
     def test_essential_prediction(self):
         response = """Based on the oncogene addiction principle, KRAS is essential
@@ -161,9 +164,7 @@ class TestCategoricalLabel:
     def test_context_dependent(self):
         response = """The effect would be context-dependent, varying based on
         the specific cell line and mutation status."""
-        result = extract_categorical_label(
-            response, ["essential", "non-essential", "context-dependent"]
-        )
+        result = extract_categorical_label(response, ["essential", "non-essential", "context-dependent"])
         assert result.success
         assert result.value == "context-dependent"
 
@@ -176,6 +177,7 @@ class TestCategoricalLabel:
 # =============================================================================
 # DIRECTION EXTRACTION TESTS
 # =============================================================================
+
 
 class TestDirection:
     def test_decreased_pathway(self):
@@ -211,6 +213,7 @@ class TestDirection:
 # GENE DIRECTION TESTS
 # =============================================================================
 
+
 class TestGeneDirections:
     def test_explicit_sections(self):
         response = """The drug treatment results in:
@@ -240,6 +243,7 @@ Downregulated: IL2, IFNG, TNF"""
 # =============================================================================
 # FLAW LIST EXTRACTION TESTS
 # =============================================================================
+
 
 class TestFlawList:
     def test_numbered_flaws(self):
@@ -288,6 +292,7 @@ Fix: Include staurosporine as a positive control."""
 # CONFIDENCE EXTRACTION TESTS
 # =============================================================================
 
+
 class TestConfidenceExtraction:
     def test_numeric_percent(self):
         response = "**Confidence:** 85%\nThis is well-established biology."
@@ -323,6 +328,7 @@ class TestConfidenceExtraction:
 # YES/NO EXTRACTION TESTS
 # =============================================================================
 
+
 class TestYesNo:
     def test_yes(self):
         result = extract_yes_no("Yes, MYC is essential in K562 cells.")
@@ -342,6 +348,7 @@ class TestYesNo:
 # =============================================================================
 # INTERACTION TYPE TESTS
 # =============================================================================
+
 
 class TestInteractionType:
     def test_synergistic(self):
@@ -372,6 +379,7 @@ class TestInteractionType:
 # =============================================================================
 # UNIFIED PARSE INTERFACE TESTS
 # =============================================================================
+
 
 class TestParseResponse:
     def test_knockout_prediction(self):
@@ -412,6 +420,7 @@ class TestParseResponse:
 # =============================================================================
 # EDGE CASES
 # =============================================================================
+
 
 class TestEdgeCases:
     def test_empty_response(self):

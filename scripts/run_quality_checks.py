@@ -45,8 +45,7 @@ def _tool_exists(tool: str) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run BioEval quality checks")
-    parser.add_argument("--require-tools", action="store_true",
-                        help="Fail if black/ruff/mypy are missing")
+    parser.add_argument("--require-tools", action="store_true", help="Fail if black/ruff/mypy are missing")
     args = parser.parse_args()
 
     results: list[CheckResult] = []
@@ -89,4 +88,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

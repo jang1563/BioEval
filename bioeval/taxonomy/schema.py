@@ -12,6 +12,7 @@ from enum import Enum
 
 class ErrorCategory(Enum):
     """Top-level error categories."""
+
     KNOWLEDGE = "knowledge"
     REASONING = "reasoning"
     PROCEDURAL = "procedural"
@@ -21,6 +22,7 @@ class ErrorCategory(Enum):
 
 class KnowledgeError(Enum):
     """Knowledge-related errors."""
+
     FACTUAL_HALLUCINATION = "factual_hallucination"  # Invented genes, pathways, mechanisms
     OUTDATED_INFO = "outdated_info"  # Superseded nomenclature, old understanding
     DOMAIN_CONFUSION = "domain_confusion"  # Mixing species, cell types, contexts
@@ -29,6 +31,7 @@ class KnowledgeError(Enum):
 
 class ReasoningError(Enum):
     """Reasoning-related errors."""
+
     CAUSAL_REVERSAL = "causal_reversal"  # Effect→cause confusion
     PATHWAY_TRUNCATION = "pathway_truncation"  # Incomplete mechanism
     SCALE_CONFUSION = "scale_confusion"  # Molecule vs cell vs organism
@@ -39,6 +42,7 @@ class ReasoningError(Enum):
 
 class ProceduralError(Enum):
     """Procedural/protocol errors."""
+
     STEP_OMISSION = "step_omission"  # Missing critical steps
     STEP_HALLUCINATION = "step_hallucination"  # Invented procedures
     REAGENT_CONFUSION = "reagent_confusion"  # Wrong chemicals/concentrations
@@ -48,6 +52,7 @@ class ProceduralError(Enum):
 
 class UncertaintyError(Enum):
     """Uncertainty calibration errors."""
+
     OVERCONFIDENCE = "overconfidence"  # High confidence, wrong answer
     FALSE_HEDGING = "false_hedging"  # Unnecessary uncertainty on known facts
     MISSING_UNCERTAINTY = "missing_uncertainty"  # No acknowledgment of unknowns
@@ -56,6 +61,7 @@ class UncertaintyError(Enum):
 
 class CommunicationError(Enum):
     """Communication/presentation errors."""
+
     JARGON_MISUSE = "jargon_misuse"  # Incorrect technical terms
     PRECISION_LOSS = "precision_loss"  # Vague where specificity needed
     AUDIENCE_MISMATCH = "audience_mismatch"  # Wrong level of detail
@@ -65,6 +71,7 @@ class CommunicationError(Enum):
 @dataclass
 class ErrorAnnotation:
     """Single error annotation for a model response."""
+
     error_id: str
     category: ErrorCategory
     subcategory: str  # One of the specific error types
@@ -72,11 +79,12 @@ class ErrorAnnotation:
     text_span: Optional[str] = None  # The problematic text
     explanation: str = ""  # Why this is an error
     correct_info: Optional[str] = None  # What should have been said
-    
+
 
 @dataclass
 class AnnotatedResponse:
     """Model response with error annotations."""
+
     task_id: str
     model: str
     response: str
@@ -100,7 +108,6 @@ SEVERITY_GUIDELINES = {
     - Completely wrong mechanism that would mislead research
     - Calculation error that affects experimental design
     """,
-    
     "major": """
     Errors that could cause:
     - Suboptimal experimental results
@@ -113,7 +120,6 @@ SEVERITY_GUIDELINES = {
     - Incomplete pathway explanation
     - Outdated but not harmful information
     """,
-    
     "minor": """
     Errors that:
     - Don't affect experimental outcome
@@ -124,7 +130,7 @@ SEVERITY_GUIDELINES = {
     - Slightly imprecise terminology
     - Unnecessary hedging
     - Minor formatting issues
-    """
+    """,
 }
 
 
@@ -141,12 +147,12 @@ ANNOTATION_SCHEMA = {
             "severity": "string - critical/major/minor",
             "text_span": "string - problematic text (optional)",
             "explanation": "string - why this is an error",
-            "correct_info": "string - what should have been said (optional)"
+            "correct_info": "string - what should have been said (optional)",
         }
     ],
     "overall_quality": "string - good/acceptable/poor/harmful",
     "annotator": "string - annotator identifier",
-    "notes": "string - additional observations"
+    "notes": "string - additional observations",
 }
 
 
@@ -156,13 +162,13 @@ def create_error_annotation(
     severity: str,
     explanation: str,
     text_span: Optional[str] = None,
-    correct_info: Optional[str] = None
+    correct_info: Optional[str] = None,
 ) -> ErrorAnnotation:
     """Helper to create error annotations."""
     import uuid
-    
+
     category_enum = ErrorCategory(category.lower())
-    
+
     return ErrorAnnotation(
         error_id=str(uuid.uuid4())[:8],
         category=category_enum,
@@ -170,14 +176,14 @@ def create_error_annotation(
         severity=severity,
         text_span=text_span,
         explanation=explanation,
-        correct_info=correct_info
+        correct_info=correct_info,
     )
 
 
 def export_annotation_template(output_path: str = "annotation_template.json"):
     """Export JSON template for manual annotation."""
     import json
-    
+
     template = {
         "schema_version": "1.0",
         "annotation_guidelines": SEVERITY_GUIDELINES,
@@ -186,7 +192,7 @@ def export_annotation_template(output_path: str = "annotation_template.json"):
             "reasoning": [e.value for e in ReasoningError],
             "procedural": [e.value for e in ProceduralError],
             "uncertainty": [e.value for e in UncertaintyError],
-            "communication": [e.value for e in CommunicationError]
+            "communication": [e.value for e in CommunicationError],
         },
         "annotations": [
             {
@@ -196,14 +202,14 @@ def export_annotation_template(output_path: str = "annotation_template.json"):
                 "errors": [],
                 "overall_quality": "",
                 "annotator": "",
-                "notes": ""
+                "notes": "",
             }
-        ]
+        ],
     }
-    
-    with open(output_path, 'w') as f:
+
+    with open(output_path, "w") as f:
         json.dump(template, f, indent=2)
-    
+
     return template
 
 

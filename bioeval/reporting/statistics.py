@@ -12,6 +12,7 @@ from collections import Counter
 def _count_protoreason(data_tier: str) -> dict:
     """Count ProtoReason tasks by type."""
     from bioeval.protoreason.evaluator import SAMPLE_PROTOCOLS, CALCULATION_TASKS, TROUBLESHOOTING_TASKS
+
     n_ordering = len(SAMPLE_PROTOCOLS)
     n_missing = len(SAMPLE_PROTOCOLS)
     n_reagent = len(SAMPLE_PROTOCOLS)
@@ -29,9 +30,12 @@ def _count_protoreason(data_tier: str) -> dict:
     if data_tier in ("extended", "all"):
         try:
             from bioeval.protoreason.extended_data import (
-                PROTOCOLS as EXT_PR, CALCULATION_TASKS as EXT_CALC,
-                TROUBLESHOOTING_TASKS as EXT_TS, SAFETY_TASKS as EXT_SAFETY,
+                PROTOCOLS as EXT_PR,
+                CALCULATION_TASKS as EXT_CALC,
+                TROUBLESHOOTING_TASKS as EXT_TS,
+                SAFETY_TASKS as EXT_SAFETY,
             )
+
             counts["step_ordering"] += len(EXT_PR)
             counts["missing_step"] += len(EXT_PR)
             counts["reagent_calculation"] += len(EXT_PR)
@@ -48,6 +52,7 @@ def _count_protoreason(data_tier: str) -> dict:
 def _count_causalbio(data_tier: str) -> dict:
     """Count CausalBio tasks by type."""
     from bioeval.causalbio.evaluator import KNOCKOUT_TASKS, PATHWAY_TASKS, DRUG_RESPONSE_TASKS, EPISTASIS_TASKS
+
     counts = {
         "knockout_prediction": len(KNOCKOUT_TASKS),
         "pathway_reasoning": len(PATHWAY_TASKS),
@@ -58,9 +63,12 @@ def _count_causalbio(data_tier: str) -> dict:
     if data_tier in ("extended", "all"):
         try:
             from bioeval.causalbio.extended_data import (
-                KNOCKOUT_TASKS as EXT_KO, PATHWAY_TASKS as EXT_PATH,
-                DRUG_RESPONSE_TASKS as EXT_DRUG, EPISTASIS_TASKS as EXT_EPI,
+                KNOCKOUT_TASKS as EXT_KO,
+                PATHWAY_TASKS as EXT_PATH,
+                DRUG_RESPONSE_TASKS as EXT_DRUG,
+                EPISTASIS_TASKS as EXT_EPI,
             )
+
             counts["knockout_prediction"] += len(EXT_KO)
             counts["pathway_reasoning"] += len(EXT_PATH)
             counts["drug_response"] += len(EXT_DRUG)
@@ -75,10 +83,12 @@ def _count_causalbio(data_tier: str) -> dict:
 def _count_designcheck(data_tier: str) -> dict:
     """Count DesignCheck tasks."""
     from bioeval.designcheck.evaluator import FLAWED_DESIGNS
+
     n = len(FLAWED_DESIGNS)
     if data_tier in ("extended", "all"):
         try:
             from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
+
             n += len(EXTENDED_FLAWED_DESIGNS)
         except ImportError:
             pass
@@ -88,10 +98,12 @@ def _count_designcheck(data_tier: str) -> dict:
 def _count_multiturn(data_tier: str) -> dict:
     """Count MultiTurn tasks."""
     from bioeval.multiturn.dialogues import DIALOGUES
+
     n = len(DIALOGUES)
     if data_tier in ("extended", "all"):
         try:
             from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+
             n += len(EXTENDED_DIALOGUES)
         except ImportError:
             pass
@@ -104,6 +116,7 @@ def _collect_task_ids(data_tier: str) -> list[str]:
 
     # ProtoReason
     from bioeval.protoreason.evaluator import SAMPLE_PROTOCOLS, CALCULATION_TASKS, TROUBLESHOOTING_TASKS
+
     for name in SAMPLE_PROTOCOLS:
         for suffix in ["ordering", "missing", "reagent"]:
             ids.append(f"proto_{name}_{suffix}")
@@ -114,26 +127,31 @@ def _collect_task_ids(data_tier: str) -> list[str]:
 
     # CausalBio
     from bioeval.causalbio.evaluator import KNOCKOUT_TASKS, PATHWAY_TASKS, DRUG_RESPONSE_TASKS, EPISTASIS_TASKS
+
     for t in KNOCKOUT_TASKS + PATHWAY_TASKS + DRUG_RESPONSE_TASKS + EPISTASIS_TASKS:
         ids.append(t.get("id", f"cb_{len(ids)}"))
 
     # DesignCheck
     from bioeval.designcheck.evaluator import FLAWED_DESIGNS
+
     for d in FLAWED_DESIGNS:
         ids.append(d.get("id", f"dc_{len(ids)}"))
 
     # Adversarial
     from bioeval.adversarial.tasks import ADVERSARIAL_TASKS
+
     for t in ADVERSARIAL_TASKS:
         ids.append(t.id)
 
     # MultiTurn
     from bioeval.multiturn.dialogues import DIALOGUES
+
     for d in DIALOGUES:
         ids.append(d.id if hasattr(d, "id") else f"mt_{len(ids)}")
 
     # Calibration
     from bioeval.scoring.calibration import CALIBRATION_TEST_TASKS
+
     for t in CALIBRATION_TEST_TASKS:
         ids.append(t["id"])
 
@@ -141,12 +159,14 @@ def _collect_task_ids(data_tier: str) -> list[str]:
     if data_tier in ("extended", "all"):
         try:
             from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
+
             for d in EXTENDED_FLAWED_DESIGNS:
                 ids.append(d.get("id", f"dc_ext_{len(ids)}"))
         except ImportError:
             pass
         try:
             from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+
             for d in EXTENDED_DIALOGUES:
                 ids.append(d.id if hasattr(d, "id") else f"mt_ext_{len(ids)}")
         except ImportError:
@@ -172,6 +192,7 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
 
     # Adversarial (no tier distinction)
     from bioeval.adversarial.tasks import ADVERSARIAL_TASKS
+
     adv_types = Counter(t.adversarial_type.value for t in ADVERSARIAL_TASKS)
     adv_diff = Counter(t.difficulty for t in ADVERSARIAL_TASKS)
     stats["components"]["adversarial"] = {
@@ -184,6 +205,7 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
 
     # Calibration
     from bioeval.scoring.calibration import CALIBRATION_TEST_TASKS
+
     cal_types = Counter(t["correct_behavior"] for t in CALIBRATION_TEST_TASKS)
     stats["components"]["calibration"] = {
         "n_tasks": len(CALIBRATION_TEST_TASKS),
@@ -192,6 +214,7 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
 
     # Split stats
     from bioeval.scoring.splits import get_split
+
     all_ids = _collect_task_ids(data_tier)
     split_counts = Counter(get_split(tid) for tid in all_ids)
     total = sum(c["n_tasks"] for c in stats["components"].values())
@@ -230,9 +253,11 @@ def print_statistics(data_tier: str = "base"):
 
     print(f"\nTotal tasks: {stats['totals']['total_tasks']}")
     print(f"Components: {stats['totals']['n_components']}")
-    print(f"Public/Private split: "
-          f"{stats['totals']['split_public']}/{stats['totals']['split_private']} "
-          f"({stats['totals']['private_fraction']:.1%} private)")
+    print(
+        f"Public/Private split: "
+        f"{stats['totals']['split_public']}/{stats['totals']['split_private']} "
+        f"({stats['totals']['private_fraction']:.1%} private)"
+    )
 
     print(f"\n--- Per-Component ---")
     for comp, info in stats["components"].items():
@@ -250,7 +275,9 @@ def print_statistics(data_tier: str = "base"):
         ps = stats["prompt_stats"]
         print(f"\n--- Prompt Statistics (adversarial) ---")
         print(f"  N prompts: {ps['n_prompts']}")
-        print(f"  Length: min={ps['min_length']}, median={ps['median_length']}, "
-              f"max={ps['max_length']}, mean={ps['mean_length']}")
+        print(
+            f"  Length: min={ps['min_length']}, median={ps['median_length']}, "
+            f"max={ps['max_length']}, mean={ps['mean_length']}"
+        )
 
     return stats

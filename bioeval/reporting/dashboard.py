@@ -225,6 +225,7 @@ const contam = {contam_json};
 def _collect_all_scores(raw_data: dict, analysis: dict) -> list[float]:
     """Collect all normalized scores for the distribution chart."""
     from bioeval.reporting.analysis import load_and_normalize
+
     # We'll reconstruct from analysis by_component
     scores = []
     for comp, comp_data in analysis.get("by_component", {}).items():
@@ -255,8 +256,7 @@ def _build_task_rows(raw_data: dict, analysis: dict) -> list[dict]:
             if not isinstance(r, dict):
                 continue
             tid = r.get("task_id", r.get("dialogue_id", ""))
-            task_type = r.get("task_type", r.get("adversarial_type",
-                        r.get("details", {}).get("correct_behavior", "")))
+            task_type = r.get("task_type", r.get("adversarial_type", r.get("details", {}).get("correct_behavior", "")))
 
             # Score
             score = r.get("score")
@@ -274,13 +274,15 @@ def _build_task_rows(raw_data: dict, analysis: dict) -> list[dict]:
 
             passed = r.get("passed", score >= 0.5 if score is not None else False)
 
-            rows.append({
-                "task_id": str(tid),
-                "component": component,
-                "task_type": str(task_type),
-                "score": round(float(score), 4) if score is not None else 0,
-                "passed": bool(passed),
-            })
+            rows.append(
+                {
+                    "task_id": str(tid),
+                    "component": component,
+                    "task_type": str(task_type),
+                    "score": round(float(score), 4) if score is not None else 0,
+                    "passed": bool(passed),
+                }
+            )
     return rows
 
 

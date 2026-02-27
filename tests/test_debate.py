@@ -9,15 +9,18 @@ import pytest
 # DATA LOADING
 # =============================================================================
 
+
 class TestTaskLoading:
     """Test that debate tasks load correctly."""
 
     def test_25_tasks_loaded(self):
         from bioeval.debate.tasks import DEBATE_TASKS
+
         assert len(DEBATE_TASKS) == 25
 
     def test_task_required_fields(self):
         from bioeval.debate.tasks import DEBATE_TASKS
+
         for task in DEBATE_TASKS:
             assert task.id, f"Task missing id"
             assert task.task_type is not None
@@ -30,41 +33,45 @@ class TestTaskLoading:
 
     def test_five_types_covered(self):
         from bioeval.debate.tasks import DEBATE_TASKS, DebateTaskType
+
         types_found = {t.task_type for t in DEBATE_TASKS}
         assert types_found == set(DebateTaskType)
 
     def test_five_per_type(self):
         from bioeval.debate.tasks import DEBATE_TASKS, DebateTaskType
         from collections import Counter
+
         counts = Counter(t.task_type for t in DEBATE_TASKS)
         for tt in DebateTaskType:
             assert counts[tt] == 5, f"{tt.value} has {counts[tt]} tasks, expected 5"
 
     def test_ground_truth_has_classification(self):
         from bioeval.debate.tasks import DEBATE_TASKS
+
         for task in DEBATE_TASKS:
             assert "classification" in task.ground_truth, f"Task {task.id} missing classification"
             assert "key_criteria" in task.ground_truth, f"Task {task.id} missing key_criteria"
 
     def test_answer_options_include_ground_truth(self):
         from bioeval.debate.tasks import DEBATE_TASKS
+
         for task in DEBATE_TASKS:
             gt = task.ground_truth["classification"].lower()
             options_lower = [o.lower() for o in task.answer_options]
-            assert gt in options_lower, (
-                f"Task {task.id}: ground truth '{gt}' not in answer_options {task.answer_options}"
-            )
+            assert gt in options_lower, f"Task {task.id}: ground truth '{gt}' not in answer_options {task.answer_options}"
 
 
 # =============================================================================
 # AGENT CONFIG
 # =============================================================================
 
+
 class TestAgentConfig:
     """Test agent configuration and panel creation."""
 
     def test_homogeneous_panel(self):
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("claude-sonnet-4-20250514", n_agents=3)
         assert len(panel.agents) == 3
         assert panel.judge is None
@@ -73,6 +80,7 @@ class TestAgentConfig:
 
     def test_homogeneous_with_judge(self):
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("claude-sonnet-4-20250514", n_agents=3, with_judge=True)
         assert len(panel.agents) == 3
         assert panel.judge is not None
@@ -80,6 +88,7 @@ class TestAgentConfig:
 
     def test_heterogeneous_panel(self):
         from bioeval.debate.agents import create_heterogeneous_panel
+
         panel = create_heterogeneous_panel(["claude-sonnet-4-20250514", "gpt-4o", "gpt-4-turbo"])
         assert len(panel.agents) == 3
         assert panel.is_heterogeneous
@@ -87,6 +96,7 @@ class TestAgentConfig:
 
     def test_adversarial_panel(self):
         from bioeval.debate.agents import create_adversarial_panel, AgentRole
+
         panel = create_adversarial_panel("claude-sonnet-4-20250514", ["pathogenic", "benign"])
         assert len(panel.agents) == 2
         assert panel.judge is not None
@@ -94,6 +104,7 @@ class TestAgentConfig:
 
     def test_role_assignment(self):
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("claude-sonnet-4-20250514", n_agents=3)
         roles = [a.role for a in panel.agents]
         assert roles.count(AgentRole.SOLVER) == 2
@@ -101,11 +112,13 @@ class TestAgentConfig:
 
     def test_single_agent_is_solver(self):
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("claude-sonnet-4-20250514", n_agents=1)
         assert panel.agents[0].role == AgentRole.SOLVER
 
     def test_get_agents_by_role(self):
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("claude-sonnet-4-20250514", n_agents=3)
         solvers = panel.get_agents_by_role(AgentRole.SOLVER)
         critics = panel.get_agents_by_role(AgentRole.CRITIC)
@@ -117,16 +130,21 @@ class TestAgentConfig:
 # CONFIDENCE PARSING
 # =============================================================================
 
+
 class TestConfidenceParsing:
     """Test confidence extraction from response text."""
 
     def _parse(self, text):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, SimultaneousProtocol,
+            DebateConfig,
+            ProtocolType,
+            SimultaneousProtocol,
         )
         from bioeval.debate.agents import (
-            AgentModelPool, create_homogeneous_panel,
+            AgentModelPool,
+            create_homogeneous_panel,
         )
+
         panel = create_homogeneous_panel("dummy")
         config = DebateConfig(protocol_type=ProtocolType.SIMULTANEOUS)
         protocol = SimultaneousProtocol(panel, config, AgentModelPool())
@@ -155,16 +173,21 @@ class TestConfidenceParsing:
 # POSITION EXTRACTION
 # =============================================================================
 
+
 class TestPositionExtraction:
     """Test position extraction from response text."""
 
     def _extract(self, text, options):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, SimultaneousProtocol,
+            DebateConfig,
+            ProtocolType,
+            SimultaneousProtocol,
         )
         from bioeval.debate.agents import (
-            AgentModelPool, create_homogeneous_panel,
+            AgentModelPool,
+            create_homogeneous_panel,
         )
+
         panel = create_homogeneous_panel("dummy")
         config = DebateConfig(protocol_type=ProtocolType.SIMULTANEOUS)
         protocol = SimultaneousProtocol(panel, config, AgentModelPool())
@@ -195,11 +218,13 @@ class TestPositionExtraction:
 # PROTOCOL MECHANICS (with mock model)
 # =============================================================================
 
+
 class TestProtocolMechanics:
     """Test protocol flow using a mock model pool."""
 
     class MockModelPool:
         """Returns deterministic responses for testing."""
+
         def __init__(self, responses=None):
             self._idx = 0
             self._responses = responses or []
@@ -217,9 +242,13 @@ class TestProtocolMechanics:
 
     def test_round_robin_runs(self):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, TerminationCondition, RoundRobinProtocol,
+            DebateConfig,
+            ProtocolType,
+            TerminationCondition,
+            RoundRobinProtocol,
         )
         from bioeval.debate.agents import create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy", n_agents=2)
         config = DebateConfig(
             protocol_type=ProtocolType.ROUND_ROBIN,
@@ -233,9 +262,13 @@ class TestProtocolMechanics:
 
     def test_simultaneous_runs(self):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, TerminationCondition, SimultaneousProtocol,
+            DebateConfig,
+            ProtocolType,
+            TerminationCondition,
+            SimultaneousProtocol,
         )
         from bioeval.debate.agents import create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy", n_agents=3)
         config = DebateConfig(
             protocol_type=ProtocolType.SIMULTANEOUS,
@@ -251,9 +284,12 @@ class TestProtocolMechanics:
 
     def test_judge_mediated_requires_judge(self):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, JudgeMediatedProtocol,
+            DebateConfig,
+            ProtocolType,
+            JudgeMediatedProtocol,
         )
         from bioeval.debate.agents import create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy", n_agents=2, with_judge=False)
         config = DebateConfig(protocol_type=ProtocolType.JUDGE_MEDIATED, max_rounds=1)
         protocol = JudgeMediatedProtocol(panel, config, self.MockModelPool())
@@ -262,9 +298,13 @@ class TestProtocolMechanics:
 
     def test_judge_mediated_runs(self):
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, TerminationCondition, JudgeMediatedProtocol,
+            DebateConfig,
+            ProtocolType,
+            TerminationCondition,
+            JudgeMediatedProtocol,
         )
         from bioeval.debate.agents import create_homogeneous_panel, AgentRole
+
         panel = create_homogeneous_panel("dummy", n_agents=2, with_judge=True)
         config = DebateConfig(
             protocol_type=ProtocolType.JUDGE_MEDIATED,
@@ -281,9 +321,13 @@ class TestProtocolMechanics:
     def test_adaptive_termination(self):
         """When positions don't change, adaptive termination stops early."""
         from bioeval.debate.protocols import (
-            DebateConfig, ProtocolType, TerminationCondition, SimultaneousProtocol,
+            DebateConfig,
+            ProtocolType,
+            TerminationCondition,
+            SimultaneousProtocol,
         )
         from bioeval.debate.agents import create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy", n_agents=2)
         config = DebateConfig(
             protocol_type=ProtocolType.SIMULTANEOUS,
@@ -303,6 +347,7 @@ class TestProtocolMechanics:
 # SCORING
 # =============================================================================
 
+
 class TestScoring:
     """Test scoring system with synthetic traces."""
 
@@ -311,10 +356,7 @@ class TestScoring:
         from bioeval.debate.protocols import DebateTrace, DebateRound, DebateConfig, ProtocolType
         from bioeval.debate.agents import AgentResponse, AgentRole, DebatePanel, AgentConfig
 
-        agents = [
-            AgentConfig(agent_id=f"a{i}", role=AgentRole.SOLVER, model_name="dummy")
-            for i in range(len(r1_positions))
-        ]
+        agents = [AgentConfig(agent_id=f"a{i}", role=AgentRole.SOLVER, model_name="dummy") for i in range(len(r1_positions))]
         panel = DebatePanel(agents=agents)
 
         def _make_round(rnum, positions):
@@ -354,6 +396,7 @@ class TestScoring:
 
     def test_correct_outcome(self):
         from bioeval.debate.scoring import score_debate
+
         gt = {"classification": "VUS", "key_criteria": ["PM2", "PP3", "VUS"]}
         trace = self._make_trace(["VUS", "VUS", "VUS"], ["VUS", "VUS", "VUS"], "VUS")
         score = score_debate(trace, gt)
@@ -362,6 +405,7 @@ class TestScoring:
 
     def test_wrong_outcome(self):
         from bioeval.debate.scoring import score_debate
+
         gt = {"classification": "VUS", "key_criteria": ["PM2", "PP3"]}
         trace = self._make_trace(["pathogenic", "pathogenic"], ["pathogenic", "pathogenic"], "VUS")
         score = score_debate(trace, gt)
@@ -369,6 +413,7 @@ class TestScoring:
 
     def test_correction_rate(self):
         from bioeval.debate.scoring import score_debate
+
         gt = {"classification": "VUS", "key_criteria": []}
         # Round 1: agent0=pathogenic(wrong), agent1=VUS(right)
         # Round 3: both VUS (agent0 corrected)
@@ -378,6 +423,7 @@ class TestScoring:
 
     def test_reversal_rate(self):
         from bioeval.debate.scoring import score_debate
+
         gt = {"classification": "VUS", "key_criteria": []}
         # Round 1: agent0=VUS(right), agent1=VUS(right)
         # Round 3: agent0=pathogenic(reversed), agent1=VUS
@@ -387,6 +433,7 @@ class TestScoring:
 
     def test_composite_score_range(self):
         from bioeval.debate.scoring import score_debate
+
         gt = {"classification": "VUS", "key_criteria": []}
         trace = self._make_trace(["VUS", "VUS"], ["VUS", "VUS"])
         score = score_debate(trace, gt)
@@ -394,6 +441,7 @@ class TestScoring:
 
     def test_partial_credit(self):
         from bioeval.debate.scoring import _partial_credit
+
         # Adjacent in ACMG classification
         assert _partial_credit("likely_pathogenic", "pathogenic", {}) == 0.5
         assert _partial_credit("VUS", "pathogenic", {}) == 0.25
@@ -404,11 +452,13 @@ class TestScoring:
 # TASK OUTCOME SCORING
 # =============================================================================
 
+
 class TestTaskOutcomeScoring:
     """Test the task-level outcome scoring function."""
 
     def test_correct_position(self):
         from bioeval.debate.tasks import DEBATE_TASKS, score_debate_task_outcome
+
         task = DEBATE_TASKS[0]
         gt_class = task.ground_truth["classification"]
         result = score_debate_task_outcome(task, gt_class, f"Because of {' '.join(task.ground_truth['key_criteria'][:3])}")
@@ -417,12 +467,14 @@ class TestTaskOutcomeScoring:
 
     def test_wrong_position(self):
         from bioeval.debate.tasks import DEBATE_TASKS, score_debate_task_outcome
+
         task = DEBATE_TASKS[0]
         result = score_debate_task_outcome(task, "benign", "No reasoning.")
         assert result["position_correct"] is False
 
     def test_reasoning_quality(self):
         from bioeval.debate.tasks import DEBATE_TASKS, score_debate_task_outcome
+
         task = DEBATE_TASKS[0]
         criteria = task.ground_truth["key_criteria"]
         answer = f"Analysis: {' '.join(criteria)}"
@@ -434,14 +486,17 @@ class TestTaskOutcomeScoring:
 # TASK WRAPPER
 # =============================================================================
 
+
 class TestTaskWrapper:
     """Test wrapping existing component tasks for debate."""
 
     def test_wrap_eval_task(self):
         from bioeval.debate.wrapper import wrap_eval_task
         from bioeval.models.base import EvalTask
+
         task = EvalTask(
-            id="test_001", component="causalbio",
+            id="test_001",
+            component="causalbio",
             task_type="knockout_prediction",
             prompt="Is gene X essential?",
             ground_truth={"effect": "essential"},
@@ -457,20 +512,24 @@ class TestTaskWrapper:
 # CONFIG & REGISTRY INTEGRATION
 # =============================================================================
 
+
 class TestIntegration:
     """Test integration with config, registry, and normalizer."""
 
     def test_debate_in_components(self):
         from bioeval.config import COMPONENTS
+
         assert "debate" in COMPONENTS
 
     def test_debate_in_task_types(self):
         from bioeval.config import TASK_TYPES
+
         assert "debate" in TASK_TYPES
         assert "variant_interpretation" in TASK_TYPES["debate"]
 
     def test_debate_in_registry(self):
         from bioeval.registry import REGISTRY
+
         assert "debate" in REGISTRY
         info = REGISTRY["debate"]
         assert info.evaluator_class == "DebateEvaluator"
@@ -478,6 +537,7 @@ class TestIntegration:
 
     def test_normalizer(self):
         from bioeval.scoring.normalizer import normalize_debate, normalize_result
+
         result = {
             "task_id": "test_001",
             "scores": {
@@ -503,9 +563,12 @@ class TestIntegration:
 
     def test_debate_constants(self):
         from bioeval.config import (
-            DEFAULT_DEBATE_PROTOCOL, DEFAULT_DEBATE_AGENTS,
-            DEFAULT_DEBATE_ROUNDS, DEFAULT_DEBATE_TERMINATION,
+            DEFAULT_DEBATE_PROTOCOL,
+            DEFAULT_DEBATE_AGENTS,
+            DEFAULT_DEBATE_ROUNDS,
+            DEFAULT_DEBATE_TERMINATION,
         )
+
         assert DEFAULT_DEBATE_PROTOCOL == "simultaneous"
         assert DEFAULT_DEBATE_AGENTS == 3
         assert DEFAULT_DEBATE_ROUNDS == 3
@@ -516,11 +579,13 @@ class TestIntegration:
 # EVALUATOR
 # =============================================================================
 
+
 class TestEvaluator:
     """Test DebateEvaluator interface."""
 
     def test_load_tasks(self):
         from bioeval.debate.evaluator import DebateEvaluator
+
         evaluator = DebateEvaluator(model_name="dummy", include_baseline=False)
         tasks = evaluator.load_tasks()
         assert len(tasks) == 25
@@ -535,6 +600,7 @@ class TestEvaluator:
     def test_evaluator_init_protocols(self):
         """Evaluator should accept all protocol types."""
         from bioeval.debate.evaluator import DebateEvaluator
+
         for proto in ["round_robin", "simultaneous", "judge_mediated"]:
             ev = DebateEvaluator(model_name="dummy", protocol=proto, include_baseline=False)
             assert ev.protocol_type.value == proto
@@ -544,12 +610,14 @@ class TestEvaluator:
 # SIMULATION
 # =============================================================================
 
+
 class TestSimulation:
     """Test debate simulation integration."""
 
     def test_simulate_debate_good(self):
         from bioeval.simulation import _simulate_debate
         import random
+
         result = _simulate_debate("good", random.Random(42))
         assert result["component"] == "debate"
         assert result["num_tasks"] == 25
@@ -561,6 +629,7 @@ class TestSimulation:
     def test_simulate_debate_bad(self):
         from bioeval.simulation import _simulate_debate
         import random
+
         result = _simulate_debate("bad", random.Random(42))
         for r in result["results"]:
             assert r["scores"]["outcome_correct"] is False
@@ -568,6 +637,7 @@ class TestSimulation:
     def test_simulate_debate_mixed(self):
         from bioeval.simulation import _simulate_debate
         import random
+
         result = _simulate_debate("mixed", random.Random(42))
         correct_count = sum(1 for r in result["results"] if r["scores"]["outcome_correct"])
         # Should have a mix
@@ -578,15 +648,21 @@ class TestSimulation:
 # PROTOCOL FACTORY
 # =============================================================================
 
+
 class TestProtocolFactory:
     """Test protocol factory function."""
 
     def test_create_all_protocols(self):
         from bioeval.debate.protocols import (
-            ProtocolType, DebateConfig, create_protocol,
-            RoundRobinProtocol, SimultaneousProtocol, JudgeMediatedProtocol,
+            ProtocolType,
+            DebateConfig,
+            create_protocol,
+            RoundRobinProtocol,
+            SimultaneousProtocol,
+            JudgeMediatedProtocol,
         )
         from bioeval.debate.agents import AgentModelPool, create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy", with_judge=True)
         pool = AgentModelPool()
 
@@ -603,6 +679,7 @@ class TestProtocolFactory:
     def test_unknown_protocol_raises(self):
         from bioeval.debate.protocols import ProtocolType, DebateConfig, create_protocol
         from bioeval.debate.agents import AgentModelPool, create_homogeneous_panel
+
         panel = create_homogeneous_panel("dummy")
         pool = AgentModelPool()
         # Use a mock unknown type

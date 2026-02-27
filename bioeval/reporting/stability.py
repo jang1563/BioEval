@@ -23,6 +23,7 @@ from bioeval.scoring.normalizer import normalize_result
 # RESPONSE PERTURBATION FUNCTIONS
 # =============================================================================
 
+
 def _perturb_case(text: str, rng: random.Random) -> str:
     """Randomly toggle case of ~30% of characters."""
     chars = list(text)
@@ -42,10 +43,18 @@ def _perturb_whitespace(text: str, rng: random.Random) -> str:
 
 
 _SWAP_PAIRS = [
-    ("increase", "elevate"), ("decrease", "reduce"), ("inhibit", "block"),
-    ("activate", "stimulate"), ("essential", "critical"), ("pathway", "signaling cascade"),
-    ("expression", "levels"), ("significant", "notable"), ("observed", "detected"),
-    ("suggest", "indicate"), ("demonstrate", "show"), ("result", "finding"),
+    ("increase", "elevate"),
+    ("decrease", "reduce"),
+    ("inhibit", "block"),
+    ("activate", "stimulate"),
+    ("essential", "critical"),
+    ("pathway", "signaling cascade"),
+    ("expression", "levels"),
+    ("significant", "notable"),
+    ("observed", "detected"),
+    ("suggest", "indicate"),
+    ("demonstrate", "show"),
+    ("result", "finding"),
 ]
 
 
@@ -94,6 +103,7 @@ def perturb_response(text: str, perturbation: str, seed: int = 42) -> str:
 # STABILITY MEASUREMENT
 # =============================================================================
 
+
 def measure_stability(
     result_path: str,
     n_perturbations: int = 5,
@@ -107,6 +117,7 @@ def measure_stability(
     For full pipeline stability (including scorer), use measure_scorer_stability().
     """
     import json
+
     with open(result_path) as f:
         data = json.load(f)
 
@@ -138,21 +149,22 @@ def measure_stability(
                 diffs = [abs(ps - orig_score) for ps in perturbed_scores]
                 max_diff = max(diffs)
                 mean_diff = sum(diffs) / len(diffs)
-                same_pass = sum(1 for ps in perturbed_scores
-                                if (ps >= 0.5) == (orig_score >= 0.5))
+                same_pass = sum(1 for ps in perturbed_scores if (ps >= 0.5) == (orig_score >= 0.5))
                 pass_stability = same_pass / len(perturbed_scores)
             else:
                 max_diff = mean_diff = 0
                 pass_stability = 1.0
 
-            results.append({
-                "task_id": r.get("task_id", r.get("dialogue_id", "")),
-                "component": component,
-                "original_score": orig_score,
-                "mean_perturbation_diff": round(mean_diff, 4),
-                "max_perturbation_diff": round(max_diff, 4),
-                "pass_decision_stability": round(pass_stability, 4),
-            })
+            results.append(
+                {
+                    "task_id": r.get("task_id", r.get("dialogue_id", "")),
+                    "component": component,
+                    "original_score": orig_score,
+                    "mean_perturbation_diff": round(mean_diff, 4),
+                    "max_perturbation_diff": round(max_diff, 4),
+                    "pass_decision_stability": round(pass_stability, 4),
+                }
+            )
 
     # Aggregate
     if not results:
@@ -193,15 +205,30 @@ def _perturb_result_dict(r: dict, rng: random.Random) -> dict:
     """Apply small numerical perturbations to score fields in a result dict."""
     perturbed = dict(r)
     # Add Gaussian noise to numeric score fields
-    noise_fields = ["score", "f1", "calibration_error", "reasoning_score",
-                    "kendall_tau", "overall_score", "confidence_score",
-                    "flaw_recall", "critical_recall", "weighted_recall",
-                    "adjacent_pair_accuracy", "cause_coverage",
-                    "diagnostic_coverage", "pathway_coverage",
-                    "direction_accuracy", "gene_mention_rate",
-                    "mechanism_score", "numerical_accuracy", "recall",
-                    "correct_content_score", "hallucination_penalty",
-                    "memory_score"]
+    noise_fields = [
+        "score",
+        "f1",
+        "calibration_error",
+        "reasoning_score",
+        "kendall_tau",
+        "overall_score",
+        "confidence_score",
+        "flaw_recall",
+        "critical_recall",
+        "weighted_recall",
+        "adjacent_pair_accuracy",
+        "cause_coverage",
+        "diagnostic_coverage",
+        "pathway_coverage",
+        "direction_accuracy",
+        "gene_mention_rate",
+        "mechanism_score",
+        "numerical_accuracy",
+        "recall",
+        "correct_content_score",
+        "hallucination_penalty",
+        "memory_score",
+    ]
 
     for field in noise_fields:
         if field in perturbed and isinstance(perturbed[field], (int, float)):
@@ -227,6 +254,7 @@ def _perturb_result_dict(r: dict, rng: random.Random) -> dict:
 # TEXT OUTPUT
 # =============================================================================
 
+
 def print_stability(result_path: str, n_perturbations: int = 5):
     """Print stability analysis."""
     results = measure_stability(result_path, n_perturbations)
@@ -250,8 +278,10 @@ def print_stability(result_path: str, n_perturbations: int = 5):
     print(f"{'Component':<15} {'N':>4} {'MeanDiff':>9} {'MaxDiff':>8} {'PassStab':>9}")
     print(f"{'─' * 50}")
     for comp, s in sorted(results["by_component"].items()):
-        print(f"  {comp:<13} {s['n']:>4} {s['mean_score_diff']:>9.4f} "
-              f"{s['max_score_diff']:>8.4f} {s['pass_stability']:>8.1%}")
+        print(
+            f"  {comp:<13} {s['n']:>4} {s['mean_score_diff']:>9.4f} "
+            f"{s['max_score_diff']:>8.4f} {s['pass_stability']:>8.1%}"
+        )
 
     # Interpret
     mean_diff = o["mean_score_diff"]

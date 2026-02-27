@@ -14,29 +14,47 @@ def _has_any_key(rec: dict, keys: tuple[str, ...]) -> bool:
 
 def _check_lab_bench(rec: dict, idx: int, issues: list[dict]):
     if not _has_any_key(rec, ("task_type", "category")):
-        issues.append({"severity": "error", "index": idx, "field": "task_type/category",
-                       "message": "LAB-Bench record missing task type/category"})
+        issues.append(
+            {
+                "severity": "error",
+                "index": idx,
+                "field": "task_type/category",
+                "message": "LAB-Bench record missing task type/category",
+            }
+        )
     if not _has_any_key(rec, ("domain",)):
-        issues.append({"severity": "warning", "index": idx, "field": "domain",
-                       "message": "LAB-Bench record missing domain"})
+        issues.append({"severity": "warning", "index": idx, "field": "domain", "message": "LAB-Bench record missing domain"})
 
 
 def _check_bioprobench(rec: dict, idx: int, issues: list[dict]):
     valid = {"ord", "err", "pqa", "rea", "gen"}
     task_type = str(rec.get("task_type", "")).strip().lower()
     if not task_type:
-        issues.append({"severity": "error", "index": idx, "field": "task_type",
-                       "message": "BioProBench record missing task_type"})
+        issues.append(
+            {"severity": "error", "index": idx, "field": "task_type", "message": "BioProBench record missing task_type"}
+        )
         return
     if task_type not in valid:
-        issues.append({"severity": "warning", "index": idx, "field": "task_type",
-                       "message": f"Unknown BioProBench task_type '{task_type}'"})
+        issues.append(
+            {
+                "severity": "warning",
+                "index": idx,
+                "field": "task_type",
+                "message": f"Unknown BioProBench task_type '{task_type}'",
+            }
+        )
 
 
 def _check_biolp_bench(rec: dict, idx: int, issues: list[dict]):
     if not _has_any_key(rec, ("category", "task_type")):
-        issues.append({"severity": "error", "index": idx, "field": "category/task_type",
-                       "message": "BioLP-bench record missing category/task_type"})
+        issues.append(
+            {
+                "severity": "error",
+                "index": idx,
+                "field": "category/task_type",
+                "message": "BioLP-bench record missing category/task_type",
+            }
+        )
 
 
 def validate_benchmark_payload(payload, benchmark: str) -> dict:
@@ -50,26 +68,36 @@ def validate_benchmark_payload(payload, benchmark: str) -> dict:
 
     for i, rec in enumerate(records):
         if not isinstance(rec, dict):
-            issues.append({"severity": "error", "index": i, "field": "record",
-                           "message": "Record must be a JSON object"})
+            issues.append({"severity": "error", "index": i, "field": "record", "message": "Record must be a JSON object"})
             continue
 
         if not _has_any_key(rec, ("task_id", "id", "qid", "example_id", "item_id")):
-            issues.append({"severity": "error", "index": i, "field": "id",
-                           "message": "Missing task identifier field"})
+            issues.append({"severity": "error", "index": i, "field": "id", "message": "Missing task identifier field"})
 
         if not _has_any_key(rec, ("prompt", "question", "input", "task")):
-            issues.append({"severity": "warning", "index": i, "field": "prompt/question/input/task",
-                           "message": "No prompt-like field found"})
+            issues.append(
+                {
+                    "severity": "warning",
+                    "index": i,
+                    "field": "prompt/question/input/task",
+                    "message": "No prompt-like field found",
+                }
+            )
 
         if not _has_any_key(rec, ("response", "prediction", "output", "model_response")):
-            issues.append({"severity": "warning", "index": i, "field": "response/prediction/output/model_response",
-                           "message": "No response-like field found"})
+            issues.append(
+                {
+                    "severity": "warning",
+                    "index": i,
+                    "field": "response/prediction/output/model_response",
+                    "message": "No response-like field found",
+                }
+            )
 
-        if not _has_any_key(rec, ("score", "normalized_score", "accuracy", "f1", "exact_match",
-                                   "correct", "passed", "is_correct")):
-            issues.append({"severity": "error", "index": i, "field": "score",
-                           "message": "Missing score-like field"})
+        if not _has_any_key(
+            rec, ("score", "normalized_score", "accuracy", "f1", "exact_match", "correct", "passed", "is_correct")
+        ):
+            issues.append({"severity": "error", "index": i, "field": "score", "message": "Missing score-like field"})
 
         if benchmark == "lab-bench":
             _check_lab_bench(rec, i, issues)
@@ -125,11 +153,13 @@ def validate_with_jsonschema(payload, benchmark: str) -> dict:
             "benchmark": benchmark,
             "schema_path": str(schema_path),
             "n_errors": 1,
-            "issues": [{
-                "severity": "error",
-                "field": "schema",
-                "message": f"Schema file not found: {schema_path}",
-            }],
+            "issues": [
+                {
+                    "severity": "error",
+                    "field": "schema",
+                    "message": f"Schema file not found: {schema_path}",
+                }
+            ],
         }
 
     try:
@@ -140,11 +170,13 @@ def validate_with_jsonschema(payload, benchmark: str) -> dict:
             "benchmark": benchmark,
             "schema_path": str(schema_path),
             "n_errors": 1,
-            "issues": [{
-                "severity": "error",
-                "field": "schema",
-                "message": "jsonschema package not installed",
-            }],
+            "issues": [
+                {
+                    "severity": "error",
+                    "field": "schema",
+                    "message": "jsonschema package not installed",
+                }
+            ],
         }
 
     with open(schema_path, encoding="utf-8") as f:
@@ -166,9 +198,11 @@ def validate_with_jsonschema(payload, benchmark: str) -> dict:
             "benchmark": benchmark,
             "schema_path": str(schema_path),
             "n_errors": 1,
-            "issues": [{
-                "severity": "error",
-                "field": f"schema@{path}",
-                "message": e.message,
-            }],
+            "issues": [
+                {
+                    "severity": "error",
+                    "field": f"schema@{path}",
+                    "message": e.message,
+                }
+            ],
         }

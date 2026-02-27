@@ -14,8 +14,10 @@ from typing import Optional
 # ENUMS & DATACLASSES
 # =============================================================================
 
+
 class AgentRole(Enum):
     """Roles an agent can play in a debate."""
+
     SOLVER = "solver"
     ADVOCATE = "advocate"
     CRITIC = "critic"
@@ -26,6 +28,7 @@ class AgentRole(Enum):
 @dataclass
 class AgentConfig:
     """Configuration for a single debate agent."""
+
     agent_id: str
     role: AgentRole
     model_name: str
@@ -39,6 +42,7 @@ class AgentConfig:
 @dataclass
 class AgentResponse:
     """Single response from an agent in one round."""
+
     agent_id: str
     role: AgentRole
     model_name: str
@@ -52,6 +56,7 @@ class AgentResponse:
 @dataclass
 class DebatePanel:
     """Configuration for the full set of agents in a debate."""
+
     agents: list[AgentConfig] = field(default_factory=list)
     judge: Optional[AgentConfig] = None
 
@@ -108,6 +113,7 @@ ROLE_SYSTEM_PROMPTS = {
 # MODEL POOL
 # =============================================================================
 
+
 class AgentModelPool:
     """Pool of model instances, reused across agents using the same model."""
 
@@ -118,12 +124,15 @@ class AgentModelPool:
         if model_name not in self._models:
             if "claude" in model_name.lower():
                 from bioeval.models.base import ClaudeModel
+
                 self._models[model_name] = ClaudeModel(model_name)
             elif "gpt" in model_name.lower():
                 from bioeval.models.base import OpenAIModel
+
                 self._models[model_name] = OpenAIModel(model_name)
             elif "/" in model_name:
                 from bioeval.models.base import HuggingFaceModel
+
                 self._models[model_name] = HuggingFaceModel(model_name)
             else:
                 raise ValueError(f"Unknown model: {model_name}")
@@ -143,6 +152,7 @@ class AgentModelPool:
 # =============================================================================
 # PANEL FACTORY FUNCTIONS
 # =============================================================================
+
 
 def create_homogeneous_panel(
     model_name: str,
@@ -210,13 +220,15 @@ def create_adversarial_panel(
     agents = []
     for i, pos in enumerate(positions):
         sys_prompt = ROLE_SYSTEM_PROMPTS[AgentRole.ADVOCATE].format(position=pos)
-        agents.append(AgentConfig(
-            agent_id=f"advocate_{pos}",
-            role=AgentRole.ADVOCATE,
-            model_name=model_name,
-            system_prompt=sys_prompt,
-            persona=f"Advocate for {pos}",
-        ))
+        agents.append(
+            AgentConfig(
+                agent_id=f"advocate_{pos}",
+                role=AgentRole.ADVOCATE,
+                model_name=model_name,
+                system_prompt=sys_prompt,
+                persona=f"Advocate for {pos}",
+            )
+        )
     judge = AgentConfig(
         agent_id="judge",
         role=AgentRole.JUDGE,

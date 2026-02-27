@@ -32,12 +32,7 @@ MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
 
 
-def run_evaluation(
-    components: list[str],
-    model: str,
-    enhanced: bool,
-    output_path: str
-) -> dict:
+def run_evaluation(components: list[str], model: str, enhanced: bool, output_path: str) -> dict:
     """Run evaluation with specified settings."""
 
     # Dynamically set the enhancement flag
@@ -76,6 +71,7 @@ def run_evaluation(
             # Force reimport to get updated config
             import importlib
             import bioeval.adversarial.tasks as adv_module
+
             importlib.reload(adv_module)
             from bioeval.adversarial.tasks import AdversarialEvaluator, ADVERSARIAL_TASKS, score_adversarial_response
 
@@ -97,13 +93,15 @@ def run_evaluation(
                             time.sleep(RETRY_DELAY * (attempt + 1))
                         else:
                             print(f"    Task {task.id}: FAILED after {MAX_RETRIES} retries")
-                            adv_task_results.append({
-                                "task_id": task.id,
-                                "adversarial_type": task.adversarial_type.value,
-                                "passed": False,
-                                "failure_mode": f"API Error: {str(e)[:100]}",
-                                "error": True,
-                            })
+                            adv_task_results.append(
+                                {
+                                    "task_id": task.id,
+                                    "adversarial_type": task.adversarial_type.value,
+                                    "passed": False,
+                                    "failure_mode": f"API Error: {str(e)[:100]}",
+                                    "error": True,
+                                }
+                            )
 
             # Aggregate adversarial results
             passed = sum(1 for r in adv_task_results if r.get("passed", False))
@@ -120,7 +118,7 @@ def run_evaluation(
                 "total_tasks": len(adv_task_results),
                 "passed": passed,
                 "pass_rate": passed / len(adv_task_results) if adv_task_results else 0,
-                "by_type": {k: v["passed"]/v["total"] if v["total"] > 0 else 0 for k, v in by_type.items()},
+                "by_type": {k: v["passed"] / v["total"] if v["total"] > 0 else 0 for k, v in by_type.items()},
                 "results": adv_task_results,
             }
 
@@ -135,20 +133,23 @@ def run_evaluation(
 
             # Add individual results
             for r in adv_results["results"]:
-                results["results"].append({
-                    "component": "adversarial",
-                    "task_id": r["task_id"],
-                    "adversarial_type": r["adversarial_type"],
-                    "passed": r["passed"],
-                    "failure_mode": r.get("failure_mode"),
-                    "enhanced_prompt_used": r.get("enhanced_prompt_used", enhanced),
-                })
+                results["results"].append(
+                    {
+                        "component": "adversarial",
+                        "task_id": r["task_id"],
+                        "adversarial_type": r["adversarial_type"],
+                        "passed": r["passed"],
+                        "failure_mode": r.get("failure_mode"),
+                        "enhanced_prompt_used": r.get("enhanced_prompt_used", enhanced),
+                    }
+                )
 
             print(f"  Adversarial pass rate: {adv_results['pass_rate']:.1%}")
 
         if "causalbio" in components or "all" in components:
             import importlib
             import bioeval.causalbio.evaluator as causal_module
+
             importlib.reload(causal_module)
             from bioeval.causalbio.evaluator import CausalBioEvaluator
 
@@ -177,18 +178,20 @@ def run_evaluation(
             results["summary"]["completed"] += len(causal_results)
 
             for r in causal_results:
-                results["results"].append({
-                    "component": "causalbio",
-                    "task_id": r.task_id,
-                    "task_type": r.scores.get("task_type", "unknown") if hasattr(r, 'scores') else "unknown",
-                    "scores": r.scores if hasattr(r, 'scores') else {},
-                    "enhanced_prompt_used": enhanced,
-                })
+                results["results"].append(
+                    {
+                        "component": "causalbio",
+                        "task_id": r.task_id,
+                        "task_type": r.scores.get("task_type", "unknown") if hasattr(r, "scores") else "unknown",
+                        "scores": r.scores if hasattr(r, "scores") else {},
+                        "enhanced_prompt_used": enhanced,
+                    }
+                )
 
             print(f"  CausalBio tasks completed: {len(causal_results)}")
 
         # Save results
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
         print(f"\nResults saved to: {output_path}")
@@ -252,9 +255,9 @@ def compare_results(enhanced_results: dict, baseline_results: dict) -> dict:
 def print_comparison_report(comparison: dict):
     """Print a formatted comparison report."""
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("COMPARISON REPORT: Enhanced vs Baseline")
-    print("="*70)
+    print("=" * 70)
 
     if "adversarial" in comparison:
         adv = comparison["adversarial"]
@@ -262,7 +265,7 @@ def print_comparison_report(comparison: dict):
         print(f"  Enhanced pass rate:  {adv['enhanced_pass_rate']:.1%}")
         print(f"  Baseline pass rate:  {adv['baseline_pass_rate']:.1%}")
 
-        improvement = adv['improvement']
+        improvement = adv["improvement"]
         if improvement > 0:
             print(f"  Improvement:         +{improvement:.1%} ✓")
         elif improvement < 0:
@@ -286,7 +289,7 @@ def print_comparison_report(comparison: dict):
         for reg in comparison["regressions"]:
             print(f"  ✗ {reg}")
 
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
 
 
 def generate_html_report(comparison: dict, enhanced_results: dict, baseline_results: dict, output_path: str):
@@ -417,7 +420,7 @@ def generate_html_report(comparison: dict, enhanced_results: dict, baseline_resu
 </body>
 </html>"""
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(html)
 
     print(f"HTML report saved to: {output_path}")
@@ -426,34 +429,21 @@ def generate_html_report(comparison: dict, enhanced_results: dict, baseline_resu
 def main():
     parser = argparse.ArgumentParser(
         description="Run comparison between enhanced and baseline BioEval",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--components", "-c",
+        "--components",
+        "-c",
         nargs="+",
         default=["adversarial", "causalbio"],
-        help="Components to evaluate (default: adversarial causalbio)"
+        help="Components to evaluate (default: adversarial causalbio)",
     )
     parser.add_argument(
-        "--model", "-m",
-        default="claude-sonnet-4-20250514",
-        help="Model to use (default: claude-sonnet-4-20250514)"
+        "--model", "-m", default="claude-sonnet-4-20250514", help="Model to use (default: claude-sonnet-4-20250514)"
     )
-    parser.add_argument(
-        "--output-dir", "-o",
-        default="results",
-        help="Output directory for results (default: results)"
-    )
-    parser.add_argument(
-        "--skip-baseline",
-        action="store_true",
-        help="Skip baseline run (use existing baseline results)"
-    )
-    parser.add_argument(
-        "--skip-enhanced",
-        action="store_true",
-        help="Skip enhanced run (use existing enhanced results)"
-    )
+    parser.add_argument("--output-dir", "-o", default="results", help="Output directory for results (default: results)")
+    parser.add_argument("--skip-baseline", action="store_true", help="Skip baseline run (use existing baseline results)")
+    parser.add_argument("--skip-enhanced", action="store_true", help="Skip enhanced run (use existing enhanced results)")
 
     args = parser.parse_args()
 
@@ -469,9 +459,9 @@ def main():
     comparison_path = output_dir / f"comparison_{timestamp}.json"
     report_path = output_dir / f"comparison_report_{timestamp}.html"
 
-    print("="*70)
+    print("=" * 70)
     print("BioEval Comparison: Enhanced vs Baseline Prompts")
-    print("="*70)
+    print("=" * 70)
     print(f"Model: {args.model}")
     print(f"Components: {', '.join(args.components)}")
     print(f"Output directory: {output_dir}")
@@ -479,10 +469,7 @@ def main():
     # Run enhanced evaluation
     if not args.skip_enhanced:
         enhanced_results = run_evaluation(
-            components=args.components,
-            model=args.model,
-            enhanced=True,
-            output_path=str(enhanced_path)
+            components=args.components, model=args.model, enhanced=True, output_path=str(enhanced_path)
         )
     else:
         # Load existing results
@@ -498,10 +485,7 @@ def main():
     # Run baseline evaluation
     if not args.skip_baseline:
         baseline_results = run_evaluation(
-            components=args.components,
-            model=args.model,
-            enhanced=False,
-            output_path=str(baseline_path)
+            components=args.components, model=args.model, enhanced=False, output_path=str(baseline_path)
         )
     else:
         existing = list(output_dir.glob("baseline_*.json"))
@@ -518,7 +502,7 @@ def main():
     comparison = compare_results(enhanced_results, baseline_results)
 
     # Save comparison
-    with open(comparison_path, 'w') as f:
+    with open(comparison_path, "w") as f:
         json.dump(comparison, f, indent=2)
 
     # Print report

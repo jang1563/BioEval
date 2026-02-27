@@ -30,27 +30,27 @@ def print_summary(results: dict):
     print("\n" + "=" * 60)
     print("BIOEVAL RESULTS SUMMARY")
     print("=" * 60)
-    
+
     # Metadata
     meta = results.get("metadata", {})
     print(f"\nModel: {meta.get('model', 'Unknown')}")
     print(f"Timestamp: {meta.get('timestamp', 'Unknown')}")
     print(f"Components: {', '.join(meta.get('components', []))}")
-    
+
     # Summary stats
     summary = results.get("summary", {})
     print(f"\n--- Task Summary ---")
     print(f"Total tasks: {summary.get('total_tasks', 0)}")
     print(f"Completed: {summary.get('completed', 0)}")
     print(f"Errors: {summary.get('errors', 0)}")
-    
+
     # Component breakdown
     print(f"\n--- By Component ---")
     for key, value in summary.items():
         if key.endswith("_tasks"):
             component = key.replace("_tasks", "")
             print(f"  {component}: {value}")
-    
+
     # Calibration
     cal = results.get("calibration", {})
     if cal:
@@ -59,28 +59,28 @@ def print_summary(results: dict):
         print(f"Overconfidence Rate: {cal.get('overconfidence_rate', 0):.1%}")
         print(f"Underconfidence Rate: {cal.get('underconfidence_rate', 0):.1%}")
         print(f"Brier Score: {cal.get('brier_score', 0):.3f}")
-        
+
         buckets = cal.get("bucket_accuracies", {})
         if buckets:
             print(f"\nAccuracy by confidence bucket:")
             for bucket, acc in buckets.items():
                 count = cal.get("bucket_counts", {}).get(bucket, 0)
                 print(f"  {bucket}: {acc:.1%} (n={count})")
-    
+
     # Adversarial
     adv = results.get("adversarial_summary", {})
     if adv:
         print(f"\n--- Adversarial Robustness ---")
         print(f"Pass Rate: {adv.get('pass_rate', 0):.1%}")
         print(f"Passed: {adv.get('passed', 0)}/{adv.get('total', 0)}")
-        
+
         by_type = adv.get("by_type", {})
         if by_type:
             print(f"\nBy adversarial type:")
             for atype, data in by_type.items():
-                rate = data['passed'] / data['total'] if data['total'] > 0 else 0
+                rate = data["passed"] / data["total"] if data["total"] > 0 else 0
                 print(f"  {atype}: {rate:.0%} ({data['passed']}/{data['total']})")
-    
+
     # Execution stats
     exec_stats = results.get("execution_stats", {})
     if exec_stats:
@@ -89,7 +89,7 @@ def print_summary(results: dict):
         print(f"Cache hits: {exec_stats.get('cache_hits', 0)}")
         print(f"Cache hit rate: {exec_stats.get('cache_hit_rate', 0):.1%}")
         print(f"Total tokens: {exec_stats.get('total_tokens', 0):,}")
-    
+
     print("\n" + "=" * 60)
 
 
@@ -99,7 +99,7 @@ def generate_html_report(results: dict, output_path: str):
     summary = results.get("summary", {})
     cal = results.get("calibration", {})
     adv = results.get("adversarial_summary", {})
-    
+
     html = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -225,39 +225,38 @@ def generate_html_report(results: dict, output_path: str):
     </script>
 </body>
 </html>"""
-    
-    with open(output_path, 'w') as f:
+
+    with open(output_path, "w") as f:
         f.write(html)
-    
+
     print(f"HTML report saved to: {output_path}")
 
 
 def analyze_errors(results: dict):
     """Analyze common error patterns."""
     task_results = results.get("results", [])
-    
+
     print("\n--- Error Analysis ---")
-    
+
     # Count task types with issues
     low_scores = {}
     for result in task_results:
         task_type = result.get("task_type", "unknown")
-        
+
         # Check various score indicators
         conf = result.get("confidence", {})
         if conf.get("score", 0.5) > 0.8:
             # High confidence - check if correct
             if result.get("effect_mentioned") == False or result.get("passed") == False:
                 low_scores[task_type] = low_scores.get(task_type, 0) + 1
-    
+
     if low_scores:
         print("\nTask types with potential overconfidence:")
         for task_type, count in sorted(low_scores.items(), key=lambda x: -x[1]):
             print(f"  {task_type}: {count} issues")
-    
+
     # Adversarial failures
-    adv_failures = [r for r in task_results 
-                    if r.get("component") == "adversarial" and not r.get("passed", True)]
+    adv_failures = [r for r in task_results if r.get("component") == "adversarial" and not r.get("passed", True)]
     if adv_failures:
         print(f"\nAdversarial failures ({len(adv_failures)}):")
         for fail in adv_failures[:5]:
@@ -266,35 +265,34 @@ def analyze_errors(results: dict):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Visualize BioEval results",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        description="Visualize BioEval results", formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("results_file", help="Path to results JSON file")
     parser.add_argument("--output", "-o", help="Output HTML report path")
     parser.add_argument("--analyze", "-a", action="store_true", help="Run error analysis")
-    
+
     args = parser.parse_args()
-    
+
     # Load results
     if not Path(args.results_file).exists():
         print(f"Error: File not found: {args.results_file}")
         sys.exit(1)
-    
+
     results = load_results(args.results_file)
-    
+
     # Print summary
     print_summary(results)
-    
+
     # Error analysis
     if args.analyze:
         analyze_errors(results)
-    
+
     # Generate HTML report
     if args.output:
         generate_html_report(results, args.output)
     else:
         # Default output path
-        output_path = args.results_file.replace('.json', '_report.html')
+        output_path = args.results_file.replace(".json", "_report.html")
         generate_html_report(results, output_path)
 
 

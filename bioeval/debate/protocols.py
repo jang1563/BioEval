@@ -26,6 +26,7 @@ from bioeval.debate.agents import (
 # ENUMS & CONFIG
 # =============================================================================
 
+
 class ProtocolType(Enum):
     ROUND_ROBIN = "round_robin"
     SIMULTANEOUS = "simultaneous"
@@ -77,6 +78,7 @@ class DebateTrace:
 # BASE PROTOCOL
 # =============================================================================
 
+
 class BaseDebateProtocol(ABC):
     """Abstract base for debate protocols."""
 
@@ -112,12 +114,8 @@ class BaseDebateProtocol(ABC):
                 return True, "consensus_reached"
 
         if self.config.termination == TerminationCondition.CONFIDENCE_THRESHOLD:
-            confidences = [
-                r.confidence for r in last.responses if r.confidence is not None
-            ]
-            if confidences and all(
-                c >= self.config.confidence_threshold for c in confidences
-            ):
+            confidences = [r.confidence for r in last.responses if r.confidence is not None]
+            if confidences and all(c >= self.config.confidence_threshold for c in confidences):
                 return True, "confidence_threshold"
 
         if self.config.termination == TerminationCondition.ADAPTIVE:
@@ -144,9 +142,7 @@ class BaseDebateProtocol(ABC):
                 return min(1.0, max(0.0, val))
         return None
 
-    def _extract_position(
-        self, response_text: str, task_metadata: dict
-    ) -> Optional[str]:
+    def _extract_position(self, response_text: str, task_metadata: dict) -> Optional[str]:
         options = task_metadata.get("answer_options", [])
         response_lower = response_text.lower()
         # Sort longest-first to prevent substring matching issues
@@ -164,9 +160,7 @@ class BaseDebateProtocol(ABC):
             return m.group(1).strip()
         return None
 
-    def _confidence_weighted_vote(
-        self, responses: list[AgentResponse]
-    ) -> tuple[str, float]:
+    def _confidence_weighted_vote(self, responses: list[AgentResponse]) -> tuple[str, float]:
         """Select final answer via confidence-weighted voting."""
         position_weights: dict[str, float] = {}
         position_responses: dict[str, AgentResponse] = {}
@@ -175,9 +169,7 @@ class BaseDebateProtocol(ABC):
             pos = resp.position or "unknown"
             conf = resp.confidence or 0.5
             position_weights[pos] = position_weights.get(pos, 0.0) + conf
-            if pos not in position_responses or (resp.confidence or 0) > (
-                position_responses[pos].confidence or 0
-            ):
+            if pos not in position_responses or (resp.confidence or 0) > (position_responses[pos].confidence or 0):
                 position_responses[pos] = resp
 
         if not position_weights:
@@ -185,9 +177,7 @@ class BaseDebateProtocol(ABC):
 
         best_pos = max(position_weights, key=position_weights.get)
         best_resp = position_responses.get(best_pos)
-        avg_conf = position_weights[best_pos] / max(
-            1, sum(1 for r in responses if (r.position or "unknown") == best_pos)
-        )
+        avg_conf = position_weights[best_pos] / max(1, sum(1 for r in responses if (r.position or "unknown") == best_pos))
 
         return (best_resp.content if best_resp else best_pos), min(1.0, avg_conf)
 
@@ -195,6 +185,7 @@ class BaseDebateProtocol(ABC):
 # =============================================================================
 # ROUND-ROBIN PROTOCOL
 # =============================================================================
+
 
 class RoundRobinProtocol(BaseDebateProtocol):
     """Agents respond sequentially, each seeing all prior responses."""
@@ -209,9 +200,7 @@ class RoundRobinProtocol(BaseDebateProtocol):
             round_responses = []
 
             for agent in self.panel.agents:
-                prompt = self._build_agent_prompt(
-                    agent, task_prompt, all_responses, round_num
-                )
+                prompt = self._build_agent_prompt(agent, task_prompt, all_responses, round_num)
                 response_text, tokens = self.model_pool.generate(agent, prompt)
                 total_tokens += tokens
 
@@ -242,9 +231,7 @@ class RoundRobinProtocol(BaseDebateProtocol):
                 termination_reason = reason
                 break
 
-        final_answer, final_confidence = self._confidence_weighted_vote(
-            rounds[-1].responses
-        )
+        final_answer, final_confidence = self._confidence_weighted_vote(rounds[-1].responses)
 
         return DebateTrace(
             task_id=task_metadata.get("task_id", ""),
@@ -256,9 +243,7 @@ class RoundRobinProtocol(BaseDebateProtocol):
             final_confidence=final_confidence,
             total_tokens=total_tokens,
             terminated_early=len(rounds) < self.config.max_rounds,
-            termination_reason=termination_reason
-            if len(rounds) < self.config.max_rounds
-            else None,
+            termination_reason=termination_reason if len(rounds) < self.config.max_rounds else None,
         )
 
     def _build_agent_prompt(
@@ -269,16 +254,10 @@ class RoundRobinProtocol(BaseDebateProtocol):
         round_num: int,
     ) -> str:
         if round_num == 1 and not prior_responses:
-            return (
-                f"{task_prompt}\n\n"
-                f"Provide your analysis and answer. State your confidence level (0-100%)."
-            )
+            return f"{task_prompt}\n\n" f"Provide your analysis and answer. State your confidence level (0-100%)."
 
         history = "\n\n".join(
-            [
-                f"--- {r.agent_id} (Round {r.round_number}, {r.role.value}) ---\n{r.content}"
-                for r in prior_responses
-            ]
+            [f"--- {r.agent_id} (Round {r.round_number}, {r.role.value}) ---\n{r.content}" for r in prior_responses]
         )
         return (
             f"{task_prompt}\n\n"
@@ -294,6 +273,7 @@ class RoundRobinProtocol(BaseDebateProtocol):
 # SIMULTANEOUS PROTOCOL
 # =============================================================================
 
+
 class SimultaneousProtocol(BaseDebateProtocol):
     """All agents respond in parallel each round, then see each other."""
 
@@ -307,9 +287,7 @@ class SimultaneousProtocol(BaseDebateProtocol):
             round_responses = []
 
             for agent in self.panel.agents:
-                prompt = self._build_simultaneous_prompt(
-                    agent, task_prompt, prev_responses, round_num
-                )
+                prompt = self._build_simultaneous_prompt(agent, task_prompt, prev_responses, round_num)
                 response_text, tokens = self.model_pool.generate(agent, prompt)
                 total_tokens += tokens
 
@@ -322,9 +300,7 @@ class SimultaneousProtocol(BaseDebateProtocol):
                         content=response_text,
                         confidence=self._parse_confidence(response_text),
                         token_count=tokens,
-                        position=self._extract_position(
-                            response_text, task_metadata
-                        ),
+                        position=self._extract_position(response_text, task_metadata),
                     )
                 )
 
@@ -342,9 +318,7 @@ class SimultaneousProtocol(BaseDebateProtocol):
                 termination_reason = reason
                 break
 
-        final_answer, final_confidence = self._confidence_weighted_vote(
-            rounds[-1].responses
-        )
+        final_answer, final_confidence = self._confidence_weighted_vote(rounds[-1].responses)
 
         return DebateTrace(
             task_id=task_metadata.get("task_id", ""),
@@ -356,9 +330,7 @@ class SimultaneousProtocol(BaseDebateProtocol):
             final_confidence=final_confidence,
             total_tokens=total_tokens,
             terminated_early=len(rounds) < self.config.max_rounds,
-            termination_reason=termination_reason
-            if len(rounds) < self.config.max_rounds
-            else None,
+            termination_reason=termination_reason if len(rounds) < self.config.max_rounds else None,
         )
 
     def _build_simultaneous_prompt(
@@ -370,21 +342,13 @@ class SimultaneousProtocol(BaseDebateProtocol):
     ) -> str:
         if round_num == 1:
             return (
-                f"{task_prompt}\n\n"
-                f"Provide your independent analysis and answer. "
-                f"State your confidence level (0-100%)."
+                f"{task_prompt}\n\n" f"Provide your independent analysis and answer. " f"State your confidence level (0-100%)."
             )
 
         others = "\n\n".join(
-            [
-                f"--- {r.agent_id} ({r.role.value}) ---\n{r.content}"
-                for r in prev_responses
-                if r.agent_id != agent.agent_id
-            ]
+            [f"--- {r.agent_id} ({r.role.value}) ---\n{r.content}" for r in prev_responses if r.agent_id != agent.agent_id]
         )
-        own = next(
-            (r for r in prev_responses if r.agent_id == agent.agent_id), None
-        )
+        own = next((r for r in prev_responses if r.agent_id == agent.agent_id), None)
         own_text = f"\n\n## Your Previous Response\n{own.content}" if own else ""
 
         return (
@@ -401,14 +365,13 @@ class SimultaneousProtocol(BaseDebateProtocol):
 # JUDGE-MEDIATED PROTOCOL
 # =============================================================================
 
+
 class JudgeMediatedProtocol(BaseDebateProtocol):
     """Debater agents argue, then a judge evaluates and decides."""
 
     def run_debate(self, task_prompt: str, task_metadata: dict) -> DebateTrace:
         if not self.panel.judge:
-            raise ValueError(
-                "JudgeMediatedProtocol requires a judge agent in the panel"
-            )
+            raise ValueError("JudgeMediatedProtocol requires a judge agent in the panel")
 
         rounds = []
         total_tokens = 0
@@ -420,9 +383,7 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
             # Step 1: Debaters respond
             debater_responses = []
             for agent in self.panel.agents:
-                prompt = self._build_debater_prompt(
-                    agent, task_prompt, prev_responses, round_num
-                )
+                prompt = self._build_debater_prompt(agent, task_prompt, prev_responses, round_num)
                 response_text, tokens = self.model_pool.generate(agent, prompt)
                 total_tokens += tokens
 
@@ -435,19 +396,13 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
                         content=response_text,
                         confidence=self._parse_confidence(response_text),
                         token_count=tokens,
-                        position=self._extract_position(
-                            response_text, task_metadata
-                        ),
+                        position=self._extract_position(response_text, task_metadata),
                     )
                 )
 
             # Step 2: Judge evaluates
-            judge_prompt = self._build_judge_prompt(
-                task_prompt, debater_responses, round_num
-            )
-            judge_text, judge_tokens = self.model_pool.generate(
-                self.panel.judge, judge_prompt
-            )
+            judge_prompt = self._build_judge_prompt(task_prompt, debater_responses, round_num)
+            judge_text, judge_tokens = self.model_pool.generate(self.panel.judge, judge_prompt)
             total_tokens += judge_tokens
 
             judge_response = AgentResponse(
@@ -478,11 +433,7 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
 
         # Final answer is judge's last response
         last_judge = next(
-            (
-                r
-                for r in reversed(rounds[-1].responses)
-                if r.role == AgentRole.JUDGE
-            ),
+            (r for r in reversed(rounds[-1].responses) if r.role == AgentRole.JUDGE),
             rounds[-1].responses[-1],
         )
 
@@ -496,9 +447,7 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
             final_confidence=last_judge.confidence or 0.5,
             total_tokens=total_tokens,
             terminated_early=len(rounds) < self.config.max_rounds,
-            termination_reason=termination_reason
-            if len(rounds) < self.config.max_rounds
-            else None,
+            termination_reason=termination_reason if len(rounds) < self.config.max_rounds else None,
         )
 
     def _build_debater_prompt(
@@ -515,12 +464,7 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
                 f"Provide your analysis and answer. State your confidence (0-100%)."
             )
 
-        history = "\n\n".join(
-            [
-                f"--- {r.agent_id} ({r.role.value}) ---\n{r.content}"
-                for r in prev_responses
-            ]
-        )
+        history = "\n\n".join([f"--- {r.agent_id} ({r.role.value}) ---\n{r.content}" for r in prev_responses])
         return (
             f"{task_prompt}\n\n"
             f"## Previous Round\n{history}\n\n"
@@ -537,10 +481,7 @@ class JudgeMediatedProtocol(BaseDebateProtocol):
         round_num: int,
     ) -> str:
         args = "\n\n".join(
-            [
-                f"--- {r.agent_id} ({r.role.value}, confidence: {r.confidence}) ---\n{r.content}"
-                for r in debater_responses
-            ]
+            [f"--- {r.agent_id} ({r.role.value}, confidence: {r.confidence}) ---\n{r.content}" for r in debater_responses]
         )
         return (
             f"## Task\n{task_prompt}\n\n"

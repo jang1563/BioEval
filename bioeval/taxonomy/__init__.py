@@ -9,14 +9,10 @@ from bioeval.taxonomy.schema import (
     ErrorAnnotation,
     AnnotatedResponse,
     create_error_annotation,
-    export_annotation_template
+    export_annotation_template,
 )
 
-from bioeval.taxonomy.annotator import (
-    annotate_response,
-    summarize_annotations,
-    AnnotationResult
-)
+from bioeval.taxonomy.annotator import annotate_response, summarize_annotations, AnnotationResult
 
 __all__ = [
     "ErrorCategory",
@@ -30,5 +26,5 @@ __all__ = [
     "export_annotation_template",
     "annotate_response",
     "summarize_annotations",
-    "AnnotationResult"
+    "AnnotationResult",
 ]

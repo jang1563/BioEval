@@ -15,19 +15,16 @@ from .prompt_templates import (
     # System prompts
     CALIBRATED_SYSTEM_PROMPT,
     SCIENTIFIC_REASONING_SYSTEM_PROMPT,
-
     # Enhancement functions
     add_calibration_instructions,
     add_context_defense,
     add_edge_case_check,
     add_nonsense_detection,
     add_chain_of_thought,
-
     # Composite enhancers
     enhance_prompt,
     enhance_causal_prompt,
     enhance_adversarial_prompt,
-
     # Configuration
     PromptEnhancementConfig,
 )

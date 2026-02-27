@@ -34,6 +34,7 @@ ABLATION_CONFIGS = {
 # RE-SCORE UNDER DIFFERENT CONFIGS
 # =============================================================================
 
+
 def _rescore_component(raw_result: dict, component: str, task_type: str) -> NormalizedScore:
     """Re-normalize a single raw result (score is already computed, but
     some components re-use matching internally during normalization).
@@ -60,8 +61,7 @@ def rescore_results(result_path: str, config: MatchConfig) -> list[NormalizedSco
     return loaded["normalized"]
 
 
-def rescore_from_responses(responses: list[dict], component: str,
-                           config: MatchConfig) -> list[dict]:
+def rescore_from_responses(responses: list[dict], component: str, config: MatchConfig) -> list[dict]:
     """Re-score model responses under a given matching config.
 
     This re-runs the component's scoring function with the given config active,
@@ -95,12 +95,15 @@ def _get_scorer(component: str):
     try:
         if component == "adversarial":
             from bioeval.adversarial.tasks import score_adversarial_response
+
             return lambda task, resp: score_adversarial_response(task, resp)
         elif component == "calibration":
             from bioeval.scoring.calibration import score_calibration_task
+
             return lambda task, resp: score_calibration_task(task, resp)
         elif component == "designcheck":
             from bioeval.designcheck.evaluator import DesignCheckEvaluator
+
             return None  # Requires evaluator instance
     except ImportError:
         pass
@@ -110,6 +113,7 @@ def _get_scorer(component: str):
 # =============================================================================
 # ABLATION ANALYSIS
 # =============================================================================
+
 
 def run_ablation(result_path: str, configs: dict[str, MatchConfig] | None = None) -> dict:
     """Run ablation analysis on a result file.
@@ -139,6 +143,7 @@ def run_ablation(result_path: str, configs: dict[str, MatchConfig] | None = None
 
     # Compute aggregates per config
     import math
+
     config_stats: dict[str, dict] = {}
     for name, ns_list in config_results.items():
         scores = [ns.score for ns in ns_list]
@@ -169,6 +174,7 @@ def run_ablation(result_path: str, configs: dict[str, MatchConfig] | None = None
 
     # Per-component breakdown
     from collections import defaultdict
+
     per_component: dict[str, dict[str, dict]] = defaultdict(dict)
     for name, ns_list in config_results.items():
         by_comp: dict[str, list] = defaultdict(list)
@@ -190,17 +196,15 @@ def run_ablation(result_path: str, configs: dict[str, MatchConfig] | None = None
     if "full" in config_stats and config_stats["full"].get("n", 0) > 0:
         full_mean = config_stats["full"]["mean"]
         if "no_synonyms" in config_stats and config_stats["no_synonyms"].get("n", 0) > 0:
-            feature_contributions["synonyms"] = round(
-                full_mean - config_stats["no_synonyms"]["mean"], 4)
+            feature_contributions["synonyms"] = round(full_mean - config_stats["no_synonyms"]["mean"], 4)
         if "no_stemming" in config_stats and config_stats["no_stemming"].get("n", 0) > 0:
             # Stemming contribution = full - no_stemming (which also disables synonyms)
             # Pure stemming = no_synonyms - no_stemming
             feature_contributions["stemming"] = round(
-                config_stats.get("no_synonyms", {}).get("mean", full_mean)
-                - config_stats["no_stemming"]["mean"], 4)
+                config_stats.get("no_synonyms", {}).get("mean", full_mean) - config_stats["no_stemming"]["mean"], 4
+            )
         if "no_word_boundary" in config_stats and config_stats["no_word_boundary"].get("n", 0) > 0:
-            feature_contributions["word_boundary"] = round(
-                full_mean - config_stats["no_word_boundary"]["mean"], 4)
+            feature_contributions["word_boundary"] = round(full_mean - config_stats["no_word_boundary"]["mean"], 4)
 
     return {
         "configs": config_stats,
@@ -213,6 +217,7 @@ def run_ablation(result_path: str, configs: dict[str, MatchConfig] | None = None
 # =============================================================================
 # TEXT OUTPUT
 # =============================================================================
+
 
 def print_ablation(result_path: str):
     """Print formatted ablation analysis."""
@@ -239,8 +244,7 @@ def print_ablation(result_path: str):
     # Feature contributions
     if results["feature_contributions"]:
         print(f"\nFeature contributions (mean score increase):")
-        for feat, delta in sorted(results["feature_contributions"].items(),
-                                  key=lambda x: abs(x[1]), reverse=True):
+        for feat, delta in sorted(results["feature_contributions"].items(), key=lambda x: abs(x[1]), reverse=True):
             bar = "+" * max(0, int(abs(delta) * 100))
             sign = "+" if delta >= 0 else "-"
             print(f"  {feat:<20} {sign}{abs(delta):.4f} {bar}")

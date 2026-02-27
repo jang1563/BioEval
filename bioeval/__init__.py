@@ -31,7 +31,7 @@ __all__ = [
     "DEFAULT_MODEL",
     # Base
     "BaseEvaluator",
-    "EvalTask", 
+    "EvalTask",
     "EvalResult",
     # Evaluators
     "ProtoReasonEvaluator",

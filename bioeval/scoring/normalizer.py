@@ -18,18 +18,20 @@ from dataclasses import dataclass, field
 @dataclass
 class NormalizedScore:
     """Standardized per-task score."""
+
     task_id: str
     component: str
     task_type: str
-    score: float             # 0-1, higher = better
-    passed: bool             # True if score >= threshold
+    score: float  # 0-1, higher = better
+    passed: bool  # True if score >= threshold
     subscores: dict = field(default_factory=dict)  # named sub-metrics, all 0-1
-    raw: dict = field(default_factory=dict)         # original result dict
+    raw: dict = field(default_factory=dict)  # original result dict
 
 
 # =============================================================================
 # COMPONENT-SPECIFIC NORMALIZERS
 # =============================================================================
+
 
 def _clamp(v, lo: float = 0.0, hi: float = 1.0) -> float:
     if not isinstance(v, (int, float)) or (isinstance(v, float) and (v != v)):  # NaN check
@@ -318,6 +320,7 @@ def normalize_debate(result: dict) -> NormalizedScore:
 # =============================================================================
 # DISPATCHER
 # =============================================================================
+
 
 def normalize_result(result: dict, component: str, task_type: str = "") -> NormalizedScore:
     """Normalize any component result to a NormalizedScore.

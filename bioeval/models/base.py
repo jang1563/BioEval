@@ -18,6 +18,7 @@ from datetime import datetime
 @dataclass
 class EvalTask:
     """Single evaluation task."""
+
     id: str
     component: str
     task_type: str
@@ -30,6 +31,7 @@ class EvalTask:
 @dataclass
 class EvalResult:
     """Result from a single evaluation."""
+
     task_id: str
     model: str
     response: str
@@ -71,39 +73,34 @@ class BaseEvaluator(ABC):
             return HuggingFaceModel(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
         else:
             raise ValueError(f"Unknown model: {model_name}")
-    
+
     @abstractmethod
     def load_tasks(self) -> list[EvalTask]:
         """Load evaluation tasks for this component."""
         pass
-    
+
     @abstractmethod
     def score_response(self, task: EvalTask, response: str) -> dict:
         """Score a model response against ground truth."""
         pass
-    
+
     def evaluate_task(self, task: EvalTask) -> EvalResult:
         """Run evaluation on a single task."""
         response = self.model.generate(task.prompt, system=task.system_prompt)
         scores = self.score_response(task, response)
 
-        return EvalResult(
-            task_id=task.id,
-            model=self.model_name,
-            response=response,
-            scores=scores
-        )
-    
+        return EvalResult(task_id=task.id, model=self.model_name, response=response, scores=scores)
+
     def run_evaluation(self, tasks: Optional[list[EvalTask]] = None) -> list[EvalResult]:
         """Run full evaluation on all tasks."""
         if tasks is None:
             tasks = self.load_tasks()
-        
+
         results = []
         for task in tasks:
             result = self.evaluate_task(task)
             results.append(result)
-        
+
         return results
 
 
@@ -112,16 +109,13 @@ class ClaudeModel:
 
     def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
         from anthropic import Anthropic
+
         self.client = Anthropic()
         self.model = model_name
 
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from Claude."""
-        kwargs = {
-            "model": self.model,
-            "max_tokens": max_tokens,
-            "messages": [{"role": "user", "content": prompt}]
-        }
+        kwargs = {"model": self.model, "max_tokens": max_tokens, "messages": [{"role": "user", "content": prompt}]}
         if system:
             kwargs["system"] = system
 
@@ -134,6 +128,7 @@ class OpenAIModel:
 
     def __init__(self, model_name: str = "gpt-4"):
         from openai import OpenAI
+
         self.client = OpenAI()
         self.model = model_name
 
@@ -144,11 +139,7 @@ class OpenAIModel:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            max_tokens=max_tokens,
-            messages=messages
-        )
+        response = self.client.chat.completions.create(model=self.model, max_tokens=max_tokens, messages=messages)
         return response.choices[0].message.content
 
 
@@ -178,10 +169,7 @@ class HuggingFaceModel:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError:
-            raise ImportError(
-                "Please install transformers and torch: "
-                "pip install transformers torch accelerate"
-            )
+            raise ImportError("Please install transformers and torch: " "pip install transformers torch accelerate")
 
         print(f"Loading HuggingFace model: {model_name}")
 
@@ -207,6 +195,7 @@ class HuggingFaceModel:
         if use_4bit:
             try:
                 from transformers import BitsAndBytesConfig
+
                 bnb_config = BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_quant_type="nf4",
@@ -239,6 +228,7 @@ class HuggingFaceModel:
         if adapter_path:
             try:
                 from peft import PeftModel
+
                 print(f"Loading LoRA adapters from: {adapter_path}")
                 self.model = PeftModel.from_pretrained(self.model, adapter_path)
             except ImportError:

@@ -21,9 +21,11 @@ logger = logging.getLogger(__name__)
 # DATA STRUCTURES
 # =============================================================================
 
+
 @dataclass
 class ParseResult:
     """Result of a parsing attempt."""
+
     success: bool
     value: object  # The extracted value
     method: str  # "regex", "llm", or "failed"
@@ -34,6 +36,7 @@ class ParseResult:
 @dataclass
 class FlawItem:
     """Single flaw extracted from a DesignCheck response."""
+
     description: str
     category: Optional[str] = None  # controls, statistics, confounders, technical, interpretation
     severity: Optional[str] = None  # critical, major, minor
@@ -43,6 +46,7 @@ class FlawItem:
 @dataclass
 class GeneDirection:
     """Gene with its expression direction."""
+
     gene: str
     direction: Literal["up", "down", "unchanged", "unclear"]
 
@@ -50,6 +54,7 @@ class GeneDirection:
 # =============================================================================
 # STEP ORDERING EXTRACTION (ProtoReason)
 # =============================================================================
+
 
 def extract_step_ordering(response: str, num_steps: int) -> ParseResult:
     """
@@ -73,18 +78,18 @@ def extract_step_ordering(response: str, num_steps: int) -> ParseResult:
     # or "3 → 1 → 5 → 2 → 4"
     order_patterns = [
         # "correct order: 3, 1, 5, 2, 4" or "order is: 3, 1, 5, 2, 4"
-        r'(?:correct|proper|right|logical)\s+(?:order|sequence)[:\s]+is[:\s]*([\d][\d\s,→\->]+[\d])',
-        r'(?:correct|proper|right|logical)\s+(?:order|sequence)[:\s]*([\d][\d\s,→\->]+[\d])',
-        r'(?:order|sequence)\s+(?:is|should be|would be)[:\s]*([\d][\d\s,→\->]+[\d])',
+        r"(?:correct|proper|right|logical)\s+(?:order|sequence)[:\s]+is[:\s]*([\d][\d\s,→\->]+[\d])",
+        r"(?:correct|proper|right|logical)\s+(?:order|sequence)[:\s]*([\d][\d\s,→\->]+[\d])",
+        r"(?:order|sequence)\s+(?:is|should be|would be)[:\s]*([\d][\d\s,→\->]+[\d])",
         # Standalone line of numbers: "3, 1, 5, 2, 4"
-        r'^[\s]*([\d]+[\s]*[,→\->][\s]*[\d]+(?:[\s]*[,→\->][\s]*[\d]+)+)[\s]*$',
+        r"^[\s]*([\d]+[\s]*[,→\->][\s]*[\d]+(?:[\s]*[,→\->][\s]*[\d]+)+)[\s]*$",
     ]
 
     for pattern in order_patterns:
         match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
         if match:
             raw = match.group(1)
-            numbers = [int(n) for n in re.findall(r'\d+', raw)]
+            numbers = [int(n) for n in re.findall(r"\d+", raw)]
             if _is_valid_ordering(numbers, num_steps):
                 return ParseResult(
                     success=True,
@@ -98,7 +103,7 @@ def extract_step_ordering(response: str, num_steps: int) -> ParseResult:
     # "1. Step 5 (Extract RNA...)\n2. Step 2 (Measure RNA...)"
     # Pattern: line starts with reordered position, contains "step X"
     step_refs = re.findall(
-        r'(?:^|\n)\s*\d+[\.\)]\s*.*?(?:step\s+|#)(\d+)',
+        r"(?:^|\n)\s*\d+[\.\)]\s*.*?(?:step\s+|#)(\d+)",
         response,
         re.IGNORECASE,
     )
@@ -115,7 +120,7 @@ def extract_step_ordering(response: str, num_steps: int) -> ParseResult:
 
     # Strategy 3: Scan for any sequence of N distinct numbers in [1, num_steps]
     # This is a fallback — less confident
-    all_numbers = re.findall(r'\b(\d+)\b', response)
+    all_numbers = re.findall(r"\b(\d+)\b", response)
     all_ints = [int(n) for n in all_numbers if 1 <= int(n) <= num_steps]
 
     # Try to find the first contiguous window of num_steps distinct values
@@ -140,15 +145,13 @@ def extract_step_ordering(response: str, num_steps: int) -> ParseResult:
 
 def _is_valid_ordering(numbers: list[int], num_steps: int) -> bool:
     """Check if extracted numbers form a valid permutation of 1..num_steps."""
-    return (
-        len(numbers) == num_steps
-        and set(numbers) == set(range(1, num_steps + 1))
-    )
+    return len(numbers) == num_steps and set(numbers) == set(range(1, num_steps + 1))
 
 
 # =============================================================================
 # NUMERICAL VALUE EXTRACTION (ProtoReason calculations)
 # =============================================================================
+
 
 def extract_numerical_value(
     response: str,
@@ -178,19 +181,19 @@ def extract_numerical_value(
     text = response.replace("×", "x").replace("−", "-")
     # Normalize Unicode superscript digits to ^N notation
     _super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
-    text = re.sub(r'10([⁰¹²³⁴⁵⁶⁷⁸⁹]+)', lambda m: f"10^{m.group(1).translate(_super_map)}", text)
+    text = re.sub(r"10([⁰¹²³⁴⁵⁶⁷⁸⁹]+)", lambda m: f"10^{m.group(1).translate(_super_map)}", text)
     # Remove commas inside numbers (1,500,000 → 1500000)
-    text = re.sub(r'(\d),(\d{3})', r'\1\2', text)
-    text = re.sub(r'(\d),(\d{3})', r'\1\2', text)  # repeat for millions+
+    text = re.sub(r"(\d),(\d{3})", r"\1\2", text)
+    text = re.sub(r"(\d),(\d{3})", r"\1\2", text)  # repeat for millions+
 
     # Strategy 1: Look for "answer is X" or "= X" patterns
     answer_patterns = [
         # 3-group patterns: number, optional exponent, unit
-        r'(?:answer|result|total|volume|concentration|amount)\s+(?:is|=|:)\s*'
-        r'([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)',
-        r'(?:=|equals)\s*([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)',
+        r"(?:answer|result|total|volume|concentration|amount)\s+(?:is|=|:)\s*"
+        r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)",
+        r"(?:=|equals)\s*([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)",
         # 2-group pattern: number, unit (no scientific notation)
-        r'(?:need|require|use)\s+([\d]+\.?[\d]*)\s*(\S*)',
+        r"(?:need|require|use)\s+([\d]+\.?[\d]*)\s*(\S*)",
     ]
 
     candidates = []
@@ -202,14 +205,14 @@ def extract_numerical_value(
             if match.lastindex >= 3 and match.group(2):
                 try:
                     exponent = int(match.group(2))
-                    value *= 10 ** exponent
+                    value *= 10**exponent
                 except ValueError:
                     pass
             unit = match.group(match.lastindex) if match.lastindex >= 2 else ""
             candidates.append((value, unit, match.group(0)))
 
     # Strategy 2: Find all numbers with units
-    number_unit_pattern = r'([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(μ[Ll]|mL|[Ll]|μg|mg|g|ng|cells?/mL|%|μM|mM|nM)'
+    number_unit_pattern = r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(μ[Ll]|mL|[Ll]|μg|mg|g|ng|cells?/mL|%|μM|mM|nM)"
     for match in re.finditer(number_unit_pattern, text):
         value = float(match.group(1))
         if match.group(2):
@@ -219,17 +222,17 @@ def extract_numerical_value(
 
     if not candidates:
         # Last resort: find decimal numbers, filtering out likely non-answer values
-        all_nums = re.finditer(r'(?<![.\d])([\d]+\.[\d]+|[\d]+)(?![.\d])', text)
+        all_nums = re.finditer(r"(?<![.\d])([\d]+\.[\d]+|[\d]+)(?![.\d])", text)
         for m in all_nums:
             n = m.group(1)
             val = float(n)
             # Filter out likely years (1900-2099)
-            if 1900 <= val <= 2099 and '.' not in n:
+            if 1900 <= val <= 2099 and "." not in n:
                 continue
             # Filter out figure/table/step references: "Figure 2", "Table 3", "Step 1"
             prefix_start = max(0, m.start() - 15)
-            prefix = text[prefix_start:m.start()].lower()
-            if re.search(r'(?:figure|fig\.|table|tab\.|step|page|reference|ref\.)\s*$', prefix):
+            prefix = text[prefix_start : m.start()].lower()
+            if re.search(r"(?:figure|fig\.|table|tab\.|step|page|reference|ref\.)\s*$", prefix):
                 continue
             candidates.append((val, "", n))
 
@@ -257,10 +260,7 @@ def extract_numerical_value(
 
     # If expected_unit given, filter by unit
     if expected_unit:
-        unit_matches = [
-            (v, u, r) for v, u, r in candidates
-            if _unit_matches(u, expected_unit)
-        ]
+        unit_matches = [(v, u, r) for v, u, r in candidates if _unit_matches(u, expected_unit)]
         if unit_matches:
             return ParseResult(
                 success=True,
@@ -299,6 +299,7 @@ def _unit_matches(extracted: str, expected: str) -> bool:
 # LABEL EXTRACTION (CausalBio knockout — essential/non-essential)
 # =============================================================================
 
+
 def extract_categorical_label(
     response: str,
     labels: list[str],
@@ -321,7 +322,7 @@ def extract_categorical_label(
     """
     response_lower = response.lower()
     # Strip markdown bold markers to prevent interference with regex
-    response_clean = re.sub(r'\*\*', '', response_lower)
+    response_clean = re.sub(r"\*\*", "", response_lower)
 
     # Sort labels longest-first so "non-essential" is checked before "essential"
     sorted_labels = sorted(labels, key=len, reverse=True)
@@ -331,9 +332,9 @@ def extract_categorical_label(
         label_lower = label.lower()
         # Direct prediction statements
         patterns = [
-            rf'(?:prediction|predict|classify|determine|conclude)[:\s]+.*?{re.escape(label_lower)}',
-            rf'(?:gene\s+is|would\s+be|this\s+is|classified\s+as)\s+{re.escape(label_lower)}',
-            rf'{re.escape(label_lower)}\s+(?:gene|in\s+this|for\s+this)',
+            rf"(?:prediction|predict|classify|determine|conclude)[:\s]+.*?{re.escape(label_lower)}",
+            rf"(?:gene\s+is|would\s+be|this\s+is|classified\s+as)\s+{re.escape(label_lower)}",
+            rf"{re.escape(label_lower)}\s+(?:gene|in\s+this|for\s+this)",
         ]
         for pattern in patterns:
             if re.search(pattern, response_clean):
@@ -367,7 +368,7 @@ def extract_categorical_label(
             for longer_label in longer_patterns[label]:
                 # Check if a longer label spans this position
                 window_start = max(0, pos - len(longer_label))
-                window = response_clean[window_start:pos + len(label_lower) + len(longer_label)]
+                window = response_clean[window_start : pos + len(label_lower) + len(longer_label)]
                 if longer_label in window:
                     is_substring_of_longer = True
                     break
@@ -385,8 +386,7 @@ def extract_categorical_label(
         negation_check = _check_negation(response_clean, best_label.lower())
         if negation_check:
             # Find the negated counterpart (e.g., "essential" → "non-essential")
-            negated_candidates = [l for l in labels if l != best_label
-                                  and best_label.lower() in l.lower()]
+            negated_candidates = [l for l in labels if l != best_label and best_label.lower() in l.lower()]
             if negated_candidates:
                 return ParseResult(
                     success=True,
@@ -419,10 +419,10 @@ def _check_negation(text: str, label: str) -> bool:
     """Check if a label is negated in the text (e.g., 'not essential')."""
     # Look for negation patterns near the label
     neg_patterns = [
-        rf'not\s+{re.escape(label)}',
-        rf'non[\s-]{re.escape(label)}',
-        rf'isn\'t\s+{re.escape(label)}',
-        rf'is\s+not\s+{re.escape(label)}',
+        rf"not\s+{re.escape(label)}",
+        rf"non[\s-]{re.escape(label)}",
+        rf"isn\'t\s+{re.escape(label)}",
+        rf"is\s+not\s+{re.escape(label)}",
     ]
     return any(re.search(p, text) for p in neg_patterns)
 
@@ -430,6 +430,7 @@ def _check_negation(text: str, label: str) -> bool:
 # =============================================================================
 # DIRECTION EXTRACTION (CausalBio pathways, drug response)
 # =============================================================================
+
 
 def extract_direction(
     response: str,
@@ -488,20 +489,53 @@ def extract_direction(
 def _direction_from_context(text: str) -> Literal["up", "down", "no_change", "unclear"]:
     """Determine direction from a text context."""
     up_indicators = [
-        "increased", "upregulated", "up-regulated", "elevated", "activated",
-        "enhanced", "induced", "stimulated", "higher", "increase",
-        "upregulation", "up-regulation", "induction", "amplified",
-        "overexpressed", "gain", "rises", "boost",
+        "increased",
+        "upregulated",
+        "up-regulated",
+        "elevated",
+        "activated",
+        "enhanced",
+        "induced",
+        "stimulated",
+        "higher",
+        "increase",
+        "upregulation",
+        "up-regulation",
+        "induction",
+        "amplified",
+        "overexpressed",
+        "gain",
+        "rises",
+        "boost",
     ]
     down_indicators = [
-        "decreased", "downregulated", "down-regulated", "reduced", "inhibited",
-        "suppressed", "blocked", "lower", "decrease", "loss",
-        "downregulation", "down-regulation", "repressed", "diminished",
-        "attenuated", "impaired", "abolished", "abrogated",
+        "decreased",
+        "downregulated",
+        "down-regulated",
+        "reduced",
+        "inhibited",
+        "suppressed",
+        "blocked",
+        "lower",
+        "decrease",
+        "loss",
+        "downregulation",
+        "down-regulation",
+        "repressed",
+        "diminished",
+        "attenuated",
+        "impaired",
+        "abolished",
+        "abrogated",
     ]
     no_change_indicators = [
-        "no change", "unchanged", "unaffected", "no effect", "no significant",
-        "minimal effect", "negligible",
+        "no change",
+        "unchanged",
+        "unaffected",
+        "no effect",
+        "no significant",
+        "minimal effect",
+        "negligible",
     ]
 
     # Use literal matching here (not synonym expansion) to count distinct signals.
@@ -526,6 +560,7 @@ def _direction_from_context(text: str) -> Literal["up", "down", "no_change", "un
 # GENE LIST EXTRACTION (CausalBio drug response)
 # =============================================================================
 
+
 def extract_gene_directions(response: str) -> ParseResult:
     """
     Extract lists of upregulated and downregulated genes from drug response predictions.
@@ -536,20 +571,20 @@ def extract_gene_directions(response: str) -> ParseResult:
     text = response
 
     # Gene name pattern: uppercase letters/numbers, 2-10 chars, optionally with /alias
-    gene_pattern = r'\b([A-Z][A-Z0-9]{1,9}(?:/[A-Z][A-Z0-9]{1,9})?)\b'
+    gene_pattern = r"\b([A-Z][A-Z0-9]{1,9}(?:/[A-Z][A-Z0-9]{1,9})?)\b"
 
     result = {"upregulated": [], "downregulated": []}
 
     # Strategy 1: Look for explicit up/downregulated sections
     # "Upregulated genes: GENE1, GENE2, GENE3"
     up_section = re.search(
-        r'(?:upregulated|up-regulated|induced|activated|increased)[:\s]*'
-        r'((?:[A-Z][A-Z0-9/]{1,15}[,\s]+)+[A-Z][A-Z0-9/]{1,15})',
+        r"(?:upregulated|up-regulated|induced|activated|increased)[:\s]*"
+        r"((?:[A-Z][A-Z0-9/]{1,15}[,\s]+)+[A-Z][A-Z0-9/]{1,15})",
         text,
     )
     down_section = re.search(
-        r'(?:downregulated|down-regulated|repressed|decreased|suppressed)[:\s]*'
-        r'((?:[A-Z][A-Z0-9/]{1,15}[,\s]+)+[A-Z][A-Z0-9/]{1,15})',
+        r"(?:downregulated|down-regulated|repressed|decreased|suppressed)[:\s]*"
+        r"((?:[A-Z][A-Z0-9/]{1,15}[,\s]+)+[A-Z][A-Z0-9/]{1,15})",
         text,
     )
 
@@ -581,16 +616,73 @@ def extract_gene_directions(response: str) -> ParseResult:
     current_section = None  # "up" or "down" or None
     # Non-gene words that match gene pattern but should be excluded
     noise_words = {
-        "KEY", "GENES", "EXPECTED", "GENE", "THE", "FOR", "AND", "ARE",
-        "WITH", "FROM", "THAT", "THIS", "NOT", "BUT", "ALL", "ANY",
-        "PREDICTED", "RESPONSE", "DRUG", "CELL", "TYPE", "VIA", "DUE",
-        "STEP", "ALSO", "BOTH", "EACH", "INTO", "OVER", "UPON",
-        "HIGH", "LOW", "NEW", "PRO", "ANTI", "TO", "BE", "OF", "OR",
-        "BY", "IN", "ON", "AT", "AS", "IF", "AN", "NO", "UP", "SO",
-        "MECHANISM", "ACTION", "FUNCTION", "PATHWAY", "PHENOTYPE",
-        "CELLULAR", "EFFECT", "EFFECTS", "CHANGE", "CHANGES",
-        "PREDICTION", "EVIDENCE", "RESULT", "RESULTS",
-        "DIRECT", "NORMAL", "CHAIN", "CAUSAL",
+        "KEY",
+        "GENES",
+        "EXPECTED",
+        "GENE",
+        "THE",
+        "FOR",
+        "AND",
+        "ARE",
+        "WITH",
+        "FROM",
+        "THAT",
+        "THIS",
+        "NOT",
+        "BUT",
+        "ALL",
+        "ANY",
+        "PREDICTED",
+        "RESPONSE",
+        "DRUG",
+        "CELL",
+        "TYPE",
+        "VIA",
+        "DUE",
+        "STEP",
+        "ALSO",
+        "BOTH",
+        "EACH",
+        "INTO",
+        "OVER",
+        "UPON",
+        "HIGH",
+        "LOW",
+        "NEW",
+        "PRO",
+        "ANTI",
+        "TO",
+        "BE",
+        "OF",
+        "OR",
+        "BY",
+        "IN",
+        "ON",
+        "AT",
+        "AS",
+        "IF",
+        "AN",
+        "NO",
+        "UP",
+        "SO",
+        "MECHANISM",
+        "ACTION",
+        "FUNCTION",
+        "PATHWAY",
+        "PHENOTYPE",
+        "CELLULAR",
+        "EFFECT",
+        "EFFECTS",
+        "CHANGE",
+        "CHANGES",
+        "PREDICTION",
+        "EVIDENCE",
+        "RESULT",
+        "RESULTS",
+        "DIRECT",
+        "NORMAL",
+        "CHAIN",
+        "CAUSAL",
     }
 
     for line in lines:
@@ -599,10 +691,7 @@ def extract_gene_directions(response: str) -> ParseResult:
         is_up_header = any(w in line_lower for w in up_keywords)
         is_down_header = any(w in line_lower for w in down_keywords)
 
-        genes_in_line = [
-            g for g in re.findall(gene_pattern, line)
-            if g not in noise_words and len(g) >= 2
-        ]
+        genes_in_line = [g for g in re.findall(gene_pattern, line) if g not in noise_words and len(g) >= 2]
 
         if is_up_header and not is_down_header:
             current_section = "up"
@@ -622,10 +711,19 @@ def extract_gene_directions(response: str) -> ParseResult:
         else:
             # Check if this line indicates we've moved past gene sections
             line_lower_stripped = line_lower.strip()
-            if any(kw in line_lower_stripped for kw in [
-                "mechanism", "phenotype", "cellular", "expected experimental",
-                "edge case", "confidence", "validation", "step ",
-            ]):
+            if any(
+                kw in line_lower_stripped
+                for kw in [
+                    "mechanism",
+                    "phenotype",
+                    "cellular",
+                    "expected experimental",
+                    "edge case",
+                    "confidence",
+                    "validation",
+                    "step ",
+                ]
+            ):
                 current_section = None
 
     # Deduplicate
@@ -683,8 +781,7 @@ def extract_flaw_list(response: str) -> ParseResult:
     # Strategy 0: Handle markdown "**Flaw #N: Title**" format (common Claude pattern)
     # Capture each flaw block with its sub-lines (problem, fix, severity, etc.)
     md_flaw_pattern = re.compile(
-        r'\*\*(?:Flaw|Issue|Problem)\s*#?\d+[:\s]*([^*]+?)\*\*'
-        r'((?:\n(?!\*\*(?:Flaw|Issue|Problem)\s*#?\d+).+)*)',
+        r"\*\*(?:Flaw|Issue|Problem)\s*#?\d+[:\s]*([^*]+?)\*\*" r"((?:\n(?!\*\*(?:Flaw|Issue|Problem)\s*#?\d+).+)*)",
         re.IGNORECASE,
     )
     for m in md_flaw_pattern.finditer(response):
@@ -694,12 +791,14 @@ def extract_flaw_list(response: str) -> ParseResult:
         severity = _extract_severity(full_text.lower())
         category = _extract_category(full_text.lower())
         fix = _extract_fix(full_text)
-        flaws.append(FlawItem(
-            description=full_text[:500],
-            category=category,
-            severity=severity,
-            fix=fix,
-        ))
+        flaws.append(
+            FlawItem(
+                description=full_text[:500],
+                category=category,
+                severity=severity,
+                fix=fix,
+            )
+        )
 
     if flaws:
         return ParseResult(
@@ -713,17 +812,17 @@ def extract_flaw_list(response: str) -> ParseResult:
     # Strategy 1: Look for numbered/bulleted flaw items with category and severity
     # Pattern: "1. **Category: Controls** Severity: Critical ..."
     structured_pattern = (
-        r'(?:^|\n)\s*[\d]+[\.\)]\s*'
-        r'(?:\*\*)?(?:(?:category|type)[:\s]*)?([^*\n]+?)(?:\*\*)?'
-        r'[\s\-–]*'
-        r'(?:\*\*)?(?:severity[:\s]*)?([^*\n]*?)(?:\*\*)?'
-        r'[:\s\-–]*'
-        r'([^\n]+(?:\n(?!\s*[\d]+[\.\)])(?!\s*$)[^\n]+)*)'
+        r"(?:^|\n)\s*[\d]+[\.\)]\s*"
+        r"(?:\*\*)?(?:(?:category|type)[:\s]*)?([^*\n]+?)(?:\*\*)?"
+        r"[\s\-–]*"
+        r"(?:\*\*)?(?:severity[:\s]*)?([^*\n]*?)(?:\*\*)?"
+        r"[:\s\-–]*"
+        r"([^\n]+(?:\n(?!\s*[\d]+[\.\)])(?!\s*$)[^\n]+)*)"
     )
 
     # Strategy 2: Simpler — just find numbered items and analyze each
     # Split response into numbered items
-    items = re.split(r'\n\s*(?=\d+[\.\)])', response)
+    items = re.split(r"\n\s*(?=\d+[\.\)])", response)
 
     for item in items:
         if not item.strip():
@@ -731,10 +830,18 @@ def extract_flaw_list(response: str) -> ParseResult:
 
         # Skip items that are clearly not flaws (e.g., "Overall assessment" section)
         item_lower = item.lower()
-        if any(skip in item_lower for skip in [
-            "overall assessment", "in summary", "overall, ", "in conclusion",
-            "the design", "to summarize", "suggested fix",
-        ]):
+        if any(
+            skip in item_lower
+            for skip in [
+                "overall assessment",
+                "in summary",
+                "overall, ",
+                "in conclusion",
+                "the design",
+                "to summarize",
+                "suggested fix",
+            ]
+        ):
             continue
 
         # Extract category
@@ -751,18 +858,20 @@ def extract_flaw_list(response: str) -> ParseResult:
             # Clean up description
             desc = item.strip()
             # Remove leading number
-            desc = re.sub(r'^\d+[\.\)]\s*', '', desc)
+            desc = re.sub(r"^\d+[\.\)]\s*", "", desc)
             # Truncate if too long (take first sentence)
             if len(desc) > 500:
-                sentences = re.split(r'(?<=[.!?])\s+', desc)
+                sentences = re.split(r"(?<=[.!?])\s+", desc)
                 desc = sentences[0] if sentences else desc[:500]
 
-            flaws.append(FlawItem(
-                description=desc,
-                category=category,
-                severity=severity,
-                fix=fix,
-            ))
+            flaws.append(
+                FlawItem(
+                    description=desc,
+                    category=category,
+                    severity=severity,
+                    fix=fix,
+                )
+            )
 
     if flaws:
         return ParseResult(
@@ -775,23 +884,25 @@ def extract_flaw_list(response: str) -> ParseResult:
 
     # Fallback: look for any flaw-like sentences
     flaw_indicators = [
-        r'(?:no|missing|lacks?|without|absent)\s+(?:\w+\s+)?(?:control|replicate)',
-        r'(?:pseudo)?replication',
-        r'(?:un|under)powered',
-        r'confound(?:ed|er|ing)',
-        r'batch\s+effect',
-        r'multiple\s+(?:testing|comparisons?)',
-        r'overstat(?:ed|ement)',
-        r'correlation.*causation',
+        r"(?:no|missing|lacks?|without|absent)\s+(?:\w+\s+)?(?:control|replicate)",
+        r"(?:pseudo)?replication",
+        r"(?:un|under)powered",
+        r"confound(?:ed|er|ing)",
+        r"batch\s+effect",
+        r"multiple\s+(?:testing|comparisons?)",
+        r"overstat(?:ed|ement)",
+        r"correlation.*causation",
     ]
     for pattern in flaw_indicators:
         matches = re.findall(pattern, response, re.IGNORECASE)
         for match in matches:
-            flaws.append(FlawItem(
-                description=match,
-                category=_extract_category(match.lower()),
-                severity=None,
-            ))
+            flaws.append(
+                FlawItem(
+                    description=match,
+                    category=_extract_category(match.lower()),
+                    severity=None,
+                )
+            )
 
     return ParseResult(
         success=bool(flaws),
@@ -805,7 +916,7 @@ def extract_flaw_list(response: str) -> ParseResult:
 def _extract_category(text: str) -> Optional[str]:
     """Extract flaw category from text."""
     # Check for explicit category label
-    cat_match = re.search(r'category[:\s]+(\w+)', text)
+    cat_match = re.search(r"category[:\s]+(\w+)", text)
     if cat_match:
         cat = cat_match.group(1).lower()
         if cat in VALID_CATEGORIES:
@@ -824,7 +935,7 @@ def _extract_category(text: str) -> Optional[str]:
 
 def _extract_severity(text: str) -> Optional[str]:
     """Extract flaw severity from text."""
-    sev_match = re.search(r'severity[:\s]+(\w+)', text)
+    sev_match = re.search(r"severity[:\s]+(\w+)", text)
     if sev_match:
         sev = sev_match.group(1).lower()
         if sev in VALID_SEVERITIES:
@@ -841,8 +952,8 @@ def _extract_severity(text: str) -> Optional[str]:
 def _extract_fix(text: str) -> Optional[str]:
     """Extract suggested fix from text."""
     fix_patterns = [
-        r'(?:fix|suggestion|recommend(?:ation)?|solution|should)[:\s]+([^\n]+)',
-        r'(?:instead|better|improve)[:\s]+([^\n]+)',
+        r"(?:fix|suggestion|recommend(?:ation)?|solution|should)[:\s]+([^\n]+)",
+        r"(?:instead|better|improve)[:\s]+([^\n]+)",
     ]
     for pattern in fix_patterns:
         match = re.search(pattern, text, re.IGNORECASE)
@@ -854,10 +965,27 @@ def _extract_fix(text: str) -> Optional[str]:
 def _looks_like_flaw(text: str) -> bool:
     """Check if text describes a flaw/issue."""
     flaw_words = [
-        "flaw", "issue", "problem", "error", "missing", "lack", "no ",
-        "without", "insufficient", "incorrect", "wrong", "inappropriate",
-        "confound", "bias", "overstat", "underpower", "pseudorep",
-        "not ", "should ", "failed", "neglect",
+        "flaw",
+        "issue",
+        "problem",
+        "error",
+        "missing",
+        "lack",
+        "no ",
+        "without",
+        "insufficient",
+        "incorrect",
+        "wrong",
+        "inappropriate",
+        "confound",
+        "bias",
+        "overstat",
+        "underpower",
+        "pseudorep",
+        "not ",
+        "should ",
+        "failed",
+        "neglect",
     ]
     return any(w in text for w in flaw_words) and len(text) > 20
 
@@ -865,6 +993,7 @@ def _looks_like_flaw(text: str) -> bool:
 # =============================================================================
 # CONFIDENCE EXTRACTION (Calibration)
 # =============================================================================
+
 
 def extract_confidence_structured(response: str) -> ParseResult:
     """
@@ -883,9 +1012,9 @@ def extract_confidence_structured(response: str) -> ParseResult:
 
     # Strategy 1: Explicit numeric confidence
     numeric_patterns = [
-        r'[Cc]onfidence[:\s]+(\d{1,3})\s*%',
-        r'(\d{1,3})\s*%\s*(?:confident|confidence|certain|sure)',
-        r'[Cc]onfidence[:\s]+(\d\.\d+)',
+        r"[Cc]onfidence[:\s]+(\d{1,3})\s*%",
+        r"(\d{1,3})\s*%\s*(?:confident|confidence|certain|sure)",
+        r"[Cc]onfidence[:\s]+(\d\.\d+)",
     ]
     for pattern in numeric_patterns:
         match = re.search(pattern, text)
@@ -911,7 +1040,7 @@ def extract_confidence_structured(response: str) -> ParseResult:
         "very high": 0.95,
         "very low": 0.15,
     }
-    cat_pattern = r'[Cc]onfidence[:\s]+(very\s+)?(high|medium|moderate|low)'
+    cat_pattern = r"[Cc]onfidence[:\s]+(very\s+)?(high|medium|moderate|low)"
     match = re.search(cat_pattern, text, re.IGNORECASE)
     if match:
         prefix = (match.group(1) or "").strip()
@@ -934,6 +1063,7 @@ def extract_confidence_structured(response: str) -> ParseResult:
 # YES/NO EXTRACTION (general utility)
 # =============================================================================
 
+
 def extract_yes_no(response: str) -> ParseResult:
     """
     Extract a yes/no answer from a response.
@@ -944,15 +1074,23 @@ def extract_yes_no(response: str) -> ParseResult:
     text = response.lower().strip()
 
     # Check first line or first 100 chars for explicit yes/no
-    first_chunk = text[:min(200, len(text))]
+    first_chunk = text[: min(200, len(text))]
 
     yes_patterns = [
-        r'\byes\b', r'\bcorrect\b', r'\btrue\b', r'\bindeed\b',
-        r'\bconfirm\b', r'\baffirmative\b',
+        r"\byes\b",
+        r"\bcorrect\b",
+        r"\btrue\b",
+        r"\bindeed\b",
+        r"\bconfirm\b",
+        r"\baffirmative\b",
     ]
     no_patterns = [
-        r'\bno\b', r'\bincorrect\b', r'\bfalse\b', r'\bnot\s+(?:correct|true)\b',
-        r'\bnegative\b', r'\bdenied?\b',
+        r"\bno\b",
+        r"\bincorrect\b",
+        r"\bfalse\b",
+        r"\bnot\s+(?:correct|true)\b",
+        r"\bnegative\b",
+        r"\bdenied?\b",
     ]
 
     yes_in_first = any(re.search(p, first_chunk) for p in yes_patterns)
@@ -971,12 +1109,17 @@ def extract_yes_no(response: str) -> ParseResult:
 # =============================================================================
 
 INTERACTION_TYPES = [
-    "synthetic lethal", "synthetic lethality",
-    "suppressive", "suppression",
-    "enhancing", "enhancement",
-    "synergistic", "synergy",
+    "synthetic lethal",
+    "synthetic lethality",
+    "suppressive",
+    "suppression",
+    "enhancing",
+    "enhancement",
+    "synergistic",
+    "synergy",
     "epistatic",
-    "no interaction", "independent",
+    "no interaction",
+    "independent",
     "buffering",
 ]
 
@@ -1004,15 +1147,15 @@ def extract_interaction_type(response: str) -> ParseResult:
         ParseResult with value as normalized interaction type string
     """
     # Strip markdown to avoid ** interference with regex
-    text = re.sub(r'\*\*', '', response.lower())
+    text = re.sub(r"\*\*", "", response.lower())
 
     # Look for explicit type declarations
     type_patterns = [
-        r'(?:type\s+of\s+)?(?:genetic\s+)?interaction[:\s]+(?:is\s+)?(\w[\w\s/]+)',
-        r'(?:this\s+is\s+(?:a|an)\s+)(\w[\w\s/]+?)(?:\s+interaction)',
-        r'(?:classified\s+as|considered)\s+(\w[\w\s/]+)',
+        r"(?:type\s+of\s+)?(?:genetic\s+)?interaction[:\s]+(?:is\s+)?(\w[\w\s/]+)",
+        r"(?:this\s+is\s+(?:a|an)\s+)(\w[\w\s/]+?)(?:\s+interaction)",
+        r"(?:classified\s+as|considered)\s+(\w[\w\s/]+)",
         # Also match "1. Type: Enhancing" or "Answers: 1. Type: synergistic"
-        r'type[:\s]+(\w[\w\s/]+)',
+        r"type[:\s]+(\w[\w\s/]+)",
     ]
 
     # Sort INTERACTION_TYPES longest-first so "synthetic lethal" doesn't
@@ -1061,6 +1204,7 @@ def extract_interaction_type(response: str) -> ParseResult:
 # LLM FALLBACK EXTRACTION
 # =============================================================================
 
+
 class LLMExtractor:
     """
     Fallback extractor using a small LLM (Haiku) for cases where
@@ -1079,6 +1223,7 @@ class LLMExtractor:
     def client(self):
         if self._client is None:
             from anthropic import Anthropic
+
             self._client = Anthropic()
         return self._client
 
@@ -1133,8 +1278,8 @@ class LLMExtractor:
             # Clean markdown fences if present
             clean = raw.strip()
             if clean.startswith("```"):
-                clean = re.sub(r'^```\w*\n?', '', clean)
-                clean = re.sub(r'```$', '', clean).strip()
+                clean = re.sub(r"^```\w*\n?", "", clean)
+                clean = re.sub(r"```$", "", clean).strip()
             items = json.loads(clean)
             if isinstance(items, list):
                 flaws = [
@@ -1163,6 +1308,7 @@ class LLMExtractor:
 # =============================================================================
 # UNIFIED PARSE INTERFACE
 # =============================================================================
+
 
 def parse_response(
     response: str,
@@ -1203,15 +1349,13 @@ def parse_response(
         answer = gt.get("answer", {})
         for key, expected in answer.items():
             # Extract expected numeric value
-            nums = re.findall(r'[\d.]+', str(expected))
+            nums = re.findall(r"[\d.]+", str(expected))
             exp_val = float(nums[0]) if nums else None
             result = extract_numerical_value(response, expected_value=exp_val)
             results[key] = result
 
     elif task_type == "knockout_prediction":
-        results["effect"] = extract_categorical_label(
-            response, ["essential", "non-essential", "context-dependent"]
-        )
+        results["effect"] = extract_categorical_label(response, ["essential", "non-essential", "context-dependent"])
         results["confidence"] = extract_confidence_structured(response)
 
     elif task_type == "pathway_reasoning":

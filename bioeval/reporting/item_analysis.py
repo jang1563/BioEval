@@ -23,6 +23,7 @@ from bioeval.scoring.normalizer import NormalizedScore
 # ITEM DIFFICULTY (CLASSICAL P-VALUE)
 # =============================================================================
 
+
 def compute_item_difficulty(multi_model_results: list[dict]) -> dict:
     """Compute per-task difficulty from multiple model result files.
 
@@ -81,6 +82,7 @@ def compute_item_difficulty(multi_model_results: list[dict]) -> dict:
 # ITEM DISCRIMINATION (POINT-BISERIAL CORRELATION)
 # =============================================================================
 
+
 def compute_item_discrimination(multi_model_results: list[dict]) -> dict:
     """Compute point-biserial correlation for each task.
 
@@ -107,8 +109,7 @@ def compute_item_discrimination(multi_model_results: list[dict]) -> dict:
 
     n_models = len(multi_model_results)
     if n_models < 3:
-        return {tid: {"discrimination": None, "reason": "need >=3 models"}
-                for tid in all_task_ids}
+        return {tid: {"discrimination": None, "reason": "need >=3 models"} for tid in all_task_ids}
 
     # Compute total score per model (sum of all task scores)
     model_totals = {}
@@ -156,6 +157,7 @@ def compute_item_discrimination(multi_model_results: list[dict]) -> dict:
 # COMBINED ITEM ANALYSIS
 # =============================================================================
 
+
 def item_analysis(result_paths: list[str]) -> dict:
     """Full item analysis from multiple model result files.
 
@@ -189,13 +191,11 @@ def item_analysis(result_paths: list[str]) -> dict:
 
     # Summary statistics
     p_values = [v["p_value"] for v in items.values()]
-    disc_values = [v["discrimination"] for v in items.values()
-                   if v.get("discrimination") is not None]
+    disc_values = [v["discrimination"] for v in items.values() if v.get("discrimination") is not None]
 
     floor_tasks = [tid for tid, v in items.items() if v["p_value"] == 0.0]
     ceiling_tasks = [tid for tid, v in items.items() if v["p_value"] == 1.0]
-    low_disc = [tid for tid, v in items.items()
-                if v.get("discrimination") is not None and v["discrimination"] < 0.2]
+    low_disc = [tid for tid, v in items.items() if v.get("discrimination") is not None and v["discrimination"] < 0.2]
 
     # Difficulty histogram (5 bins: [0,0.2), [0.2,0.4), ... [0.8,1.0])
     bins = {"0.0-0.2": 0, "0.2-0.4": 0, "0.4-0.6": 0, "0.6-0.8": 0, "0.8-1.0": 0}
@@ -260,6 +260,7 @@ def item_analysis(result_paths: list[str]) -> dict:
 # =============================================================================
 # SINGLE-MODEL ITEM ANALYSIS (difficulty proxy from scores)
 # =============================================================================
+
 
 def single_model_item_analysis(result_path: str) -> dict:
     """Item analysis from a single model's results.
@@ -332,6 +333,7 @@ def single_model_item_analysis(result_path: str) -> dict:
 # TEXT OUTPUT
 # =============================================================================
 
+
 def print_item_analysis(result_paths: list[str]):
     """Print formatted item analysis."""
     if len(result_paths) == 1:
@@ -374,8 +376,7 @@ def print_item_analysis(result_paths: list[str]):
 
     if s["discrimination_stats"]:
         ds = s["discrimination_stats"]
-        print(f"\nDiscrimination: mean={ds['mean']:.3f}, std={ds['std']:.3f}, "
-              f"range=[{ds['min']:.3f}, {ds['max']:.3f}]")
+        print(f"\nDiscrimination: mean={ds['mean']:.3f}, std={ds['std']:.3f}, " f"range=[{ds['min']:.3f}, {ds['max']:.3f}]")
 
     print(f"Low discrimination (r < 0.2): {s['n_low_discrimination']}")
 

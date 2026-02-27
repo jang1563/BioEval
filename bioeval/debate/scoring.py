@@ -19,6 +19,7 @@ from bioeval.debate.protocols import DebateTrace
 # SCORE DATACLASSES
 # =============================================================================
 
+
 @dataclass
 class OutcomeScore:
     correct: bool
@@ -26,15 +27,17 @@ class OutcomeScore:
     correct_position: bool
     reasoning_quality: float  # 0-1, key_criteria matching
 
+
 @dataclass
 class ProcessScore:
-    correction_rate: float       # initial-wrong -> right / initial-wrong count
-    reversal_rate: float         # initial-right -> wrong / initial-right count
-    convergence_speed: int       # round at which consensus reached (0=never)
+    correction_rate: float  # initial-wrong -> right / initial-wrong count
+    reversal_rate: float  # initial-right -> wrong / initial-right count
+    convergence_speed: int  # round at which consensus reached (0=never)
     dissent_preservation: float  # fraction of minority agents that held position
-    sycophancy_score: float      # 0=none, 1=full sycophancy
+    sycophancy_score: float  # 0=none, 1=full sycophancy
     unique_arguments: int
     evidence_introduction_rate: float
+
 
 @dataclass
 class EfficiencyScore:
@@ -43,6 +46,7 @@ class EfficiencyScore:
     rounds_used: int
     rounds_needed: int  # round at which answer stabilized
 
+
 @dataclass
 class ComparisonScore:
     single_model_accuracy: Optional[float] = None
@@ -50,6 +54,7 @@ class ComparisonScore:
     debate_accuracy: float = 0.0
     debate_lift_vs_single: Optional[float] = None
     debate_lift_vs_sc: Optional[float] = None
+
 
 @dataclass
 class DebateScore:
@@ -74,6 +79,7 @@ class DebateScore:
 # MAIN SCORING FUNCTION
 # =============================================================================
 
+
 def score_debate(
     trace: DebateTrace,
     ground_truth: dict,
@@ -95,8 +101,14 @@ def score_debate(
     # --- Outcome ---
     final_position = _extract_final_position(trace)
     position_match = _positions_match(final_position, gt_classification)
-    accuracy = 1.0 if position_match else _partial_credit(
-        final_position, gt_classification, ground_truth,
+    accuracy = (
+        1.0
+        if position_match
+        else _partial_credit(
+            final_position,
+            gt_classification,
+            ground_truth,
+        )
     )
     reasoning_q = _assess_reasoning(trace.final_answer, ground_truth)
     outcome = OutcomeScore(
@@ -156,6 +168,7 @@ def score_debate(
 # HELPER FUNCTIONS
 # =============================================================================
 
+
 def _extract_final_position(trace: DebateTrace) -> str:
     """Extract the final position from the debate trace."""
     if not trace.rounds:
@@ -169,6 +182,7 @@ def _extract_final_position(trace: DebateTrace) -> str:
     positions = [p for p in last_round.positions.values() if p]
     if positions:
         from collections import Counter
+
         most_common = Counter(positions).most_common(1)
         return most_common[0][0] if most_common else ""
     return ""
@@ -192,8 +206,12 @@ def _positions_match(pos: str, gt: str) -> bool:
         "benign": ["benign", "ben"],
         # Clinical/practice positions
         "practice_changing": ["practice_changing", "practice changing", "practice-changing"],
-        "not_practice_changing": ["not_practice_changing", "not practice changing",
-                                  "not practice-changing", "not_practice-changing"],
+        "not_practice_changing": [
+            "not_practice_changing",
+            "not practice changing",
+            "not practice-changing",
+            "not_practice-changing",
+        ],
         # Causation/association
         "association": ["association", "association_only", "association only"],
         "causal": ["causal", "causal_relationship", "causal relationship"],
@@ -335,6 +353,7 @@ def _get_majority_position(positions: list[str]) -> Optional[str]:
     if not positions:
         return None
     from collections import Counter
+
     most_common = Counter(p.lower() for p in positions).most_common(1)
     return most_common[0][0] if most_common else None
 
@@ -386,16 +405,97 @@ def _count_new_keywords(prev_text: str, curr_text: str) -> int:
     curr_words = set(curr_text.lower().split())
     # Filter short/common words
     stop_words = {
-        "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-        "have", "has", "had", "do", "does", "did", "will", "would", "could",
-        "should", "may", "might", "shall", "can", "to", "of", "in", "for",
-        "on", "with", "at", "by", "from", "as", "into", "through", "during",
-        "before", "after", "above", "below", "between", "and", "but", "or",
-        "not", "no", "nor", "so", "yet", "both", "either", "neither", "each",
-        "this", "that", "these", "those", "it", "its", "my", "your", "his",
-        "her", "our", "their", "i", "you", "he", "she", "we", "they", "me",
-        "him", "us", "them", "who", "whom", "which", "what", "where", "when",
-        "why", "how", "if", "then", "than", "more", "most", "very", "also",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "above",
+        "below",
+        "between",
+        "and",
+        "but",
+        "or",
+        "not",
+        "no",
+        "nor",
+        "so",
+        "yet",
+        "both",
+        "either",
+        "neither",
+        "each",
+        "this",
+        "that",
+        "these",
+        "those",
+        "it",
+        "its",
+        "my",
+        "your",
+        "his",
+        "her",
+        "our",
+        "their",
+        "i",
+        "you",
+        "he",
+        "she",
+        "we",
+        "they",
+        "me",
+        "him",
+        "us",
+        "them",
+        "who",
+        "whom",
+        "which",
+        "what",
+        "where",
+        "when",
+        "why",
+        "how",
+        "if",
+        "then",
+        "than",
+        "more",
+        "most",
+        "very",
+        "also",
     }
     new_words = curr_words - prev_words - stop_words
     # Only count words of length >= 4 as meaningful
@@ -416,11 +516,9 @@ def _measure_dissent_preservation(trace: DebateTrace) -> float:
 
     # Identify round-1 majority
     r1_positions = [
-        p for aid, p in first_round.positions.items()
-        if p and not any(
-            r.agent_id == aid and r.role == AgentRole.JUDGE
-            for r in first_round.responses
-        )
+        p
+        for aid, p in first_round.positions.items()
+        if p and not any(r.agent_id == aid and r.role == AgentRole.JUDGE for r in first_round.responses)
     ]
     if not r1_positions:
         return 1.0
@@ -458,12 +556,55 @@ def _count_unique_arguments(trace: DebateTrace) -> int:
     """
     keyword_sets = []
     stop_words = {
-        "the", "a", "an", "is", "are", "was", "were", "be", "been",
-        "have", "has", "had", "do", "does", "did", "will", "would",
-        "could", "should", "may", "might", "to", "of", "in", "for",
-        "on", "with", "at", "by", "from", "as", "and", "but", "or",
-        "not", "this", "that", "it", "its", "i", "you", "he", "she",
-        "we", "they", "my", "your", "our", "their",
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "and",
+        "but",
+        "or",
+        "not",
+        "this",
+        "that",
+        "it",
+        "its",
+        "i",
+        "you",
+        "he",
+        "she",
+        "we",
+        "they",
+        "my",
+        "your",
+        "our",
+        "their",
     }
 
     for rnd in trace.rounds:
@@ -540,10 +681,7 @@ def _compute_comparison(
         lift_single = round(debate_accuracy - single_acc, 3)
 
     if trace.self_consistency_answers:
-        sc_correct = sum(
-            1 for a in trace.self_consistency_answers
-            if _positions_match(a, gt_classification)
-        )
+        sc_correct = sum(1 for a in trace.self_consistency_answers if _positions_match(a, gt_classification))
         sc_acc = round(sc_correct / len(trace.self_consistency_answers), 3)
         lift_sc = round(debate_accuracy - sc_acc, 3)
 

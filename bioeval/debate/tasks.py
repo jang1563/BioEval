@@ -27,6 +27,7 @@ DIFFICULTY_WEIGHTS = {"easy": 1.0, "medium": 1.5, "hard": 2.0}
 @dataclass
 class DebateTask:
     """A biomedical scenario designed for multi-agent debate."""
+
     id: str
     task_type: DebateTaskType
     scenario: str
@@ -110,7 +111,9 @@ _VARIANT_TASKS = [
             "CHIP prevalence increases with age but is unusual at age 30."
         ),
         answer_options=[
-            "germline_pathogenic", "somatic_CHIP", "needs_confirmation",
+            "germline_pathogenic",
+            "somatic_CHIP",
+            "needs_confirmation",
         ],
         ground_truth={
             "classification": "needs_confirmation",
@@ -121,8 +124,14 @@ _VARIANT_TASKS = [
                 "differs dramatically between germline Li-Fraumeni and somatic CHIP."
             ),
             "key_criteria": [
-                "VAF", "mosaic", "CHIP", "germline", "confirmation",
-                "fibroblast", "buccal", "Li-Fraumeni",
+                "VAF",
+                "mosaic",
+                "CHIP",
+                "germline",
+                "confirmation",
+                "fibroblast",
+                "buccal",
+                "Li-Fraumeni",
             ],
         },
         difficulty="hard",
@@ -143,7 +152,9 @@ _VARIANT_TASKS = [
             "*4 = 0.0, *10 = 0.25-0.5. Activity score <1.0 indicates intermediate metabolizer."
         ),
         answer_options=[
-            "switch_to_AI", "continue_tamoxifen", "intermediate_metabolizer_consider_switch",
+            "switch_to_AI",
+            "continue_tamoxifen",
+            "intermediate_metabolizer_consider_switch",
         ],
         ground_truth={
             "classification": "intermediate_metabolizer_consider_switch",
@@ -153,8 +164,12 @@ _VARIANT_TASKS = [
                 "Not an absolute contraindication but reduced endoxifen levels expected."
             ),
             "key_criteria": [
-                "activity score", "intermediate metabolizer", "endoxifen",
-                "CPIC", "alternative", "aromatase inhibitor",
+                "activity score",
+                "intermediate metabolizer",
+                "endoxifen",
+                "CPIC",
+                "alternative",
+                "aromatase inhibitor",
             ],
         },
         difficulty="medium",
@@ -180,8 +195,14 @@ _VARIANT_TASKS = [
                 "for ATRX). Combined moderate + supporting criteria reach likely pathogenic."
             ),
             "key_criteria": [
-                "PM2", "PP3", "PP1", "co-segregation", "PP4",
-                "X-linked", "hemizygous", "likely_pathogenic",
+                "PM2",
+                "PP3",
+                "PP1",
+                "co-segregation",
+                "PP4",
+                "X-linked",
+                "hemizygous",
+                "likely_pathogenic",
             ],
         },
         difficulty="medium",
@@ -216,8 +237,12 @@ _DIAGNOSIS_TASKS = [
                 "atypical CML lacks basophilia, and AML requires >=20% blasts."
             ),
             "key_criteria": [
-                "BCR-ABL1", "basophilia", "myeloid maturation",
-                "blasts", "splenomegaly", "CML",
+                "BCR-ABL1",
+                "basophilia",
+                "myeloid maturation",
+                "blasts",
+                "splenomegaly",
+                "CML",
             ],
         },
         difficulty="easy",
@@ -249,8 +274,13 @@ _DIAGNOSIS_TASKS = [
                 "non-caseating (not necrotic) granulomas favor sarcoidosis."
             ),
             "key_criteria": [
-                "non-caseating", "ACE", "erythema nodosum", "bilateral hilar",
-                "hypercalcemia", "1-alpha-hydroxylase", "sarcoidosis",
+                "non-caseating",
+                "ACE",
+                "erythema nodosum",
+                "bilateral hilar",
+                "hypercalcemia",
+                "1-alpha-hydroxylase",
+                "sarcoidosis",
             ],
         },
         difficulty="medium",
@@ -277,8 +307,14 @@ _DIAGNOSIS_TASKS = [
                 "DECT would confirm urate crystal deposits."
             ),
             "key_criteria": [
-                "anti-CCP", "RF", "tophi", "uric acid", "coexistent",
-                "DECT", "dual-energy", "both",
+                "anti-CCP",
+                "RF",
+                "tophi",
+                "uric acid",
+                "coexistent",
+                "DECT",
+                "dual-energy",
+                "both",
             ],
         },
         difficulty="hard",
@@ -308,8 +344,13 @@ _DIAGNOSIS_TASKS = [
                 "CTA/DSA should follow to identify aneurysm."
             ),
             "key_criteria": [
-                "xanthochromia", "thunderclap", "consistent RBC", "CT sensitivity",
-                "CTA", "aneurysm", "SAH",
+                "xanthochromia",
+                "thunderclap",
+                "consistent RBC",
+                "CT sensitivity",
+                "CTA",
+                "aneurysm",
+                "SAH",
             ],
         },
         difficulty="medium",
@@ -339,8 +380,13 @@ _DIAGNOSIS_TASKS = [
                 "functional XLA. Tonsil presence does not exclude diagnosis."
             ),
             "key_criteria": [
-                "BTK", "hypomorphic", "residual", "isohemagglutinins",
-                "CD19", "B cells", "XLA",
+                "BTK",
+                "hypomorphic",
+                "residual",
+                "isohemagglutinins",
+                "CD19",
+                "B cells",
+                "XLA",
             ],
         },
         difficulty="hard",
@@ -377,8 +423,13 @@ _CRITIQUE_TASKS = [
                 "sgRNA-resistant cDNA, and off-target analysis."
             ),
             "key_criteria": [
-                "single sgRNA", "off-target", "rescue", "specificity",
-                "multiple sgRNAs", "in vivo", "insufficient",
+                "single sgRNA",
+                "off-target",
+                "rescue",
+                "specificity",
+                "multiple sgRNAs",
+                "in vivo",
+                "insufficient",
             ],
         },
         difficulty="easy",
@@ -406,8 +457,12 @@ _CRITIQUE_TASKS = [
                 "Needs independent confirmatory trial with current standard of care."
             ),
             "key_criteria": [
-                "early stopping", "inflated effect", "endpoint change",
-                "outdated comparator", "sponsor bias", "confirmatory trial",
+                "early stopping",
+                "inflated effect",
+                "endpoint change",
+                "outdated comparator",
+                "sponsor bias",
+                "confirmatory trial",
             ],
         },
         difficulty="medium",
@@ -441,8 +496,13 @@ _CRITIQUE_TASKS = [
                 "Must validate in multiple donors with independent methods."
             ),
             "key_criteria": [
-                "UMAP artifact", "doublets", "single donor", "orthogonal validation",
-                "flow cytometry", "resolution", "generalizability",
+                "UMAP artifact",
+                "doublets",
+                "single donor",
+                "orthogonal validation",
+                "flow cytometry",
+                "resolution",
+                "generalizability",
             ],
         },
         difficulty="medium",
@@ -470,8 +530,13 @@ _CRITIQUE_TASKS = [
                 "6-month follow-up is insufficient for durability assessment."
             ),
             "key_criteria": [
-                "ITT", "intention-to-treat", "excluded deaths", "inflated",
-                "denominator", "treatment-related mortality", "durability",
+                "ITT",
+                "intention-to-treat",
+                "excluded deaths",
+                "inflated",
+                "denominator",
+                "treatment-related mortality",
+                "durability",
             ],
         },
         difficulty="medium",
@@ -500,8 +565,13 @@ _CRITIQUE_TASKS = [
                 "with pre-diagnostic samples."
             ),
             "key_criteria": [
-                "cross-sectional", "reverse causation", "confounders",
-                "diet", "antibiotics", "longitudinal", "association",
+                "cross-sectional",
+                "reverse causation",
+                "confounders",
+                "diet",
+                "antibiotics",
+                "longitudinal",
+                "association",
             ],
         },
         difficulty="easy",
@@ -530,7 +600,9 @@ _SYNTHESIS_TASKS = [
         ),
         context="Meta-analyses differ in: included studies, outcome definitions, statistical methods.",
         answer_options=[
-            "vitamin_D_beneficial", "vitamin_D_not_beneficial", "outcome_dependent",
+            "vitamin_D_beneficial",
+            "vitamin_D_not_beneficial",
+            "outcome_dependent",
         ],
         ground_truth={
             "classification": "outcome_dependent",
@@ -543,8 +615,13 @@ _SYNTHESIS_TASKS = [
                 "supplementation in replete individuals."
             ),
             "key_criteria": [
-                "different outcomes", "ICU", "mortality", "deficient",
-                "inclusion criteria", "severity", "both true",
+                "different outcomes",
+                "ICU",
+                "mortality",
+                "deficient",
+                "inclusion criteria",
+                "severity",
+                "both true",
             ],
         },
         difficulty="medium",
@@ -575,8 +652,13 @@ _SYNTHESIS_TASKS = [
                 "polypharmacy risk, patient preferences, and CV risk factors."
             ),
             "key_criteria": [
-                "individualize", "life expectancy", "frailty", "polypharmacy",
-                "primary prevention", "risk-benefit", "patient preferences",
+                "individualize",
+                "life expectancy",
+                "frailty",
+                "polypharmacy",
+                "primary prevention",
+                "risk-benefit",
+                "patient preferences",
             ],
         },
         difficulty="hard",
@@ -607,8 +689,14 @@ _SYNTHESIS_TASKS = [
                 "improved guide RNA design, and long-term follow-up protocols."
             ),
             "key_criteria": [
-                "off-target detection", "GUIDE-seq", "CIRCLE-seq", "sensitivity",
-                "TP53", "monitoring", "conditionally", "long-term",
+                "off-target detection",
+                "GUIDE-seq",
+                "CIRCLE-seq",
+                "sensitivity",
+                "TP53",
+                "monitoring",
+                "conditionally",
+                "long-term",
             ],
         },
         difficulty="hard",
@@ -640,8 +728,13 @@ _SYNTHESIS_TASKS = [
                 "factors present. Must discuss with patient."
             ),
             "key_criteria": [
-                "shared decision", "bleeding risk", "net benefit", "ASCVD risk",
-                "diabetes", "AHA", "individualize",
+                "shared decision",
+                "bleeding risk",
+                "net benefit",
+                "ASCVD risk",
+                "diabetes",
+                "AHA",
+                "individualize",
             ],
         },
         difficulty="medium",
@@ -673,8 +766,14 @@ _SYNTHESIS_TASKS = [
                 "Need RCT mortality data before population-level implementation."
             ),
             "key_criteria": [
-                "PPV", "false positive", "overdiagnosis", "mortality reduction",
-                "high-risk", "pre-test probability", "RCT", "Wilson-Jungner",
+                "PPV",
+                "false positive",
+                "overdiagnosis",
+                "mortality reduction",
+                "high-risk",
+                "pre-test probability",
+                "RCT",
+                "Wilson-Jungner",
             ],
         },
         difficulty="hard",
@@ -716,8 +815,14 @@ _MECHANISM_TASKS = [
                 "with systemic insulin reduction than direct tumor effect."
             ),
             "key_criteria": [
-                "pharmacokinetic", "concentration", "uM", "mM",
-                "insulin", "mitogen", "portal vein", "hepatocyte",
+                "pharmacokinetic",
+                "concentration",
+                "uM",
+                "mM",
+                "insulin",
+                "mitogen",
+                "portal vein",
+                "hepatocyte",
             ],
         },
         difficulty="medium",
@@ -735,10 +840,7 @@ _MECHANISM_TASKS = [
             "exclusion prevents T cell infiltration.\n"
             "Which mechanism is the better therapeutic target?"
         ),
-        context=(
-            "MSS CRC has TMB ~4 mut/Mb vs MSI-H ~40 mut/Mb. "
-            "Some MSS tumors with high TMB still resist ICI."
-        ),
+        context=("MSS CRC has TMB ~4 mut/Mb vs MSI-H ~40 mut/Mb. " "Some MSS tumors with high TMB still resist ICI."),
         answer_options=["low_TMB", "immunosuppressive_TME", "TME_is_better_target"],
         ground_truth={
             "classification": "TME_is_better_target",
@@ -750,8 +852,14 @@ _MECHANISM_TASKS = [
                 "Combination strategies targeting TME (anti-TGF-beta, anti-VEGF) show promise."
             ),
             "key_criteria": [
-                "TME", "TGF-beta", "T cell exclusion", "cold tumor",
-                "neoantigen", "actionable", "combination", "remodel",
+                "TME",
+                "TGF-beta",
+                "T cell exclusion",
+                "cold tumor",
+                "neoantigen",
+                "actionable",
+                "combination",
+                "remodel",
             ],
         },
         difficulty="hard",
@@ -782,8 +890,14 @@ _MECHANISM_TASKS = [
                 "neuroinflammation amplifies, tau spreads. Both are therapeutic targets."
             ),
             "key_criteria": [
-                "integrated", "amyloid", "TREM2", "microglia", "tau",
-                "lecanemab", "modest", "both targets",
+                "integrated",
+                "amyloid",
+                "TREM2",
+                "microglia",
+                "tau",
+                "lecanemab",
+                "modest",
+                "both targets",
             ],
         },
         difficulty="medium",
@@ -818,8 +932,13 @@ _MECHANISM_TASKS = [
                 "Apoptosis may be secondary. Ferroptosis inhibition is the better target."
             ),
             "key_criteria": [
-                "ferroptosis", "GPX4", "ferrostatin", "lipid peroxidation",
-                "TUNEL non-specific", "more protective", "primary",
+                "ferroptosis",
+                "GPX4",
+                "ferrostatin",
+                "lipid peroxidation",
+                "TUNEL non-specific",
+                "more protective",
+                "primary",
             ],
         },
         difficulty="hard",
@@ -854,9 +973,14 @@ _MECHANISM_TASKS = [
                 "Gastric emptying is an early, transient effect."
             ),
             "key_criteria": [
-                "hypothalamic", "POMC", "BBB", "central",
-                "gastric emptying attenuates", "brain-restricted KO",
-                "dominant", "appetite suppression",
+                "hypothalamic",
+                "POMC",
+                "BBB",
+                "central",
+                "gastric emptying attenuates",
+                "brain-restricted KO",
+                "dominant",
+                "appetite suppression",
             ],
         },
         difficulty="medium",
@@ -870,15 +994,13 @@ _MECHANISM_TASKS = [
 # COMBINED TASK LIST
 # =============================================================================
 
-DEBATE_TASKS: list[DebateTask] = (
-    _VARIANT_TASKS + _DIAGNOSIS_TASKS + _CRITIQUE_TASKS
-    + _SYNTHESIS_TASKS + _MECHANISM_TASKS
-)
+DEBATE_TASKS: list[DebateTask] = _VARIANT_TASKS + _DIAGNOSIS_TASKS + _CRITIQUE_TASKS + _SYNTHESIS_TASKS + _MECHANISM_TASKS
 
 
 # =============================================================================
 # TASK-LEVEL OUTCOME SCORING
 # =============================================================================
+
 
 def score_debate_task_outcome(task: DebateTask, final_position: str, final_answer: str = "") -> dict:
     """Score the outcome of a debate against ground truth.

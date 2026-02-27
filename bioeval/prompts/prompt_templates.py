@@ -32,9 +32,11 @@ from typing import Optional, List
 # CONFIGURATION
 # =============================================================================
 
+
 @dataclass
 class PromptEnhancementConfig:
     """Configuration for prompt enhancements."""
+
     calibration: bool = True
     context_defense: bool = True
     edge_case: bool = True
@@ -42,9 +44,7 @@ class PromptEnhancementConfig:
     chain_of_thought: bool = False  # Only for causal tasks
 
     # Fine-tuning options
-    confidence_levels: List[str] = field(
-        default_factory=lambda: ["high", "medium", "low"]
-    )
+    confidence_levels: List[str] = field(default_factory=lambda: ["high", "medium", "low"])
     require_evidence_count: int = 2  # Min evidence pieces for high confidence
 
 
@@ -343,11 +343,8 @@ def add_chain_of_thought(prompt: str, config: Optional[PromptEnhancementConfig] 
 # COMPOSITE ENHANCERS
 # =============================================================================
 
-def enhance_prompt(
-    prompt: str,
-    config: Optional[PromptEnhancementConfig] = None,
-    task_type: Optional[str] = None
-) -> str:
+
+def enhance_prompt(prompt: str, config: Optional[PromptEnhancementConfig] = None, task_type: Optional[str] = None) -> str:
     """
     Apply all relevant enhancements to a prompt based on configuration.
 
@@ -380,10 +377,7 @@ def enhance_prompt(
     return enhanced
 
 
-def enhance_causal_prompt(
-    prompt: str,
-    config: Optional[PromptEnhancementConfig] = None
-) -> str:
+def enhance_causal_prompt(prompt: str, config: Optional[PromptEnhancementConfig] = None) -> str:
     """
     Enhance a causal biology prompt with chain-of-thought reasoning.
 
@@ -403,9 +397,7 @@ def enhance_causal_prompt(
 
 
 def enhance_adversarial_prompt(
-    prompt: str,
-    adversarial_type: Optional[str] = None,
-    config: Optional[PromptEnhancementConfig] = None
+    prompt: str, adversarial_type: Optional[str] = None, config: Optional[PromptEnhancementConfig] = None
 ) -> str:
     """
     Enhance a prompt with defenses specific to adversarial type.
@@ -421,13 +413,13 @@ def enhance_adversarial_prompt(
     enhanced = prompt
 
     # Apply type-specific defenses
-    if adversarial_type in ['misleading_context', 'plausible_nonsense']:
+    if adversarial_type in ["misleading_context", "plausible_nonsense"]:
         enhanced = add_context_defense(enhanced, config)
 
-    if adversarial_type in ['hallucination_trap', 'plausible_nonsense', 'false_premise']:
+    if adversarial_type in ["hallucination_trap", "plausible_nonsense", "false_premise"]:
         enhanced = add_nonsense_detection(enhanced, config)
 
-    if adversarial_type == 'edge_case':
+    if adversarial_type == "edge_case":
         enhanced = add_edge_case_check(enhanced, config)
 
     # Always add calibration
@@ -440,6 +432,7 @@ def enhance_adversarial_prompt(
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
+
 
 def get_system_prompt(enhanced: bool = True) -> str:
     """
@@ -456,11 +449,7 @@ def get_system_prompt(enhanced: bool = True) -> str:
     return CALIBRATED_SYSTEM_PROMPT
 
 
-def format_confidence_output(
-    confidence: str,
-    evidence: List[str],
-    uncertainties: List[str]
-) -> str:
+def format_confidence_output(confidence: str, evidence: List[str], uncertainties: List[str]) -> str:
     """
     Format a properly calibrated confidence statement.
 

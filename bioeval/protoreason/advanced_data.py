@@ -32,15 +32,11 @@ ADVANCED_PROTOCOLS = {
             "Add viability dye if not already included",
             "Filter through 40μm strainer before acquisition",
             "Acquire on flow cytometer within 1 hour",
-            "Collect at least 10,000 events in gate of interest"
+            "Collect at least 10,000 events in gate of interest",
         ],
         "critical_steps": [2, 6, 7, 8, 14],
-        "safety": [
-            "Formaldehyde fixative is toxic if used",
-            "Handle human samples as potentially infectious"
-        ]
+        "safety": ["Formaldehyde fixative is toxic if used", "Handle human samples as potentially infectious"],
     },
-    
     "flow_cytometry_intracellular": {
         "name": "Intracellular Cytokine Staining",
         "category": "flow_cytometry",
@@ -56,15 +52,11 @@ ADVANCED_PROTOCOLS = {
             "Incubate 30 minutes at room temperature in dark",
             "Wash twice with perm buffer",
             "Resuspend in FACS buffer for acquisition",
-            "Acquire within 24 hours - fixed cells can be stored"
+            "Acquire within 24 hours - fixed cells can be stored",
         ],
         "critical_steps": [1, 2, 5, 7],
-        "safety": [
-            "PMA is a tumor promoter - handle with care",
-            "PFA is toxic - use in fume hood"
-        ]
+        "safety": ["PMA is a tumor promoter - handle with care", "PFA is toxic - use in fume hood"],
     },
-    
     # -------------------------------------------------------------------------
     # ELISA
     # -------------------------------------------------------------------------
@@ -87,15 +79,11 @@ ADVANCED_PROTOCOLS = {
             "Add TMB substrate, incubate until color develops (5-30 min)",
             "Stop reaction with 2N H2SO4",
             "Read absorbance at 450nm within 30 minutes",
-            "Calculate concentrations from standard curve"
+            "Calculate concentrations from standard curve",
         ],
         "critical_steps": [1, 5, 6, 12, 13],
-        "safety": [
-            "H2SO4 is corrosive - handle with care",
-            "TMB is a potential carcinogen"
-        ]
+        "safety": ["H2SO4 is corrosive - handle with care", "TMB is a potential carcinogen"],
     },
-    
     # -------------------------------------------------------------------------
     # CLONING
     # -------------------------------------------------------------------------
@@ -117,15 +105,11 @@ ADVANCED_PROTOCOLS = {
             "Plate on selective medium",
             "Screen colonies by colony PCR spanning junctions",
             "Verify positive clones by Sanger sequencing",
-            "Prepare glycerol stocks of sequence-verified clones"
+            "Prepare glycerol stocks of sequence-verified clones",
         ],
         "critical_steps": [1, 2, 7, 10, 13, 14],
-        "safety": [
-            "UV exposure during gel visualization - wear protection",
-            "EtBr if used is mutagenic"
-        ]
+        "safety": ["UV exposure during gel visualization - wear protection", "EtBr if used is mutagenic"],
     },
-    
     "gateway_cloning": {
         "name": "Gateway Cloning",
         "category": "molecular_biology",
@@ -143,14 +127,11 @@ ADVANCED_PROTOCOLS = {
             "Incubate at 25°C for 1-18 hours",
             "Add Proteinase K, incubate 10 min at 37°C",
             "Transform and select on appropriate antibiotic",
-            "Verify expression clone by restriction digest and sequencing"
+            "Verify expression clone by restriction digest and sequencing",
         ],
         "critical_steps": [1, 4, 9, 10, 14],
-        "safety": [
-            "Standard molecular biology safety precautions"
-        ]
+        "safety": ["Standard molecular biology safety precautions"],
     },
-    
     # -------------------------------------------------------------------------
     # EPIGENOMICS
     # -------------------------------------------------------------------------
@@ -171,14 +152,11 @@ ADVANCED_PROTOCOLS = {
             "Typically 8-12 PCR cycles to avoid over-amplification",
             "Size select library (150-700bp) using beads or gel",
             "QC library on Bioanalyzer - should see nucleosomal pattern",
-            "Quantify library and sequence (50M paired-end reads recommended)"
+            "Quantify library and sequence (50M paired-end reads recommended)",
         ],
         "critical_steps": [1, 4, 5, 7, 10, 11, 13],
-        "safety": [
-            "Transposase enzyme is expensive - handle carefully"
-        ]
+        "safety": ["Transposase enzyme is expensive - handle carefully"],
     },
-    
     "bisulfite_sequencing": {
         "name": "Bisulfite Sequencing for DNA Methylation",
         "category": "genomics",
@@ -195,15 +173,11 @@ ADVANCED_PROTOCOLS = {
             "Use primers designed for converted sequence (C→T)",
             "Clone PCR products or prepare for sequencing",
             "Sequence and analyze methylation patterns",
-            "Calculate conversion efficiency from lambda control (>98% required)"
+            "Calculate conversion efficiency from lambda control (>98% required)",
         ],
         "critical_steps": [1, 3, 5, 6, 9, 10, 13],
-        "safety": [
-            "Bisulfite reagents are corrosive and toxic",
-            "Work in fume hood during conversion"
-        ]
+        "safety": ["Bisulfite reagents are corrosive and toxic", "Work in fume hood during conversion"],
     },
-    
     # -------------------------------------------------------------------------
     # METABOLOMICS
     # -------------------------------------------------------------------------
@@ -225,15 +199,14 @@ ADVANCED_PROTOCOLS = {
             "Add internal standards if not added earlier",
             "Centrifuge to remove any particulates",
             "Transfer to LC-MS vials",
-            "Keep samples at 4°C in autosampler, analyze within 24h"
+            "Keep samples at 4°C in autosampler, analyze within 24h",
         ],
         "critical_steps": [1, 2, 3, 7, 10, 12],
         "safety": [
             "Methanol is flammable and toxic - use in fume hood",
-            "Liquid nitrogen for snap-freezing - cryogenic hazard"
-        ]
+            "Liquid nitrogen for snap-freezing - cryogenic hazard",
+        ],
     },
-    
     # -------------------------------------------------------------------------
     # CRISPR APPLICATIONS
     # -------------------------------------------------------------------------
@@ -252,14 +225,11 @@ ADVANCED_PROTOCOLS = {
             "Wait 3-7 days for maximal activation",
             "Measure target gene expression by qPCR",
             "Verify protein upregulation by Western blot",
-            "Compare to positive control (known activating sgRNA)"
+            "Compare to positive control (known activating sgRNA)",
         ],
         "critical_steps": [1, 2, 9, 10, 11],
-        "safety": [
-            "Lentivirus requires BSL-2 practices"
-        ]
+        "safety": ["Lentivirus requires BSL-2 practices"],
     },
-    
     "base_editing": {
         "name": "Base Editing (CBE/ABE)",
         "category": "molecular_biology",
@@ -275,14 +245,11 @@ ADVANCED_PROTOCOLS = {
             "PCR amplify target region",
             "Analyze by Sanger sequencing (EditR) or deep sequencing",
             "Calculate editing efficiency at target and bystander positions",
-            "If needed, single-cell clone to isolate pure edited population"
+            "If needed, single-cell clone to isolate pure edited population",
         ],
         "critical_steps": [1, 2, 3, 10, 11],
-        "safety": [
-            "Standard molecular biology safety"
-        ]
+        "safety": ["Standard molecular biology safety"],
     },
-    
     # -------------------------------------------------------------------------
     # PROTEIN BIOCHEMISTRY
     # -------------------------------------------------------------------------
@@ -305,15 +272,11 @@ ADVANCED_PROTOCOLS = {
             "Collect fractions and analyze by SDS-PAGE",
             "Pool pure fractions and dialyze to remove imidazole",
             "Concentrate if needed and determine final concentration",
-            "Aliquot and store at -80°C or use fresh"
+            "Aliquot and store at -80°C or use fresh",
         ],
         "critical_steps": [1, 5, 6, 8, 12, 14],
-        "safety": [
-            "Imidazole can cause skin irritation",
-            "PMSF (if used as protease inhibitor) is toxic"
-        ]
+        "safety": ["Imidazole can cause skin irritation", "PMSF (if used as protease inhibitor) is toxic"],
     },
-    
     "size_exclusion_chromatography": {
         "name": "Size Exclusion Chromatography",
         "category": "biochemistry",
@@ -328,13 +291,11 @@ ADVANCED_PROTOCOLS = {
             "Analyze fractions by SDS-PAGE",
             "Pool fractions containing target protein",
             "Calculate apparent molecular weight from calibration curve",
-            "Oligomeric state can be determined from elution volume"
+            "Oligomeric state can be determined from elution volume",
         ],
         "critical_steps": [1, 3, 4, 10],
-        "safety": [
-            "High pressure in FPLC system - follow instrument safety"
-        ]
-    }
+        "safety": ["High pressure in FPLC system - follow instrument safety"],
+    },
 }
 
 
@@ -351,14 +312,9 @@ ADVANCED_CALCULATIONS = [
         "question": """You need to transduce 5 × 10^5 cells at MOI 10. Your lentiviral stock is 
         2 × 10^8 TU/mL. What volume of virus do you need? If transduction efficiency 
         at MOI 10 is typically 95%, how many cells will be transduced?""",
-        "answer": {
-            "virus_needed_TU": "5 × 10^6 TU",
-            "virus_volume": "25 μL",
-            "cells_transduced": "4.75 × 10^5 cells"
-        },
-        "reasoning": "TU needed = cells × MOI = 5×10^5 × 10 = 5×10^6. Volume = 5×10^6 / 2×10^8 = 25μL. Transduced = 5×10^5 × 0.95 = 4.75×10^5"
+        "answer": {"virus_needed_TU": "5 × 10^6 TU", "virus_volume": "25 μL", "cells_transduced": "4.75 × 10^5 cells"},
+        "reasoning": "TU needed = cells × MOI = 5×10^5 × 10 = 5×10^6. Volume = 5×10^6 / 2×10^8 = 25μL. Transduced = 5×10^5 × 0.95 = 4.75×10^5",
     },
-    
     # Flow cytometry compensation
     {
         "id": "calc_adv_002",
@@ -367,13 +323,9 @@ ADVANCED_CALCULATIONS = [
         "question": """Your FITC single-color control shows 15% spillover into the PE channel. 
         Your PE single-color control shows 5% spillover into FITC. In a sample, 
         the raw FITC signal is 10,000 and raw PE is 8,000. What are the corrected values?""",
-        "answer": {
-            "corrected_FITC": "approximately 9,600",
-            "corrected_PE": "approximately 6,500"
-        },
-        "reasoning": "Spillover correction: FITC_corrected ≈ 10000 - (8000 × 0.05) = 9600. PE_corrected ≈ 8000 - (10000 × 0.15) = 6500. (Note: actual compensation uses matrix algebra)"
+        "answer": {"corrected_FITC": "approximately 9,600", "corrected_PE": "approximately 6,500"},
+        "reasoning": "Spillover correction: FITC_corrected ≈ 10000 - (8000 × 0.05) = 9600. PE_corrected ≈ 8000 - (10000 × 0.15) = 6500. (Note: actual compensation uses matrix algebra)",
     },
-    
     # Protein concentration from A280
     {
         "id": "calc_adv_003",
@@ -382,13 +334,9 @@ ADVANCED_CALCULATIONS = [
         "question": """Your purified antibody has A280 = 1.5. The extinction coefficient for IgG 
         is 1.4 (mg/mL)^-1 cm^-1. What is the concentration? If you need 50 μg for an 
         experiment, what volume do you use?""",
-        "answer": {
-            "concentration": "1.07 mg/mL",
-            "volume_needed": "46.7 μL"
-        },
-        "reasoning": "C = A280 / ε = 1.5 / 1.4 = 1.07 mg/mL. Volume = 50μg / 1.07μg/μL = 46.7μL"
+        "answer": {"concentration": "1.07 mg/mL", "volume_needed": "46.7 μL"},
+        "reasoning": "C = A280 / ε = 1.5 / 1.4 = 1.07 mg/mL. Volume = 50μg / 1.07μg/μL = 46.7μL",
     },
-    
     # Gibson assembly ratios
     {
         "id": "calc_adv_004",
@@ -401,11 +349,10 @@ ADVANCED_CALCULATIONS = [
             "vector_ng": "50 ng",
             "vector_volume": "0.5 μL",
             "insert_ng": "50 ng × (1.5/5) × 3 = 45 ng",
-            "insert_volume": "0.9 μL"
+            "insert_volume": "0.9 μL",
         },
-        "reasoning": "At 1:1 molar, insert mass = vector mass × (insert size/vector size). For 3:1: insert = 50 × (1.5/5) × 3 = 45ng. Total = 50 + 45 = 95ng ≈ 100ng"
+        "reasoning": "At 1:1 molar, insert mass = vector mass × (insert size/vector size). For 3:1: insert = 50 × (1.5/5) × 3 = 45ng. Total = 50 + 45 = 95ng ≈ 100ng",
     },
-    
     # Metabolomics normalization
     {
         "id": "calc_adv_005",
@@ -414,14 +361,9 @@ ADVANCED_CALCULATIONS = [
         "question": """Your internal standard (IS) peak area is 50,000 in sample A and 75,000 in 
         sample B. A metabolite shows peak area 100,000 in sample A and 120,000 in sample B. 
         Calculate IS-normalized abundances and fold change.""",
-        "answer": {
-            "normalized_A": "2.0",
-            "normalized_B": "1.6",
-            "fold_change": "0.8 (sample B is 20% lower)"
-        },
-        "reasoning": "Normalized = metabolite/IS. A: 100000/50000 = 2.0. B: 120000/75000 = 1.6. FC = 1.6/2.0 = 0.8"
+        "answer": {"normalized_A": "2.0", "normalized_B": "1.6", "fold_change": "0.8 (sample B is 20% lower)"},
+        "reasoning": "Normalized = metabolite/IS. A: 100000/50000 = 2.0. B: 120000/75000 = 1.6. FC = 1.6/2.0 = 0.8",
     },
-    
     # ELISA standard curve
     {
         "id": "calc_adv_006",
@@ -430,13 +372,9 @@ ADVANCED_CALCULATIONS = [
         "question": """Your ELISA standard curve has the equation: OD = 0.002 × [conc] + 0.05, 
         where [conc] is in pg/mL. Sample A has OD = 0.85 and was diluted 1:10. 
         What is the original concentration?""",
-        "answer": {
-            "diluted_concentration": "400 pg/mL",
-            "original_concentration": "4000 pg/mL or 4 ng/mL"
-        },
-        "reasoning": "[conc] = (OD - 0.05) / 0.002 = (0.85 - 0.05) / 0.002 = 400 pg/mL (diluted). Original = 400 × 10 = 4000 pg/mL"
+        "answer": {"diluted_concentration": "400 pg/mL", "original_concentration": "4000 pg/mL or 4 ng/mL"},
+        "reasoning": "[conc] = (OD - 0.05) / 0.002 = (0.85 - 0.05) / 0.002 = 400 pg/mL (diluted). Original = 400 × 10 = 4000 pg/mL",
     },
-    
     # Sequencing depth calculation
     {
         "id": "calc_adv_007",
@@ -449,11 +387,10 @@ ADVANCED_CALCULATIONS = [
             "total_bases_needed": "90 Gb",
             "bases_per_read_pair": "300 bp",
             "read_pairs_needed": "300 million",
-            "samples_per_run": "1 (barely)"
+            "samples_per_run": "1 (barely)",
         },
-        "reasoning": "Bases needed = 3Gb × 30 = 90Gb. Per read pair = 300bp. Read pairs = 90Gb / 300bp = 3×10^8. At 400M pairs, can do ~1 sample."
+        "reasoning": "Bases needed = 3Gb × 30 = 90Gb. Per read pair = 300bp. Read pairs = 90Gb / 300bp = 3×10^8. At 400M pairs, can do ~1 sample.",
     },
-    
     # Transfection efficiency
     {
         "id": "calc_adv_008",
@@ -463,11 +400,9 @@ ADVANCED_CALCULATIONS = [
         The GFP+ population has mean fluorescence intensity (MFI) of 15,000 while 
         GFP- is 200 (autofluorescence). If you need 10^6 GFP+ cells for an experiment 
         and you have 80% viability post-transfection, how many cells should you start with?""",
-        "answer": {
-            "starting_cells": "approximately 2.8 × 10^6 cells"
-        },
-        "reasoning": "Final GFP+ needed = 10^6. After viability: need 10^6 / 0.8 = 1.25×10^6 viable. After transfection: need 1.25×10^6 / 0.45 = 2.78×10^6 starting"
-    }
+        "answer": {"starting_cells": "approximately 2.8 × 10^6 cells"},
+        "reasoning": "Final GFP+ needed = 10^6. After viability: need 10^6 / 0.8 = 1.25×10^6 viable. After transfection: need 1.25×10^6 / 0.45 = 2.78×10^6 starting",
+    },
 ]
 
 
@@ -486,15 +421,15 @@ ADVANCED_TROUBLESHOOTING = [
             "Doublets not excluded - two cells stuck together",
             "Dead cells binding antibodies non-specifically",
             "Tandem dye degradation creating spillover",
-            "Voltage settings too high causing spreading error"
+            "Voltage settings too high causing spreading error",
         ],
         "diagnostic_steps": [
             "Check SSC-H vs SSC-A to gate out doublets",
             "Include viability dye and gate on live cells only",
             "Verify compensation with single-color controls",
             "Check if tandem dyes are fresh (degrade over time)",
-            "Lower voltages and re-compensate"
-        ]
+            "Lower voltages and re-compensate",
+        ],
     },
     {
         "id": "trouble_adv_002",
@@ -507,15 +442,15 @@ ADVANCED_TROUBLESHOOTING = [
             "Cells have low Cas9 activity (some cell lines are resistant)",
             "sgRNA not synthesized correctly or degraded",
             "Target site is in heterochromatin and inaccessible",
-            "Cells are polyploid making detection difficult"
+            "Cells are polyploid making detection difficult",
         ],
         "diagnostic_steps": [
             "Verify RNP formation by gel shift assay",
             "Check transfection efficiency with fluorescent control",
             "Try in vitro cleavage assay to verify sgRNA activity",
             "Test positive control sgRNA to rule out cell-specific issues",
-            "Try CRISPResso2 analysis instead of Sanger for sensitive detection"
-        ]
+            "Try CRISPResso2 analysis instead of Sanger for sensitive detection",
+        ],
     },
     {
         "id": "trouble_adv_003",
@@ -528,15 +463,15 @@ ADVANCED_TROUBLESHOOTING = [
             "pH too low (His protonation reduces binding)",
             "Protein is aggregated and tag is inaccessible",
             "Reducing agent (DTT/BME) stripping Ni from resin",
-            "Resin is old or stripped of nickel"
+            "Resin is old or stripped of nickel",
         ],
         "diagnostic_steps": [
             "Check lysis buffer imidazole concentration",
             "Verify pH is 7.5-8.0",
             "Try denaturing purification (6M guanidine) to expose tag",
             "Re-charge resin with NiSO4",
-            "Check if protein is soluble (not aggregated)"
-        ]
+            "Check if protein is soluble (not aggregated)",
+        ],
     },
     {
         "id": "trouble_adv_004",
@@ -549,15 +484,15 @@ ADVANCED_TROUBLESHOOTING = [
             "Insufficient washes during selection",
             "RNA input was too low - rRNA binds non-specifically",
             "Contamination with genomic DNA carrying rRNA genes",
-            "Wrong species beads used"
+            "Wrong species beads used",
         ],
         "diagnostic_steps": [
             "Check RNA quality on Bioanalyzer - RIN should be >8",
             "Verify poly-A selection worked by qPCR for rRNA vs mRNA",
             "Try ribo-depletion instead of poly-A selection",
             "Increase wash stringency",
-            "Include DNase treatment step"
-        ]
+            "Include DNase treatment step",
+        ],
     },
     {
         "id": "trouble_adv_005",
@@ -570,7 +505,7 @@ ADVANCED_TROUBLESHOOTING = [
             "MS source requires cleaning",
             "Temperature variations",
             "Sample degradation if not stored properly",
-            "Internal standards not added or added inconsistently"
+            "Internal standards not added or added inconsistently",
         ],
         "diagnostic_steps": [
             "Check QC samples across batches",
@@ -578,15 +513,16 @@ ADVANCED_TROUBLESHOOTING = [
             "Clean MS source and recalibrate",
             "Ensure internal standards normalize batch variation",
             "Use batch correction algorithms (ComBat, etc.)",
-            "Run all samples in single batch if possible"
-        ]
-    }
+            "Run all samples in single batch if possible",
+        ],
+    },
 ]
 
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def get_advanced_protocols():
     """Return advanced protocols."""
@@ -606,20 +542,20 @@ def get_advanced_troubleshooting():
 def get_all_extended_statistics():
     """Return combined statistics."""
     from bioeval.protoreason.extended_data import get_task_statistics as base_stats
-    
+
     base = base_stats()
     advanced = {
         "advanced_protocols": len(ADVANCED_PROTOCOLS),
         "advanced_calculations": len(ADVANCED_CALCULATIONS),
-        "advanced_troubleshooting": len(ADVANCED_TROUBLESHOOTING)
+        "advanced_troubleshooting": len(ADVANCED_TROUBLESHOOTING),
     }
-    
+
     return {
         **base,
         **advanced,
         "total_protocols": base["protocols"] + advanced["advanced_protocols"],
         "total_calculations": base["calculation_tasks"] + advanced["advanced_calculations"],
-        "total_troubleshooting": base["troubleshooting_tasks"] + advanced["advanced_troubleshooting"]
+        "total_troubleshooting": base["troubleshooting_tasks"] + advanced["advanced_troubleshooting"],
     }
 
 

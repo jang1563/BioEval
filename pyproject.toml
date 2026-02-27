@@ -10,3 +10,41 @@ extend-exclude = ["results", "notebooks", "venv", "venv_fresh"]
 [tool.ruff.lint]
 select = ["E9", "F63", "F7", "F82"]
 
+[tool.mypy]
+python_version = "3.9"
+ignore_missing_imports = true
+# Scientific codebase: allow flexible typing where needed
+allow_untyped_defs = true
+allow_untyped_calls = true
+no_strict_optional = true
+warn_return_any = false
+warn_unused_ignores = false
+
+# Per-module overrides for modules with complex dynamic patterns
+# These modules use duck typing and runtime polymorphism that mypy can't verify statically.
+[[tool.mypy.overrides]]
+module = [
+    "bioeval.reporting.*",
+    "bioeval.taxonomy.*",
+    "bioeval.adapters.*",
+    "bioeval.validation.*",
+    "bioeval.execution.*",
+    "bioeval.scoring.splits",
+    "bioeval.scoring.matching",
+    "bioeval.scoring.llm_judge",
+    "bioeval.scoring.response_parser",
+    "bioeval.scoring.calibration",
+    "bioeval.debate.*",
+    "bioeval.adversarial.*",
+    "bioeval.biosafety.*",
+    "bioeval.causalbio.*",
+    "bioeval.datainterp.*",
+    "bioeval.designcheck.*",
+    "bioeval.models.*",
+    "bioeval.multiturn.*",
+    "bioeval.protoreason.*",
+    "bioeval.simulation",
+    "bioeval.cli",
+]
+ignore_errors = true
+

@@ -21,6 +21,7 @@ from bioeval.scoring.normalizer import normalize_result
 # COHEN'S KAPPA AND AGREEMENT METRICS
 # =============================================================================
 
+
 def cohens_kappa(rater1: list[int], rater2: list[int]) -> float:
     """Compute Cohen's kappa for two lists of binary ratings.
 
@@ -93,12 +94,10 @@ def weighted_kappa(rater1: list[float], rater2: list[float], n_bins: int = 5) ->
     col_totals = [sum(matrix[i][j] for i in range(n_bins)) for j in range(n_bins)]
 
     # Observed weighted disagreement
-    wo = sum(weights[i][j] * matrix[i][j]
-             for i in range(n_bins) for j in range(n_bins)) / n
+    wo = sum(weights[i][j] * matrix[i][j] for i in range(n_bins) for j in range(n_bins)) / n
 
     # Expected weighted disagreement
-    we = sum(weights[i][j] * row_totals[i] * col_totals[j]
-             for i in range(n_bins) for j in range(n_bins)) / (n * n)
+    we = sum(weights[i][j] * row_totals[i] * col_totals[j] for i in range(n_bins) for j in range(n_bins)) / (n * n)
 
     if we == 0:
         return 1.0 if wo == 0 else 0.0
@@ -132,6 +131,7 @@ def correlation(x: list[float], y: list[float]) -> float:
 # =============================================================================
 # AGREEMENT ANALYSIS FROM RESULT FILES
 # =============================================================================
+
 
 def analyze_agreement(result_path: str) -> dict:
     """Analyze agreement between automated scorer and LLM judge.
@@ -171,14 +171,16 @@ def analyze_agreement(result_path: str) -> dict:
             if judge_score is None:
                 continue
 
-            paired_scores.append({
-                "task_id": r.get("task_id", r.get("dialogue_id", "")),
-                "component": comp,
-                "auto_score": auto_score,
-                "judge_score": judge_score,
-                "auto_passed": auto_score >= 0.5,
-                "judge_passed": judge_score >= 0.5,
-            })
+            paired_scores.append(
+                {
+                    "task_id": r.get("task_id", r.get("dialogue_id", "")),
+                    "component": comp,
+                    "auto_score": auto_score,
+                    "judge_score": judge_score,
+                    "auto_passed": auto_score >= 0.5,
+                    "judge_passed": judge_score >= 0.5,
+                }
+            )
 
     if not paired_scores:
         return {"error": "No paired auto+judge scores found. Run with --use-judge."}
@@ -283,6 +285,7 @@ def _interpret_kappa(kappa: float) -> str:
 # TEXT OUTPUT
 # =============================================================================
 
+
 def print_agreement(result_path: str):
     """Print agreement analysis."""
     result = analyze_agreement(result_path)
@@ -308,11 +311,12 @@ def print_agreement(result_path: str):
     print(f"{'Component':<15} {'N':>4} {'Kappa':>7} {'WKappa':>7} {'Agree':>7} {'Corr':>7}")
     print(f"{'─' * 52}")
     for comp, m in sorted(result["by_component"].items()):
-        print(f"  {comp:<13} {m['n']:>4} {m['kappa']:>7.4f} "
-              f"{m['weighted_kappa']:>7.4f} {m['percent_agreement']:>6.1%} "
-              f"{m['correlation']:>7.4f}")
+        print(
+            f"  {comp:<13} {m['n']:>4} {m['kappa']:>7.4f} "
+            f"{m['weighted_kappa']:>7.4f} {m['percent_agreement']:>6.1%} "
+            f"{m['correlation']:>7.4f}"
+        )
 
-    print(f"\nDisagreements: {result['n_disagreements']} "
-          f"({result['disagreement_rate']:.1%} of paired)")
+    print(f"\nDisagreements: {result['n_disagreements']} " f"({result['disagreement_rate']:.1%} of paired)")
 
     return result

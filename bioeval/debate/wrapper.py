@@ -14,6 +14,7 @@ from typing import Optional
 @dataclass
 class WrappedDebateTask:
     """An existing BioEval task wrapped for debate execution."""
+
     id: str
     task_type: str
     prompt: str

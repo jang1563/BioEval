@@ -27,11 +27,12 @@ from dataclasses import dataclass, field
 @dataclass
 class ComponentInfo:
     """Metadata and factory for a BioEval component."""
+
     name: str
     description: str
-    evaluator_module: str      # e.g., "bioeval.adversarial.tasks"
-    evaluator_class: str       # e.g., "AdversarialEvaluator"
-    task_data_module: str      # Module containing task data (for stats/validation)
+    evaluator_module: str  # e.g., "bioeval.adversarial.tasks"
+    evaluator_class: str  # e.g., "AdversarialEvaluator"
+    task_data_module: str  # Module containing task data (for stats/validation)
     task_types: list[str] = field(default_factory=list)
     supports_data_tiers: list[str] = field(default_factory=lambda: ["base"])
     normalizer_name: str = ""  # Name of the normalizer function (if any)
@@ -40,6 +41,7 @@ class ComponentInfo:
     def create_evaluator(self, model: str):
         """Dynamically import and instantiate the evaluator."""
         import importlib
+
         mod = importlib.import_module(self.evaluator_module)
         cls = getattr(mod, self.evaluator_class)
         return cls(model)
@@ -55,6 +57,7 @@ class ComponentInfo:
     def get_task_count(self, data_tier: str = "base") -> int:
         """Get the number of tasks without instantiating an evaluator."""
         import importlib
+
         try:
             mod = importlib.import_module(self.task_data_module)
             # Sum up task lists
@@ -115,9 +118,16 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.adversarial.tasks",
         evaluator_class="AdversarialEvaluator",
         task_data_module="bioeval.adversarial.tasks",
-        task_types=["false_premise", "hallucination_trap", "misleading_context",
-                     "edge_case", "contradictory", "plausible_nonsense",
-                     "outdated_knowledge", "overly_specific"],
+        task_types=[
+            "false_premise",
+            "hallucination_trap",
+            "misleading_context",
+            "edge_case",
+            "contradictory",
+            "plausible_nonsense",
+            "outdated_knowledge",
+            "overly_specific",
+        ],
         supports_data_tiers=["base"],
         normalizer_name="normalize_adversarial",
     ),
@@ -127,8 +137,7 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.multiturn.dialogues",
         evaluator_class="MultiTurnEvaluator",
         task_data_module="bioeval.multiturn.dialogues",
-        task_types=["hypothesis_refinement", "experimental_design",
-                     "troubleshooting", "data_interpretation", "peer_review"],
+        task_types=["hypothesis_refinement", "experimental_design", "troubleshooting", "data_interpretation", "peer_review"],
         supports_data_tiers=["base", "extended"],
         normalizer_name="normalize_multiturn",
     ),
@@ -138,9 +147,14 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.scoring.calibration",
         evaluator_class="CalibrationEvaluator",
         task_data_module="bioeval.scoring.calibration",
-        task_types=["acknowledge_unknown", "high_confidence_correct",
-                     "partial_knowledge", "context_dependent",
-                     "moderate_confidence", "overconfidence_trap"],
+        task_types=[
+            "acknowledge_unknown",
+            "high_confidence_correct",
+            "partial_knowledge",
+            "context_dependent",
+            "moderate_confidence",
+            "overconfidence_trap",
+        ],
         supports_data_tiers=["base"],
         normalizer_name="normalize_calibration",
     ),
@@ -150,9 +164,13 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.biosafety.tasks",
         evaluator_class="BiosafetyEvaluator",
         task_data_module="bioeval.biosafety.tasks",
-        task_types=["bsl_classification", "dual_use_recognition",
-                     "responsible_refusal", "risk_assessment",
-                     "ethics_reasoning"],
+        task_types=[
+            "bsl_classification",
+            "dual_use_recognition",
+            "responsible_refusal",
+            "risk_assessment",
+            "ethics_reasoning",
+        ],
         supports_data_tiers=["base"],
         normalizer_name="normalize_biosafety",
     ),
@@ -162,8 +180,7 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.datainterp.tasks",
         evaluator_class="DataInterpEvaluator",
         task_data_module="bioeval.datainterp.tasks",
-        task_types=["qpcr_analysis", "dose_response", "statistical_test",
-                     "survival_analysis", "multi_assay"],
+        task_types=["qpcr_analysis", "dose_response", "statistical_test", "survival_analysis", "multi_assay"],
         supports_data_tiers=["base"],
         normalizer_name="normalize_datainterp",
     ),
@@ -173,9 +190,13 @@ _BUILTIN_COMPONENTS = {
         evaluator_module="bioeval.debate.evaluator",
         evaluator_class="DebateEvaluator",
         task_data_module="bioeval.debate.tasks",
-        task_types=["variant_interpretation", "differential_diagnosis",
-                     "experimental_critique", "evidence_synthesis",
-                     "mechanism_dispute"],
+        task_types=[
+            "variant_interpretation",
+            "differential_diagnosis",
+            "experimental_critique",
+            "evidence_synthesis",
+            "mechanism_dispute",
+        ],
         supports_data_tiers=["base"],
         normalizer_name="normalize_debate",
         judge_rubric_types=["debate_outcome", "debate_process"],
@@ -216,6 +237,7 @@ def get_component(name: str) -> ComponentInfo:
 # =============================================================================
 # TEXT OUTPUT
 # =============================================================================
+
 
 def print_registry():
     """Print the component registry."""

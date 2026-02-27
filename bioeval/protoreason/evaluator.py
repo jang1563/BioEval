@@ -21,6 +21,7 @@ def _deterministic_seed(s: str) -> int:
     """
     return int(hashlib.sha256(s.encode()).hexdigest()[:8], 16)
 
+
 from bioeval.models.base import BaseEvaluator, EvalTask, EvalResult
 
 
@@ -40,10 +41,10 @@ SAMPLE_PROTOCOLS = {
             "Wash membrane 3x with TBST for 10 minutes each",
             "Incubate with HRP-conjugated secondary antibody for 1 hour",
             "Wash membrane 3x with TBST for 10 minutes each",
-            "Develop using ECL substrate and image"
+            "Develop using ECL substrate and image",
         ],
         "safety": ["RIPA buffer contains detergents", "Handle heated samples carefully"],
-        "calculations": ["protein_quantification", "dilution"]
+        "calculations": ["protein_quantification", "dilution"],
     },
     "qpcr": {
         "name": "Quantitative PCR (qPCR)",
@@ -57,10 +58,10 @@ SAMPLE_PROTOCOLS = {
             "Include no-template controls (NTC) and reference gene controls",
             "Run qPCR program: 95°C 10min, then 40 cycles of 95°C 15s, 60°C 1min",
             "Perform melt curve analysis for SYBR Green",
-            "Analyze Ct values and calculate relative expression using ΔΔCt method"
+            "Analyze Ct values and calculate relative expression using ΔΔCt method",
         ],
         "safety": ["TRIzol contains phenol - use in fume hood"],
-        "calculations": ["rna_dilution", "delta_delta_ct"]
+        "calculations": ["rna_dilution", "delta_delta_ct"],
     },
     "cell_culture_passage": {
         "name": "Cell Culture Passaging",
@@ -75,11 +76,11 @@ SAMPLE_PROTOCOLS = {
             "Aspirate supernatant and resuspend pellet in fresh media",
             "Count cells using hemocytometer or automated counter",
             "Seed cells at appropriate density in new flask",
-            "Record passage number and date"
+            "Record passage number and date",
         ],
         "safety": ["Work in biosafety cabinet", "Proper disposal of biological waste"],
-        "calculations": ["cell_seeding", "split_ratio"]
-    }
+        "calculations": ["cell_seeding", "split_ratio"],
+    },
 }
 
 
@@ -88,32 +89,32 @@ CALCULATION_TASKS = [
         "id": "calc_001",
         "question": "You need to prepare 500 mL of 1X PBS from a 10X PBS stock. How much 10X PBS and water do you need?",
         "answer": {"stock_volume": "50 mL", "water_volume": "450 mL"},
-        "reasoning": "For 1X from 10X: V1 × C1 = V2 × C2, so V1 = (500 mL × 1) / 10 = 50 mL stock + 450 mL water"
+        "reasoning": "For 1X from 10X: V1 × C1 = V2 × C2, so V1 = (500 mL × 1) / 10 = 50 mL stock + 450 mL water",
     },
     {
         "id": "calc_002",
         "question": "Your protein concentration is 2.5 mg/mL. You need to load 30 μg per well. What volume should you load?",
         "answer": {"volume": "12 μL"},
-        "reasoning": "Volume = mass / concentration = 30 μg / 2.5 mg/mL = 30 μg / 2.5 μg/μL = 12 μL"
+        "reasoning": "Volume = mass / concentration = 30 μg / 2.5 mg/mL = 30 μg / 2.5 μg/μL = 12 μL",
     },
     {
         "id": "calc_003",
         "question": "You counted 150 cells in a hemocytometer (1mm × 1mm × 0.1mm chamber). What is the cell concentration per mL?",
         "answer": {"concentration": "1.5 × 10^6 cells/mL"},
-        "reasoning": "Chamber volume = 0.1 μL = 10^-4 mL. Concentration = 150 / 10^-4 = 1.5 × 10^6 cells/mL"
+        "reasoning": "Chamber volume = 0.1 μL = 10^-4 mL. Concentration = 150 / 10^-4 = 1.5 × 10^6 cells/mL",
     },
     {
         "id": "calc_004",
         "question": "You have a primer stock at 100 μM. Prepare 100 μL of 10 μM working solution.",
         "answer": {"stock_volume": "10 μL", "water_volume": "90 μL"},
-        "reasoning": "V1 × 100 μM = 100 μL × 10 μM. V1 = 10 μL stock + 90 μL water"
+        "reasoning": "V1 × 100 μM = 100 μL × 10 μM. V1 = 10 μL stock + 90 μL water",
     },
     {
         "id": "calc_005",
         "question": "Your RNA 260/280 ratio is 1.85 and concentration is 500 ng/μL. You need 1 μg RNA for cDNA synthesis in a 20 μL reaction. How much RNA and water?",
         "answer": {"rna_volume": "2 μL", "water_volume": "18 μL", "quality": "acceptable"},
-        "reasoning": "Volume = 1000 ng / 500 ng/μL = 2 μL. 260/280 of 1.85 is acceptable (1.8-2.0 range for RNA)"
-    }
+        "reasoning": "Volume = 1000 ng / 500 ng/μL = 2 μL. 260/280 of 1.85 is acceptable (1.8-2.0 range for RNA)",
+    },
 ]
 
 
@@ -128,14 +129,14 @@ TROUBLESHOOTING_TASKS = [
             "Blocking too stringent or interfering with antibody",
             "ECL substrate expired or insufficient",
             "Target protein not expressed in sample",
-            "Gel/membrane orientation incorrect during transfer"
+            "Gel/membrane orientation incorrect during transfer",
         ],
         "diagnostic_steps": [
             "Check transfer with Ponceau S staining",
             "Verify antibody reactivity with positive control",
             "Try higher antibody concentration",
-            "Check ECL with fresh substrate"
-        ]
+            "Check ECL with fresh substrate",
+        ],
     },
     {
         "id": "trouble_002",
@@ -147,17 +148,17 @@ TROUBLESHOOTING_TASKS = [
             "Primers not working - verify primer design and concentration",
             "qPCR master mix issue - enzyme inactive",
             "Wrong annealing temperature",
-            "Inhibitors in sample"
+            "Inhibitors in sample",
         ],
         "diagnostic_steps": [
             "Check RNA quality on gel or Bioanalyzer",
             "Verify cDNA with PCR and gel",
             "Test primers with positive control template",
-            "Run gradient PCR for optimal temperature"
-        ]
+            "Run gradient PCR for optimal temperature",
+        ],
     },
     {
-        "id": "trouble_003", 
+        "id": "trouble_003",
         "scenario": "Cell Culture: Cells not attaching after passaging",
         "experimental_details": "HeLa cells, passage 15, split 1:10, plastic tissue culture flask",
         "possible_causes": [
@@ -166,15 +167,15 @@ TROUBLESHOOTING_TASKS = [
             "Wrong flask type (not tissue culture treated)",
             "Contamination affecting cell health",
             "Cells are senescent (high passage)",
-            "Media missing essential factors (serum, growth factors)"
+            "Media missing essential factors (serum, growth factors)",
         ],
         "diagnostic_steps": [
             "Reduce trypsin time in next passage",
             "Check media color and clarity for contamination",
             "Verify flask is TC-treated",
-            "Test with fresh low-passage cells"
-        ]
-    }
+            "Test with fresh low-passage cells",
+        ],
+    },
 ]
 
 
@@ -189,7 +190,7 @@ class ProtoReasonEvaluator(BaseEvaluator):
     ):
         super().__init__(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
         self.protocols = SAMPLE_PROTOCOLS
-    
+
     def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:
         """Load ProtoReason evaluation tasks.
 
@@ -204,6 +205,7 @@ class ProtoReasonEvaluator(BaseEvaluator):
                 TROUBLESHOOTING_TASKS as EXT_TROUBLE,
                 SAFETY_TASKS as EXT_SAFETY,
             )
+
             protocols = EXT_PROTOCOLS
             calc_tasks = EXT_CALC
             trouble_tasks = EXT_TROUBLE
@@ -257,7 +259,7 @@ Provide:
             prompt=prompt,
             ground_truth=safety,
         )
-    
+
     def _create_ordering_task(self, protocol_id: str, protocol: dict) -> EvalTask:
         """Create a step ordering task."""
         steps = protocol["steps"].copy()
@@ -265,7 +267,7 @@ Provide:
         # Deterministic shuffle based on protocol_id for reproducibility
         rng = random.Random(_deterministic_seed(f"ordering_{protocol_id}"))
         rng.shuffle(steps)
-        
+
         prompt = f"""The following steps for {protocol['name']} are in random order. 
 Please reorder them into the correct sequence by providing the step numbers in order.
 
@@ -280,12 +282,9 @@ Then briefly explain the reasoning for critical ordering decisions."""
             component="protoreason",
             task_type="step_ordering",
             prompt=prompt,
-            ground_truth={
-                "correct_steps": protocol["steps"],
-                "shuffled_steps": steps
-            }
+            ground_truth={"correct_steps": protocol["steps"], "shuffled_steps": steps},
         )
-    
+
     def _create_missing_step_task(self, protocol_id: str, protocol: dict) -> EvalTask:
         """Create a missing step detection task."""
         steps = protocol["steps"].copy()
@@ -297,7 +296,7 @@ Then briefly explain the reasoning for critical ordering decisions."""
         removed_steps = [steps[i] for i in sorted(removed_indices, reverse=True)]
         for i in sorted(removed_indices, reverse=True):
             steps.pop(i)
-        
+
         prompt = f"""The following protocol for {protocol['name']} is missing one or more critical steps.
 Identify what is missing and explain why each missing step is important.
 
@@ -314,10 +313,10 @@ What steps are missing? Why are they critical?"""
             ground_truth={
                 "removed_steps": removed_steps,
                 "removed_indices": removed_indices,
-                "complete_protocol": protocol["steps"]
-            }
+                "complete_protocol": protocol["steps"],
+            },
         )
-    
+
     def _create_calculation_task(self, calc: dict) -> EvalTask:
         """Create a calculation task."""
         prompt = f"""Solve this laboratory calculation problem. Show your work step by step.
@@ -329,17 +328,11 @@ Provide:
 2. The final answer with units
 3. Any important considerations or assumptions"""
 
-        return EvalTask(
-            id=calc["id"],
-            component="protoreason",
-            task_type="calculation",
-            prompt=prompt,
-            ground_truth=calc
-        )
-    
+        return EvalTask(id=calc["id"], component="protoreason", task_type="calculation", prompt=prompt, ground_truth=calc)
+
     def _create_troubleshooting_task(self, trouble: dict) -> EvalTask:
         """Create a troubleshooting task."""
-        details = trouble.get('experimental_details', trouble.get('details', ''))
+        details = trouble.get("experimental_details", trouble.get("details", ""))
         prompt = f"""You are troubleshooting an experimental problem. Provide a systematic diagnosis.
 
 Scenario: {trouble['scenario']}
@@ -352,13 +345,9 @@ Please provide:
 3. Recommended solutions for the top causes"""
 
         return EvalTask(
-            id=trouble["id"],
-            component="protoreason",
-            task_type="troubleshooting",
-            prompt=prompt,
-            ground_truth=trouble
+            id=trouble["id"], component="protoreason", task_type="troubleshooting", prompt=prompt, ground_truth=trouble
         )
-    
+
     def score_response(self, task: EvalTask, response: str) -> dict:
         """Score a model response based on task type."""
         if task.task_type == "step_ordering":
@@ -451,6 +440,7 @@ Please provide:
         a step is "detected" if 2+ key terms (len>4) from that step appear in the response.
         """
         from bioeval.scoring.matching import extract_key_terms, matched_list, phrase_match, any_match
+
         removed_steps = task.ground_truth["removed_steps"]
         response_lower = response.lower()
 
@@ -463,12 +453,14 @@ Please provide:
             is_detected = len(matched_terms) >= min(2, len(key_terms))
             if is_detected:
                 detected += 1
-            detection_details.append({
-                "step": step[:80],
-                "detected": is_detected,
-                "matched_terms": matched_terms[:5],
-                "total_key_terms": len(key_terms),
-            })
+            detection_details.append(
+                {
+                    "step": step[:80],
+                    "detected": is_detected,
+                    "matched_terms": matched_terms[:5],
+                    "total_key_terms": len(key_terms),
+                }
+            )
 
         return {
             "recall": detected / len(removed_steps) if removed_steps else 0,
@@ -495,21 +487,19 @@ Please provide:
 
         for key, expected_str in correct_answer.items():
             # Extract expected numeric value from the answer string
-            nums = re.findall(r'[\d.]+', str(expected_str))
+            nums = re.findall(r"[\d.]+", str(expected_str))
             if not nums:
                 total_values -= 1
                 continue
             expected_val = float(nums[0])
 
             # Handle scientific notation in expected value
-            sci_match = re.search(r'([\d.]+)\s*[x×]\s*10\^(\d+)', str(expected_str))
+            sci_match = re.search(r"([\d.]+)\s*[x×]\s*10\^(\d+)", str(expected_str))
             if sci_match:
                 expected_val = float(sci_match.group(1)) * 10 ** int(sci_match.group(2))
 
             # Use response parser for extraction
-            parse_result = extract_numerical_value(
-                response, expected_value=expected_val, tolerance=0.10
-            )
+            parse_result = extract_numerical_value(response, expected_value=expected_val, tolerance=0.10)
 
             if parse_result.success:
                 # Check if within 10% tolerance
@@ -517,20 +507,24 @@ Please provide:
                 is_correct = rel_error <= 0.10
                 if is_correct:
                     values_correct += 1
-                value_details.append({
-                    "key": key,
-                    "expected": expected_val,
-                    "extracted": parse_result.value,
-                    "relative_error": round(rel_error, 4),
-                    "correct": is_correct,
-                })
+                value_details.append(
+                    {
+                        "key": key,
+                        "expected": expected_val,
+                        "extracted": parse_result.value,
+                        "relative_error": round(rel_error, 4),
+                        "correct": is_correct,
+                    }
+                )
             else:
-                value_details.append({
-                    "key": key,
-                    "expected": expected_val,
-                    "extracted": None,
-                    "correct": False,
-                })
+                value_details.append(
+                    {
+                        "key": key,
+                        "expected": expected_val,
+                        "extracted": None,
+                        "correct": False,
+                    }
+                )
 
         response_lower = response.lower()
         return {
@@ -549,6 +543,7 @@ Please provide:
         checks for diagnostic steps and prioritization.
         """
         from bioeval.scoring.matching import extract_key_terms, matched_list, any_match, phrase_match
+
         possible_causes = task.ground_truth.get("possible_causes", [])
         diagnostic_steps = task.ground_truth.get("diagnostic_steps", [])
         response_lower = response.lower()
@@ -562,11 +557,13 @@ Please provide:
             is_mentioned = len(matched) >= min(2, len(key_terms))
             if is_mentioned:
                 causes_mentioned += 1
-            cause_details.append({
-                "cause": cause[:80],
-                "mentioned": is_mentioned,
-                "matched_terms": matched,
-            })
+            cause_details.append(
+                {
+                    "cause": cause[:80],
+                    "mentioned": is_mentioned,
+                    "matched_terms": matched,
+                }
+            )
 
         # Check diagnostic step coverage
         diag_mentioned = 0
@@ -577,7 +574,8 @@ Please provide:
 
         # Check for prioritization (numbered list, ranking language)
         import re
-        has_ranking = bool(re.search(r'(?:most likely|first|primary|1\.|ranked)', response_lower))
+
+        has_ranking = bool(re.search(r"(?:most likely|first|primary|1\.|ranked)", response_lower))
 
         return {
             "cause_coverage": causes_mentioned / len(possible_causes) if possible_causes else 0,
@@ -585,11 +583,12 @@ Please provide:
             "total_known_causes": len(possible_causes),
             "diagnostic_coverage": diag_mentioned / len(diagnostic_steps) if diagnostic_steps else 0,
             "has_ranking": has_ranking,
-            "provides_diagnostics": phrase_match("check", response_lower) or phrase_match("verify", response_lower) or phrase_match("test", response_lower),
+            "provides_diagnostics": phrase_match("check", response_lower)
+            or phrase_match("verify", response_lower)
+            or phrase_match("test", response_lower),
             "cause_details": cause_details,
             "response_length": len(response),
         }
-
 
     def _score_safety(self, task: EvalTask, response: str) -> dict:
         """Score safety reasoning task.
@@ -597,6 +596,7 @@ Please provide:
         Checks coverage of expected safety points using term matching.
         """
         from bioeval.scoring.matching import extract_key_terms, matched_list, any_match
+
         expected_points = task.ground_truth.get("expected_points", [])
         response_lower = response.lower()
 
@@ -608,11 +608,13 @@ Please provide:
             is_covered = len(matched) >= min(2, len(key_terms))
             if is_covered:
                 points_covered += 1
-            point_details.append({
-                "point": point[:80],
-                "covered": is_covered,
-                "matched_terms": matched,
-            })
+            point_details.append(
+                {
+                    "point": point[:80],
+                    "covered": is_covered,
+                    "matched_terms": matched,
+                }
+            )
 
         coverage = points_covered / len(expected_points) if expected_points else 0
 
@@ -630,7 +632,7 @@ def run_protoreason_evaluation(model_name: str = "claude-sonnet-4-20250514") -> 
     evaluator = ProtoReasonEvaluator(model_name)
     tasks = evaluator.load_tasks()
     results = evaluator.run_evaluation(tasks)
-    
+
     # Aggregate by task type
     by_type = {}
     for result in results:
@@ -638,12 +640,12 @@ def run_protoreason_evaluation(model_name: str = "claude-sonnet-4-20250514") -> 
         if task_type not in by_type:
             by_type[task_type] = []
         by_type[task_type].append(result.scores)
-    
+
     return {
         "model": model_name,
         "num_tasks": len(results),
         "results_by_type": by_type,
-        "raw_results": [r.__dict__ for r in results]
+        "raw_results": [r.__dict__ for r in results],
     }
 
 

@@ -27,8 +27,7 @@ def _hash_results(results: list[dict]) -> str:
             if isinstance(r, dict):
                 # Hash key score fields (sorted for determinism)
                 for key in sorted(r.keys()):
-                    if key in ("response", "timestamp", "flaw_match_details",
-                               "turn_scores", "details"):
+                    if key in ("response", "timestamp", "flaw_match_details", "turn_scores", "details"):
                         continue
                     val = r.get(key)
                     if isinstance(val, (int, float)):
@@ -128,6 +127,7 @@ def verify_quality_separation() -> dict:
             scores[quality] = analysis["overall"]["mean"]
         finally:
             import os
+
             os.unlink(tmppath)
 
     ordering_correct = scores["good"] > scores["mixed"] > scores["bad"]
@@ -137,9 +137,7 @@ def verify_quality_separation() -> dict:
         "passed": ordering_correct,
         "scores": {q: round(s, 4) for q, s in scores.items()},
         "expected_order": "good > mixed > bad",
-        "actual_order": " > ".join(
-            sorted(scores.keys(), key=lambda x: scores[x], reverse=True)
-        ),
+        "actual_order": " > ".join(sorted(scores.keys(), key=lambda x: scores[x], reverse=True)),
     }
 
 
@@ -159,8 +157,7 @@ def verify_component_coverage() -> dict:
     for comp_result in result["results"]:
         comp = comp_result["component"]
         n_total = comp_result["num_tasks"]
-        n_errors = sum(1 for r in comp_result["results"]
-                       if isinstance(r, dict) and "error" in r and "score" not in r)
+        n_errors = sum(1 for r in comp_result["results"] if isinstance(r, dict) and "error" in r and "score" not in r)
 
         # Try to normalize and get scores
         scores = []
@@ -187,9 +184,17 @@ def verify_component_coverage() -> dict:
 
     all_error_free = all(c["error_free"] for c in components.values())
     all_scored = all(c["n_scored"] > 0 for c in components.values())
-    expected_components = {"protoreason", "causalbio", "designcheck",
-                           "adversarial", "multiturn", "calibration",
-                           "biosafety", "datainterp", "debate"}
+    expected_components = {
+        "protoreason",
+        "causalbio",
+        "designcheck",
+        "adversarial",
+        "multiturn",
+        "calibration",
+        "biosafety",
+        "datainterp",
+        "debate",
+    }
     all_present = set(components.keys()) == expected_components
 
     return {
@@ -232,6 +237,7 @@ def run_reproducibility_suite() -> dict:
 # TEXT OUTPUT
 # =============================================================================
 
+
 def print_reproducibility(suite: dict | None = None):
     """Print reproducibility verification results."""
     if suite is None:
@@ -267,7 +273,8 @@ def print_reproducibility(suite: dict | None = None):
         elif name == "component_coverage":
             for comp, info in result.get("components", {}).items():
                 err_mark = "" if info["error_free"] else " [ERRORS]"
-                print(f"      {comp}: {info['n_scored']}/{info['n_tasks']} scored, "
-                      f"mean={info['mean_score']:.3f}{err_mark}")
+                print(
+                    f"      {comp}: {info['n_scored']}/{info['n_tasks']} scored, " f"mean={info['mean_score']:.3f}{err_mark}"
+                )
 
     return suite

@@ -35,23 +35,23 @@ CLINICAL_DESIGNS = [
                 "type": "missing_control_arm",
                 "severity": "critical",
                 "explanation": "Single-arm design cannot distinguish drug effect from natural disease variation",
-                "fix": "Use historical controls or randomized design, acknowledge limitation"
+                "fix": "Use historical controls or randomized design, acknowledge limitation",
             },
             {
                 "category": "statistics",
                 "type": "underpowered",
                 "severity": "critical",
                 "explanation": "Heterogeneous tumor types dilutes signal - each may have different response rate",
-                "fix": "Focus on single tumor type or pre-specify tumor-specific cohorts"
+                "fix": "Focus on single tumor type or pre-specify tumor-specific cohorts",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "30% ORR in mixed tumors without comparator is insufficient for Phase III",
-                "fix": "More measured conclusion about need for biomarker selection or randomized data"
-            }
-        ]
+                "fix": "More measured conclusion about need for biomarker selection or randomized data",
+            },
+        ],
     },
     {
         "id": "clinical_002",
@@ -77,30 +77,30 @@ CLINICAL_DESIGNS = [
                 "type": "confounding_by_indication",
                 "severity": "critical",
                 "explanation": "Cannot distinguish prognostic vs predictive value - no untreated arm",
-                "fix": "Need patients who didn't receive chemo to separate prognosis from prediction"
+                "fix": "Need patients who didn't receive chemo to separate prognosis from prediction",
             },
             {
                 "category": "statistics",
                 "type": "overfitting",
                 "severity": "critical",
                 "explanation": "Signature developed and validated in same cohort - need independent validation",
-                "fix": "Split into training/validation or use external cohort"
+                "fix": "Split into training/validation or use external cohort",
             },
             {
                 "category": "confounders",
                 "type": "incomplete_adjustment",
                 "severity": "major",
                 "explanation": "Only adjusted for age and stage - missing performance status, comorbidities",
-                "fix": "Adjust for all known prognostic factors"
+                "fix": "Adjust for all known prognostic factors",
             },
             {
                 "category": "interpretation",
                 "type": "correlation_causation",
                 "severity": "major",
                 "explanation": "'Predicts benefit' implies interaction not demonstrated",
-                "fix": "Test for interaction: signature × treatment in survival model"
-            }
-        ]
+                "fix": "Test for interaction: signature × treatment in survival model",
+            },
+        ],
     },
     {
         "id": "clinical_003",
@@ -127,24 +127,24 @@ CLINICAL_DESIGNS = [
                 "type": "time_confound",
                 "severity": "critical",
                 "explanation": "Sequential enrollment confounds device with learning curve and time trends",
-                "fix": "Randomize patients to device vs standard"
+                "fix": "Randomize patients to device vs standard",
             },
             {
                 "category": "confounders",
                 "type": "operator_effect",
                 "severity": "critical",
                 "explanation": "Surgeon experience increased during study - later cases benefit from learning",
-                "fix": "Account for surgeon experience, randomize to control temporal effects"
+                "fix": "Account for surgeon experience, randomize to control temporal effects",
             },
             {
                 "category": "statistics",
                 "type": "multiple_testing",
                 "severity": "major",
                 "explanation": "Two primary endpoints tested without correction",
-                "fix": "Pre-specify single primary endpoint or adjust alpha"
-            }
-        ]
-    }
+                "fix": "Pre-specify single primary endpoint or adjust alpha",
+            },
+        ],
+    },
 ]
 
 
@@ -179,30 +179,30 @@ ANIMAL_DESIGNS = [
                 "type": "underpowered",
                 "severity": "critical",
                 "explanation": "n=5 per group is underpowered for tumor xenograft variability",
-                "fix": "Power calculation typically requires n=8-10 per group for 80% power"
+                "fix": "Power calculation typically requires n=8-10 per group for 80% power",
             },
             {
                 "category": "interpretation",
                 "type": "wrong_synergy_claim",
                 "severity": "critical",
                 "explanation": "Synergy requires specific statistical test (Bliss, Loewe) - 'better than each alone' is additive",
-                "fix": "Calculate combination index or use Bliss independence model"
+                "fix": "Calculate combination index or use Bliss independence model",
             },
             {
                 "category": "statistics",
                 "type": "multiple_comparisons",
                 "severity": "major",
                 "explanation": "Only compared combo to vehicle - need all pairwise comparisons with correction",
-                "fix": "ANOVA with post-hoc test (Tukey/Dunnett)"
+                "fix": "ANOVA with post-hoc test (Tukey/Dunnett)",
             },
             {
                 "category": "confounders",
                 "type": "missing_randomization_details",
                 "severity": "minor",
                 "explanation": "Randomization method not specified",
-                "fix": "Describe randomization method and whether treatment was blinded"
-            }
-        ]
+                "fix": "Describe randomization method and whether treatment was blinded",
+            },
+        ],
     },
     {
         "id": "animal_002",
@@ -229,30 +229,30 @@ ANIMAL_DESIGNS = [
                 "type": "underpowered",
                 "severity": "major",
                 "explanation": "n=6 for behavioral studies typically underpowered due to high variability",
-                "fix": "Power analysis for behavioral endpoints typically requires n=10-15"
+                "fix": "Power analysis for behavioral endpoints typically requires n=10-15",
             },
             {
                 "category": "confounders",
                 "type": "single_sex",
                 "severity": "major",
                 "explanation": "Only male mice tested - sex differences are common in metabolism and behavior",
-                "fix": "Include both sexes and analyze as a factor, or justify single-sex with literature"
+                "fix": "Include both sexes and analyze as a factor, or justify single-sex with literature",
             },
             {
                 "category": "controls",
                 "type": "genetic_background",
                 "severity": "major",
                 "explanation": "Backcross generation not specified - could have mixed background effects",
-                "fix": "Specify backcross generation (>N10 for congenic) or use multiple backgrounds"
+                "fix": "Specify backcross generation (>N10 for congenic) or use multiple backgrounds",
             },
             {
                 "category": "statistics",
                 "type": "multiple_testing",
                 "severity": "major",
                 "explanation": "Multiple phenotypes tested without correction",
-                "fix": "Pre-specify primary endpoint or correct for multiple testing"
-            }
-        ]
+                "fix": "Pre-specify primary endpoint or correct for multiple testing",
+            },
+        ],
     },
     {
         "id": "animal_003",
@@ -279,24 +279,24 @@ ANIMAL_DESIGNS = [
                 "type": "insufficient_replicates",
                 "severity": "major",
                 "explanation": "n=3 provides unreliable PK parameters due to inter-animal variability",
-                "fix": "n=3-5 per time point with sparse sampling or composite design"
+                "fix": "n=3-5 per time point with sparse sampling or composite design",
             },
             {
                 "category": "interpretation",
                 "type": "extrapolation",
                 "severity": "major",
                 "explanation": "'Once-daily dosing' claim requires knowing target concentration, not just half-life",
-                "fix": "Relate PK to efficacy data or target coverage"
+                "fix": "Relate PK to efficacy data or target coverage",
             },
             {
                 "category": "technical",
                 "type": "missing_validation",
                 "severity": "minor",
                 "explanation": "LC-MS method validation not mentioned",
-                "fix": "Report assay validation parameters (LOQ, linearity, recovery)"
-            }
-        ]
-    }
+                "fix": "Report assay validation parameters (LOQ, linearity, recovery)",
+            },
+        ],
+    },
 ]
 
 
@@ -330,23 +330,23 @@ SEQUENCING_DESIGNS = [
                 "type": "insufficient_replicates",
                 "severity": "critical",
                 "explanation": "n=2 provides very low statistical power for DE analysis",
-                "fix": "Minimum n=3, ideally n=4+ for robust DE detection"
+                "fix": "Minimum n=3, ideally n=4+ for robust DE detection",
             },
             {
                 "category": "confounders",
                 "type": "batch_unknown",
                 "severity": "major",
                 "explanation": "Batch information not provided - could confound treatment",
-                "fix": "Process all samples in single batch or include batch as covariate"
+                "fix": "Process all samples in single batch or include batch as covariate",
             },
             {
                 "category": "interpretation",
                 "type": "overstatement",
                 "severity": "major",
                 "explanation": "2,500 DEGs at n=2 likely includes many false positives",
-                "fix": "Use more stringent thresholds (FDR<0.01, fold change>2) or validate hits"
-            }
-        ]
+                "fix": "Use more stringent thresholds (FDR<0.01, fold change>2) or validate hits",
+            },
+        ],
     },
     {
         "id": "seq_002",
@@ -374,30 +374,30 @@ SEQUENCING_DESIGNS = [
                 "type": "underpowered",
                 "severity": "major",
                 "explanation": "n=3 tumors insufficient to claim 'tumor-specific' - could be patient-specific",
-                "fix": "Larger cohort or validate in independent dataset"
+                "fix": "Larger cohort or validate in independent dataset",
             },
             {
                 "category": "technical",
                 "type": "clustering_artifact",
                 "severity": "major",
                 "explanation": "Default Seurat parameters may overclustering - resolution not reported",
-                "fix": "Report resolution parameter, validate clusters are robust"
+                "fix": "Report resolution parameter, validate clusters are robust",
             },
             {
                 "category": "interpretation",
                 "type": "causation_claim",
                 "severity": "major",
                 "explanation": "'Promotes cancer' is causal claim not supported by correlative data",
-                "fix": "Describe as 'associated with' tumors, suggest functional validation"
+                "fix": "Describe as 'associated with' tumors, suggest functional validation",
             },
             {
                 "category": "confounders",
                 "type": "batch_effect",
                 "severity": "major",
                 "explanation": "Tumor vs normal from same patients? Processed same day? Unclear",
-                "fix": "Describe sample pairing and batch design, use integration methods"
-            }
-        ]
+                "fix": "Describe sample pairing and batch design, use integration methods",
+            },
+        ],
     },
     {
         "id": "seq_003",
@@ -425,31 +425,31 @@ SEQUENCING_DESIGNS = [
                 "type": "insufficient_replicates",
                 "severity": "critical",
                 "explanation": "n=1 ChIP-seq cannot distinguish signal from noise/artifact",
-                "fix": "Minimum n=2 biological replicates, ENCODE requires n=2 with IDR"
+                "fix": "Minimum n=2 biological replicates, ENCODE requires n=2 with IDR",
             },
             {
                 "category": "interpretation",
                 "type": "direct_regulation_claim",
                 "severity": "major",
                 "explanation": "'Directly regulates' requires functional evidence - binding doesn't equal regulation",
-                "fix": "Say 'binds near' rather than 'directly regulates'"
+                "fix": "Say 'binds near' rather than 'directly regulates'",
             },
             {
                 "category": "technical",
                 "type": "peak_assignment",
                 "severity": "major",
                 "explanation": "Nearest gene assignment is simplistic - may miss distal regulation",
-                "fix": "Use chromatin interaction data (Hi-C) or more sophisticated assignment"
+                "fix": "Use chromatin interaction data (Hi-C) or more sophisticated assignment",
             },
             {
                 "category": "controls",
                 "type": "missing_controls",
                 "severity": "minor",
                 "explanation": "No mention of spike-in controls for quantitative comparison",
-                "fix": "Include spike-in for quantitative analysis if comparing conditions"
-            }
-        ]
-    }
+                "fix": "Include spike-in for quantitative analysis if comparing conditions",
+            },
+        ],
+    },
 ]
 
 
@@ -483,30 +483,30 @@ MULTICENTER_DESIGNS = [
                 "type": "site_heterogeneity",
                 "severity": "critical",
                 "explanation": "Different collection protocols could introduce site-specific bias",
-                "fix": "Standardize protocols or analyze site as a covariate"
+                "fix": "Standardize protocols or analyze site as a covariate",
             },
             {
                 "category": "statistics",
                 "type": "pooled_analysis",
                 "severity": "major",
                 "explanation": "Pooling ignores site-specific performance - should analyze per-site first",
-                "fix": "Report per-site results and test for heterogeneity"
+                "fix": "Report per-site results and test for heterogeneity",
             },
             {
                 "category": "confounders",
                 "type": "population_differences",
                 "severity": "major",
                 "explanation": "Different demographics, disease stages, comorbidities by site not addressed",
-                "fix": "Report demographics by site, stratify or adjust analysis"
+                "fix": "Report demographics by site, stratify or adjust analysis",
             },
             {
                 "category": "technical",
                 "type": "preanalytical_variables",
                 "severity": "major",
                 "explanation": "Shipping conditions, storage time, processing delays not standardized",
-                "fix": "Record and analyze impact of preanalytical variables"
-            }
-        ]
+                "fix": "Record and analyze impact of preanalytical variables",
+            },
+        ],
     }
 ]
 
@@ -515,13 +515,14 @@ MULTICENTER_DESIGNS = [
 # COMBINED FUNCTIONS
 # =============================================================================
 
+
 def get_all_advanced_designs():
     """Return all advanced flawed designs."""
     return {
         "clinical": CLINICAL_DESIGNS,
         "animal": ANIMAL_DESIGNS,
         "sequencing": SEQUENCING_DESIGNS,
-        "multicenter": MULTICENTER_DESIGNS
+        "multicenter": MULTICENTER_DESIGNS,
     }
 
 
@@ -529,19 +530,15 @@ def get_advanced_design_statistics():
     """Return statistics for advanced designs."""
     all_designs = get_all_advanced_designs()
     total_designs = sum(len(v) for v in all_designs.values())
-    total_flaws = sum(
-        len(d["flaws"]) 
-        for designs in all_designs.values() 
-        for d in designs
-    )
-    
+    total_flaws = sum(len(d["flaws"]) for designs in all_designs.values() for d in designs)
+
     return {
         "clinical_designs": len(CLINICAL_DESIGNS),
         "animal_designs": len(ANIMAL_DESIGNS),
         "sequencing_designs": len(SEQUENCING_DESIGNS),
         "multicenter_designs": len(MULTICENTER_DESIGNS),
         "total_advanced_designs": total_designs,
-        "total_advanced_flaws": total_flaws
+        "total_advanced_flaws": total_flaws,
     }
 
 

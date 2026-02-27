@@ -16,7 +16,7 @@ DEFAULT_JUDGE_MODEL = "claude-sonnet-4-20250514"
 SUPPORTED_MODELS = {
     "claude": [
         "claude-sonnet-4-20250514",
-        "claude-opus-4-20250514", 
+        "claude-opus-4-20250514",
         "claude-haiku-3-5-20241022",
     ],
     "openai": [
@@ -24,7 +24,7 @@ SUPPORTED_MODELS = {
         "gpt-4-turbo",
         "gpt-4o",
         "gpt-3.5-turbo",
-    ]
+    ],
 }
 
 # =============================================================================
@@ -58,11 +58,7 @@ HIGH_CONFIDENCE_THRESHOLD = 0.7
 LOW_CONFIDENCE_THRESHOLD = 0.4
 
 # Calibration buckets
-CONFIDENCE_BUCKETS = {
-    "high": (0.7, 1.0),
-    "medium": (0.4, 0.7),
-    "low": (0.0, 0.4)
-}
+CONFIDENCE_BUCKETS = {"high": (0.7, 1.0), "medium": (0.4, 0.7), "low": (0.0, 0.4)}
 
 # =============================================================================
 # TASK CONFIGURATION
@@ -83,22 +79,9 @@ COMPONENTS = [
 
 # Task types by component
 TASK_TYPES = {
-    "protoreason": [
-        "step_ordering",
-        "missing_step",
-        "calculation",
-        "troubleshooting",
-        "safety"
-    ],
-    "causalbio": [
-        "knockout_prediction",
-        "pathway_reasoning",
-        "drug_response",
-        "epistasis"
-    ],
-    "designcheck": [
-        "flaw_detection"
-    ],
+    "protoreason": ["step_ordering", "missing_step", "calculation", "troubleshooting", "safety"],
+    "causalbio": ["knockout_prediction", "pathway_reasoning", "drug_response", "epistasis"],
+    "designcheck": ["flaw_detection"],
     "adversarial": [
         "false_premise",
         "hallucination_trap",
@@ -107,44 +90,26 @@ TASK_TYPES = {
         "contradictory",
         "plausible_nonsense",
         "overly_specific",
-        "outdated_knowledge"
+        "outdated_knowledge",
     ],
-    "multiturn": [
-        "hypothesis_refinement",
-        "experimental_design",
-        "troubleshooting",
-        "data_interpretation",
-        "peer_review"
-    ],
+    "multiturn": ["hypothesis_refinement", "experimental_design", "troubleshooting", "data_interpretation", "peer_review"],
     "calibration": [
         "acknowledge_unknown",
         "high_confidence_correct",
         "partial_knowledge",
         "context_dependent",
         "moderate_confidence",
-        "overconfidence_trap"
+        "overconfidence_trap",
     ],
-    "biosafety": [
-        "bsl_classification",
-        "dual_use_recognition",
-        "responsible_refusal",
-        "risk_assessment",
-        "ethics_reasoning"
-    ],
-    "datainterp": [
-        "qpcr_analysis",
-        "dose_response",
-        "statistical_test",
-        "survival_analysis",
-        "multi_assay"
-    ],
+    "biosafety": ["bsl_classification", "dual_use_recognition", "responsible_refusal", "risk_assessment", "ethics_reasoning"],
+    "datainterp": ["qpcr_analysis", "dose_response", "statistical_test", "survival_analysis", "multi_assay"],
     "debate": [
         "variant_interpretation",
         "differential_diagnosis",
         "experimental_critique",
         "evidence_synthesis",
-        "mechanism_dispute"
-    ]
+        "mechanism_dispute",
+    ],
 }
 
 # =============================================================================

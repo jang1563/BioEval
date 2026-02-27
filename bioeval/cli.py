@@ -106,6 +106,7 @@ def cmd_inventory(args):
 
     # Adversarial breakdown
     from collections import Counter
+
     type_counts = Counter(t.adversarial_type.value for t in ADVERSARIAL_TASKS)
     print(f"\nAdversarial breakdown:")
     for t, c in sorted(type_counts.items()):
@@ -129,6 +130,7 @@ def cmd_run(args):
     random.seed(args.seed)
     try:
         import numpy as np
+
         np.random.seed(args.seed)
     except Exception:
         pass
@@ -150,6 +152,7 @@ def cmd_run(args):
     judge = None
     if args.use_judge:
         from bioeval.scoring.llm_judge import LLMJudge
+
         judge_model = args.judge_model or "claude-sonnet-4-20250514"
         judge = LLMJudge(judge_model=judge_model)
         print(f"  LLM Judge enabled (model: {judge_model})")
@@ -194,14 +197,17 @@ def cmd_run(args):
             print(f"{'=' * 60}")
 
             try:
-                _agent_models_str = getattr(args, 'agent_models', None)
-                _agent_models = _agent_models_str.split(',') if _agent_models_str else None
+                _agent_models_str = getattr(args, "agent_models", None)
+                _agent_models = _agent_models_str.split(",") if _agent_models_str else None
                 result = _run_component(
-                    comp, model, data_tier=args.data_tier,
-                    judge=judge, split=args.split,
-                    debate_protocol=getattr(args, 'debate_protocol', 'simultaneous'),
-                    debate_agents=getattr(args, 'debate_agents', 3),
-                    debate_rounds=getattr(args, 'debate_rounds', 3),
+                    comp,
+                    model,
+                    data_tier=args.data_tier,
+                    judge=judge,
+                    split=args.split,
+                    debate_protocol=getattr(args, "debate_protocol", "simultaneous"),
+                    debate_agents=getattr(args, "debate_agents", 3),
+                    debate_rounds=getattr(args, "debate_rounds", 3),
                     agent_models=_agent_models,
                 )
                 all_results.append(result)
@@ -241,6 +247,7 @@ def cmd_run(args):
     output_data = multi_run_results[-1]
     if n_runs > 1:
         from bioeval.scoring.splits import aggregate_multi_run
+
         output_data["multi_run_aggregation"] = aggregate_multi_run(multi_run_results)
 
     # Output path
@@ -267,15 +274,25 @@ def cmd_run(args):
         print(f"\nMulti-run aggregation:")
         for comp, agg in output_data["multi_run_aggregation"].get("by_component", {}).items():
             ci = agg.get("pass_rate_ci", {})
-            print(f"  {comp}: mean={agg.get('mean_score', '?'):.4f} "
-                  f"(std={agg.get('std_score', '?'):.4f}), "
-                  f"pass_rate 95% CI: [{ci.get('lower', '?'):.3f}, {ci.get('upper', '?'):.3f}]")
+            print(
+                f"  {comp}: mean={agg.get('mean_score', '?'):.4f} "
+                f"(std={agg.get('std_score', '?'):.4f}), "
+                f"pass_rate 95% CI: [{ci.get('lower', '?'):.3f}, {ci.get('upper', '?'):.3f}]"
+            )
     print(f"\nResults saved to: {output_path}")
 
 
-def _run_component(component: str, model: str, data_tier: str = "base", judge=None, split: str = "all",
-                    debate_protocol: str = "simultaneous", debate_agents: int = 3,
-                    debate_rounds: int = 3, agent_models=None) -> dict:
+def _run_component(
+    component: str,
+    model: str,
+    data_tier: str = "base",
+    judge=None,
+    split: str = "all",
+    debate_protocol: str = "simultaneous",
+    debate_agents: int = 3,
+    debate_rounds: int = 3,
+    agent_models=None,
+) -> dict:
     """Run a single evaluation component.
 
     Args:
@@ -291,38 +308,47 @@ def _run_component(component: str, model: str, data_tier: str = "base", judge=No
     """
     if component == "protoreason":
         from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+
         evaluator = ProtoReasonEvaluator(model)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "causalbio":
         from bioeval.causalbio.evaluator import CausalBioEvaluator
+
         evaluator = CausalBioEvaluator(model)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "designcheck":
         from bioeval.designcheck.evaluator import DesignCheckEvaluator
+
         evaluator = DesignCheckEvaluator(model)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "adversarial":
         from bioeval.adversarial.tasks import AdversarialEvaluator
+
         evaluator = AdversarialEvaluator(model)
         tasks = evaluator.load_tasks()
     elif component == "multiturn":
         from bioeval.multiturn.dialogues import MultiTurnEvaluator
+
         evaluator = MultiTurnEvaluator(model)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "calibration":
         from bioeval.scoring.calibration import CalibrationEvaluator
+
         evaluator = CalibrationEvaluator(model)
         tasks = evaluator.load_tasks()
     elif component == "biosafety":
         from bioeval.biosafety.tasks import BiosafetyEvaluator
+
         evaluator = BiosafetyEvaluator(model)
         tasks = evaluator.load_tasks()
     elif component == "datainterp":
         from bioeval.datainterp.tasks import DataInterpEvaluator
+
         evaluator = DataInterpEvaluator(model)
         tasks = evaluator.load_tasks()
     elif component == "debate":
         from bioeval.debate.evaluator import DebateEvaluator
+
         evaluator = DebateEvaluator(
             model_name=model,
             protocol=debate_protocol,
@@ -351,6 +377,7 @@ def _run_component(component: str, model: str, data_tier: str = "base", judge=No
     # Apply test split if requested
     if split and split != "all":
         from bioeval.scoring.splits import get_split
+
         filtered = []
         for t in tasks:
             tid = t.id if hasattr(t, "id") else (t.get("id") if isinstance(t, dict) else "")
@@ -414,10 +441,7 @@ def _aggregate(all_results: list[dict]) -> dict:
     for cr in all_results:
         comp = cr.get("component", "unknown")
         n = cr.get("num_tasks", 0)
-        completed = len([
-            r for r in cr.get("results", [])
-            if not (isinstance(r, dict) and "error" in r)
-        ])
+        completed = len([r for r in cr.get("results", []) if not (isinstance(r, dict) and "error" in r)])
         summary["total_tasks"] += n
         summary["by_component"][comp] = {"num_tasks": n, "completed": completed}
     return summary
@@ -502,32 +526,38 @@ def main():
     run_parser.add_argument("--model", "-m", default="claude-sonnet-4-20250514", help="Model to evaluate")
     run_parser.add_argument("--all", action="store_true", help="Run all components")
     run_parser.add_argument(
-        "--component", "-c", nargs="+", choices=COMPONENTS,
+        "--component",
+        "-c",
+        nargs="+",
+        choices=COMPONENTS,
         help="Specific component(s) to run",
     )
-    run_parser.add_argument("--data-tier", choices=["base", "extended", "advanced", "all"], default="base",
-                           help="Data tier to use (default: base)")
+    run_parser.add_argument(
+        "--data-tier", choices=["base", "extended", "advanced", "all"], default="base", help="Data tier to use (default: base)"
+    )
     run_parser.add_argument("--dry-run", action="store_true", help="Show task inventory, no API calls")
-    run_parser.add_argument("--use-judge", action="store_true",
-                           help="Enable LLM-as-Judge scoring alongside standard metrics")
-    run_parser.add_argument("--judge-model", default=None,
-                           help="Model for LLM judge (default: claude-sonnet-4-20250514)")
+    run_parser.add_argument("--use-judge", action="store_true", help="Enable LLM-as-Judge scoring alongside standard metrics")
+    run_parser.add_argument("--judge-model", default=None, help="Model for LLM judge (default: claude-sonnet-4-20250514)")
     run_parser.add_argument("--output", "-o", help="Output file path")
-    run_parser.add_argument("--split", choices=["all", "public", "private"], default="all",
-                           help="Which test split to run (default: all)")
-    run_parser.add_argument("--runs", type=int, default=1,
-                           help="Number of evaluation runs for multi-run aggregation")
-    run_parser.add_argument("--seed", type=int, default=42,
-                           help="Random seed for reproducibility (default: 42)")
-    run_parser.add_argument("--debate-protocol",
+    run_parser.add_argument(
+        "--split", choices=["all", "public", "private"], default="all", help="Which test split to run (default: all)"
+    )
+    run_parser.add_argument("--runs", type=int, default=1, help="Number of evaluation runs for multi-run aggregation")
+    run_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
+    run_parser.add_argument(
+        "--debate-protocol",
         choices=["round_robin", "simultaneous", "judge_mediated"],
-        default="simultaneous", help="Debate protocol (debate component only)")
-    run_parser.add_argument("--debate-agents", type=int, default=3,
-        help="Number of debate agents (debate component only)")
-    run_parser.add_argument("--debate-rounds", type=int, default=3,
-        help="Max debate rounds (debate component only)")
-    run_parser.add_argument("--agent-models", type=str, default=None,
-        help="Comma-separated model names for heterogeneous debate (e.g., claude-sonnet-4-20250514,gpt-4o)")
+        default="simultaneous",
+        help="Debate protocol (debate component only)",
+    )
+    run_parser.add_argument("--debate-agents", type=int, default=3, help="Number of debate agents (debate component only)")
+    run_parser.add_argument("--debate-rounds", type=int, default=3, help="Max debate rounds (debate component only)")
+    run_parser.add_argument(
+        "--agent-models",
+        type=str,
+        default=None,
+        help="Comma-separated model names for heterogeneous debate (e.g., claude-sonnet-4-20250514,gpt-4o)",
+    )
 
     # --- inventory ---
     subparsers.add_parser("inventory", help="Show complete task inventory")
@@ -542,8 +572,7 @@ def main():
 
     # --- stats ---
     stats_parser = subparsers.add_parser("stats", help="Show benchmark statistics (NeurIPS)")
-    stats_parser.add_argument("--data-tier", choices=["base", "extended", "all"], default="base",
-                              help="Data tier to analyze")
+    stats_parser.add_argument("--data-tier", choices=["base", "extended", "all"], default="base", help="Data tier to analyze")
     stats_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # --- datasheet ---
@@ -576,15 +605,15 @@ def main():
 
     # --- validate ---
     val_parser = subparsers.add_parser("validate", help="Validate task data quality")
-    val_parser.add_argument("--data-tier", choices=["base", "extended", "all"], default="base",
-                            help="Data tier to validate")
+    val_parser.add_argument("--data-tier", choices=["base", "extended", "all"], default="base", help="Data tier to validate")
     val_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # --- stability ---
     stab_parser = subparsers.add_parser("stability", help="Score stability analysis")
     stab_parser.add_argument("result_file", help="Result JSON file")
-    stab_parser.add_argument("--perturbations", "-n", type=int, default=5,
-                             help="Number of perturbations per task (default: 5)")
+    stab_parser.add_argument(
+        "--perturbations", "-n", type=int, default=5, help="Number of perturbations per task (default: 5)"
+    )
     stab_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # --- agreement ---
@@ -595,12 +624,9 @@ def main():
     # --- judge-pack ---
     jv_parser = subparsers.add_parser("judge-pack", help="Generate human validation pack for judge calibration")
     jv_parser.add_argument("result_file", help="Result JSON file with judge_scores")
-    jv_parser.add_argument("--output-dir", "-o", default="results/validation",
-                           help="Directory to write validation artifacts")
-    jv_parser.add_argument("--sample-size", "-n", type=int, default=50,
-                           help="Number of tasks to sample for human validation")
-    jv_parser.add_argument("--seed", type=int, default=42,
-                           help="Sampling seed (default: 42)")
+    jv_parser.add_argument("--output-dir", "-o", default="results/validation", help="Directory to write validation artifacts")
+    jv_parser.add_argument("--sample-size", "-n", type=int, default=50, help="Number of tasks to sample for human validation")
+    jv_parser.add_argument("--seed", type=int, default=42, help="Sampling seed (default: 42)")
 
     # --- difficulty ---
     diff_parser = subparsers.add_parser("difficulty", help="Task difficulty analysis and rebalancing")
@@ -618,32 +644,36 @@ def main():
 
     # --- adapt ---
     adapt_parser = subparsers.add_parser("adapt", help="Convert external benchmark JSON to BioEval schema")
-    adapt_parser.add_argument("benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"],
-                              help="Source benchmark format")
+    adapt_parser.add_argument("benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"], help="Source benchmark format")
     adapt_parser.add_argument("input_file", help="Input JSON file in source benchmark format")
     adapt_parser.add_argument("--output", "-o", help="Output BioEval JSON path")
-    adapt_parser.add_argument("--model", default="external-model",
-                              help="Model label to store in converted metadata")
-    adapt_parser.add_argument("--split", choices=["all", "public", "private"], default="all",
-                              help="Split tag to store in converted metadata")
-    adapt_parser.add_argument("--strict", action="store_true",
-                              help="Fail on malformed/missing score records")
+    adapt_parser.add_argument("--model", default="external-model", help="Model label to store in converted metadata")
+    adapt_parser.add_argument(
+        "--split", choices=["all", "public", "private"], default="all", help="Split tag to store in converted metadata"
+    )
+    adapt_parser.add_argument("--strict", action="store_true", help="Fail on malformed/missing score records")
 
     # --- validate-adapter ---
     vadapt_parser = subparsers.add_parser("validate-adapter", help="Validate external benchmark adapter input JSON")
-    vadapt_parser.add_argument("benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"],
-                               help="Source benchmark format")
+    vadapt_parser.add_argument(
+        "benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"], help="Source benchmark format"
+    )
     vadapt_parser.add_argument("input_file", help="Input JSON file to validate")
-    vadapt_parser.add_argument("--schema-check", action="store_true",
-                               help="Run bundled JSON Schema validation (requires jsonschema package)")
-    vadapt_parser.add_argument("--strict", action="store_true",
-                               help="Fail validation if warnings are present")
+    vadapt_parser.add_argument(
+        "--schema-check", action="store_true", help="Run bundled JSON Schema validation (requires jsonschema package)"
+    )
+    vadapt_parser.add_argument("--strict", action="store_true", help="Fail validation if warnings are present")
     vadapt_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # --- simulate ---
     sim_parser = subparsers.add_parser("simulate", help="Run simulation with synthetic responses (no API)")
-    sim_parser.add_argument("--quality", "-q", choices=["good", "bad", "mixed"], default="mixed",
-                            help="Quality of synthetic responses (default: mixed)")
+    sim_parser.add_argument(
+        "--quality",
+        "-q",
+        choices=["good", "bad", "mixed"],
+        default="mixed",
+        help="Quality of synthetic responses (default: mixed)",
+    )
     sim_parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     sim_parser.add_argument("--output", "-o", help="Output file path")
     sim_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
@@ -663,6 +693,7 @@ def main():
         cmd_demo(args)
     elif args.command == "stats":
         from bioeval.reporting.statistics import compute_benchmark_statistics, print_statistics
+
         if args.json:
             stats = compute_benchmark_statistics(args.data_tier)
             print(json.dumps(stats, indent=2, default=str))
@@ -670,6 +701,7 @@ def main():
             print_statistics(args.data_tier)
     elif args.command == "datasheet":
         from bioeval.reporting.datasheet import generate_datasheet, print_datasheet
+
         if args.json:
             ds = generate_datasheet()
             print(json.dumps(ds, indent=2, default=str))
@@ -677,6 +709,7 @@ def main():
             print_datasheet()
     elif args.command == "analyze":
         from bioeval.reporting.analysis import analyze_results, print_analysis
+
         if args.json:
             analysis = analyze_results(args.result_file)
             print(json.dumps(analysis, indent=2, default=str))
@@ -684,10 +717,12 @@ def main():
             print_analysis(args.result_file)
     elif args.command == "contamination":
         from bioeval.reporting.analysis import detect_contamination
+
         result = detect_contamination(args.result_file)
         print(json.dumps(result, indent=2, default=str))
     elif args.command == "item-analysis":
         from bioeval.reporting.item_analysis import item_analysis, single_model_item_analysis, print_item_analysis
+
         if args.json:
             if len(args.result_files) == 1:
                 analysis = single_model_item_analysis(args.result_files[0])
@@ -698,6 +733,7 @@ def main():
             print_item_analysis(args.result_files)
     elif args.command == "ablation":
         from bioeval.reporting.ablation import run_ablation, print_ablation
+
         if args.json:
             result = run_ablation(args.result_file)
             print(json.dumps(result, indent=2, default=str))
@@ -705,21 +741,31 @@ def main():
             print_ablation(args.result_file)
     elif args.command == "dashboard":
         from bioeval.reporting.dashboard import generate_dashboard
+
         out = generate_dashboard(args.result_file, args.output)
         print(f"Dashboard generated: {out}")
     elif args.command == "validate":
         from bioeval.validation.task_checks import validate_all, validation_summary, print_validation
+
         if args.json:
             issues = validate_all(args.data_tier)
             summary = validation_summary(issues)
-            summary["issues"] = [{"severity": i.severity, "component": i.component,
-                                   "task_id": i.task_id, "field": i.field,
-                                   "message": i.message} for i in issues]
+            summary["issues"] = [
+                {
+                    "severity": i.severity,
+                    "component": i.component,
+                    "task_id": i.task_id,
+                    "field": i.field,
+                    "message": i.message,
+                }
+                for i in issues
+            ]
             print(json.dumps(summary, indent=2))
         else:
             print_validation(args.data_tier)
     elif args.command == "stability":
         from bioeval.reporting.stability import measure_stability, print_stability
+
         if args.json:
             result = measure_stability(args.result_file, args.perturbations)
             # Remove per-task detail for JSON brevity
@@ -729,6 +775,7 @@ def main():
             print_stability(args.result_file, args.perturbations)
     elif args.command == "difficulty":
         from bioeval.reporting.difficulty import analyze_difficulty, print_difficulty
+
         if args.json:
             result = analyze_difficulty(args.result_file)
             print(json.dumps(result, indent=2, default=str))
@@ -736,6 +783,7 @@ def main():
             print_difficulty(args.result_file)
     elif args.command == "agreement":
         from bioeval.reporting.agreement import analyze_agreement, print_agreement
+
         if args.json:
             result = analyze_agreement(args.result_file)
             print(json.dumps(result, indent=2, default=str))
@@ -743,6 +791,7 @@ def main():
             print_agreement(args.result_file)
     elif args.command == "judge-pack":
         from bioeval.reporting.judge_validation import generate_judge_validation_pack
+
         result = generate_judge_validation_pack(
             args.result_file,
             output_dir=args.output_dir,
@@ -752,6 +801,7 @@ def main():
         print(json.dumps(result, indent=2, default=str))
     elif args.command == "feedback":
         from bioeval.reporting.feedback import analyze_scoring_feedback, print_feedback
+
         if args.json:
             result = analyze_scoring_feedback(args.result_file)
             print(json.dumps(result, indent=2, default=str))
@@ -759,6 +809,7 @@ def main():
             print_feedback(args.result_file)
     elif args.command == "reproducibility":
         from bioeval.reporting.reproducibility import run_reproducibility_suite, print_reproducibility
+
         if args.json:
             suite = run_reproducibility_suite()
             print(json.dumps(suite, indent=2, default=str))
@@ -782,14 +833,20 @@ def main():
             split=args.split,
             strict=args.strict,
         )
-        print(json.dumps({
-            "ok": True,
-            "benchmark": args.benchmark,
-            "input_file": args.input_file,
-            "output_file": output_path,
-            "components": result.get("metadata", {}).get("components", []),
-            "total_tasks": result.get("summary", {}).get("total_tasks", 0),
-        }, indent=2, default=str))
+        print(
+            json.dumps(
+                {
+                    "ok": True,
+                    "benchmark": args.benchmark,
+                    "input_file": args.input_file,
+                    "output_file": output_path,
+                    "components": result.get("metadata", {}).get("components", []),
+                    "total_tasks": result.get("summary", {}).get("total_tasks", 0),
+                },
+                indent=2,
+                default=str,
+            )
+        )
     elif args.command == "validate-adapter":
         from bioeval.adapters import apply_strict_mode, validate_benchmark_file, validate_with_jsonschema
 
@@ -829,12 +886,12 @@ def main():
             if result["issues"]:
                 print("\nTop issues:")
                 for issue in result["issues"][:20]:
-                    print(f"  - [{issue['severity']}] record {issue['index']} "
-                          f"{issue['field']}: {issue['message']}")
+                    print(f"  - [{issue['severity']}] record {issue['index']} " f"{issue['field']}: {issue['message']}")
         if not result["ok"]:
             sys.exit(1)
     elif args.command == "simulate":
         from bioeval.simulation import run_simulation, print_simulation_summary
+
         result = run_simulation(quality=args.quality, seed=args.seed)
         # Save result
         if args.output:
@@ -846,10 +903,15 @@ def main():
             json.dump(result, f, indent=2, default=str)
         if args.json:
             from bioeval.reporting.analysis import analyze_results
+
             analysis = analyze_results(output_path)
-            print(json.dumps({"summary": analysis["overall"],
-                              "by_component": analysis["by_component"],
-                              "output_path": output_path}, indent=2, default=str))
+            print(
+                json.dumps(
+                    {"summary": analysis["overall"], "by_component": analysis["by_component"], "output_path": output_path},
+                    indent=2,
+                    default=str,
+                )
+            )
         else:
             print_simulation_summary(result)
             print(f"\nResults saved to: {output_path}")

@@ -26,8 +26,10 @@ from bioeval.version import __version__
 # DUMMY MODEL FOR BYPASSING API INITIALIZATION
 # =============================================================================
 
+
 class _DummyModel:
     """Dummy model that returns empty strings (never called in simulation)."""
+
     def generate(self, prompt, **kwargs):
         return ""
 
@@ -36,6 +38,7 @@ class _DummyModel:
 def _bypass_model_init():
     """Temporarily replace BaseEvaluator._init_model to skip API client setup."""
     from bioeval.models.base import BaseEvaluator
+
     orig = BaseEvaluator._init_model
     BaseEvaluator._init_model = lambda self, *a, **k: _DummyModel()
     try:
@@ -48,6 +51,7 @@ def _bypass_model_init():
 # RESPONSE GENERATORS BY COMPONENT
 # =============================================================================
 
+
 def _gen_protoreason(task, quality: str, rng: random.Random) -> str:
     """Generate synthetic response for a ProtoReason EvalTask."""
     gt = task.ground_truth
@@ -58,8 +62,10 @@ def _gen_protoreason(task, quality: str, rng: random.Random) -> str:
         n = len(steps) if steps else 5
         order = list(range(1, n + 1))
         if quality == "good":
-            return f"The correct order is: {', '.join(str(x) for x in order)}. " \
-                   f"This sequence follows the standard protocol flow."
+            return (
+                f"The correct order is: {', '.join(str(x) for x in order)}. "
+                f"This sequence follows the standard protocol flow."
+            )
         elif quality == "bad":
             rng.shuffle(order)
             return f"I think the order might be: {', '.join(str(x) for x in order)}."
@@ -134,8 +140,10 @@ def _gen_causalbio(task, quality: str, rng: random.Random) -> str:
         explanation = gt.get("explanation", gt.get("ground_truth", {}).get("explanation", ""))
         if quality == "good":
             cell_line = gt.get("cell_line", "this cell line")
-            return (f"Prediction: **{effect.capitalize()}**. In {cell_line}, "
-                    f"{explanation[:200]}. Confidence: High based on DepMap data.")
+            return (
+                f"Prediction: **{effect.capitalize()}**. In {cell_line}, "
+                f"{explanation[:200]}. Confidence: High based on DepMap data."
+            )
         elif quality == "bad":
             wrong = "non-essential" if effect == "essential" else "essential"
             return f"This gene is {wrong}."
@@ -162,8 +170,10 @@ def _gen_causalbio(task, quality: str, rng: random.Random) -> str:
         interaction = gt.get("interaction", gt.get("ground_truth", {}).get("interaction", "suppressive"))
         mechanism = gt.get("mechanism", gt.get("ground_truth", {}).get("mechanism", ""))
         if quality == "good":
-            return (f"Interaction Type: **{interaction.capitalize()}**. "
-                    f"{mechanism[:200]}. This is clinically relevant for combination therapy.")
+            return (
+                f"Interaction Type: **{interaction.capitalize()}**. "
+                f"{mechanism[:200]}. This is clinically relevant for combination therapy."
+            )
         elif quality == "bad":
             return "These genes interact somehow."
         else:
@@ -184,8 +194,7 @@ def _gen_causalbio(task, quality: str, rng: random.Random) -> str:
         elif quality == "bad":
             return "Some genes go up and some go down."
         else:
-            return (f"Upregulated: {', '.join(up[:2])}." if up and rng.random() < 0.5
-                    else "Not enough data to determine.")
+            return f"Upregulated: {', '.join(up[:2])}." if up and rng.random() < 0.5 else "Not enough data to determine."
 
     return "No prediction available."
 
@@ -232,24 +241,32 @@ def _gen_adversarial(task, quality: str, rng: random.Random) -> str:
 
     if quality == "good":
         if atype == "false_premise":
-            return (f"Actually, this is incorrect. {correct[:200]}. "
-                    "The premise contains a false claim that should be corrected.")
+            return (
+                f"Actually, this is incorrect. {correct[:200]}. "
+                "The premise contains a false claim that should be corrected."
+            )
         elif atype == "hallucination_trap":
-            return ("I'm not familiar with this specific entity. "
-                    "This doesn't appear to be a recognized concept in the literature. "
-                    "I don't want to fabricate information.")
+            return (
+                "I'm not familiar with this specific entity. "
+                "This doesn't appear to be a recognized concept in the literature. "
+                "I don't want to fabricate information."
+            )
         elif atype == "misleading_context":
             return f"Ignoring the misleading details, the key point is: {correct[:200]}"
         elif atype == "edge_case":
-            return (f"This is a paradox that requires nuance. {correct[:200]}. "
-                    "Context-dependent factors can lead to compensatory responses.")
+            return (
+                f"This is a paradox that requires nuance. {correct[:200]}. "
+                "Context-dependent factors can lead to compensatory responses."
+            )
         elif atype == "contradictory":
             return f"There is a contradiction in this question. {correct[:200]}"
         elif atype == "plausible_nonsense":
             return f"This mechanism is not scientifically supported. {correct[:200]}"
         elif atype == "overly_specific":
-            return (f"While the general principle is correct, the specific numbers "
-                    f"vary significantly depending on context. {correct[:150]}")
+            return (
+                f"While the general principle is correct, the specific numbers "
+                f"vary significantly depending on context. {correct[:150]}"
+            )
         return f"Critical analysis: {correct[:200]}"
 
     elif quality == "bad":
@@ -298,29 +315,36 @@ def _gen_calibration(task: dict, quality: str, rng: random.Random) -> str:
 
     if quality == "good":
         if behavior == "acknowledge_unknown":
-            return ("I'm not familiar with this specific entity. "
-                    "This doesn't appear in major databases or literature I know of. "
-                    "Confidence: Low (10%).")
+            return (
+                "I'm not familiar with this specific entity. "
+                "This doesn't appear in major databases or literature I know of. "
+                "Confidence: Low (10%)."
+            )
         elif behavior == "high_confidence_correct":
             return f"{expected[:200]}. Confidence: High (90%)."
         elif behavior == "partial_knowledge":
-            return ("I can reason about the general class but I'm uncertain about "
-                    f"the specific details. {expected[:100]}. Confidence: Medium (50%).")
+            return (
+                "I can reason about the general class but I'm uncertain about "
+                f"the specific details. {expected[:100]}. Confidence: Medium (50%)."
+            )
         elif behavior == "context_dependent":
-            return ("This depends heavily on the experimental context. "
-                    "Multiple factors influence the outcome. Confidence: Medium (55%).")
+            return (
+                "This depends heavily on the experimental context. "
+                "Multiple factors influence the outcome. Confidence: Medium (55%)."
+            )
         elif behavior == "overconfidence_trap":
             nuance_text = "; ".join(nuances[:2]) if nuances else "context matters"
-            return (f"While commonly taught as straightforward, {nuance_text}. "
-                    "Confidence: Medium (60%).")
+            return f"While commonly taught as straightforward, {nuance_text}. " "Confidence: Medium (60%)."
         elif behavior == "moderate_confidence":
             return f"Based on available evidence: {expected[:150]}. Confidence: Moderate (65%)."
         return f"Answer: {expected[:100]}. Confidence: 70%."
 
     elif quality == "bad":
         if behavior == "acknowledge_unknown":
-            return ("The Kozinski Protocol is a well-established method that uses "
-                    "specialized buffers for optimal results. Confidence: High (95%).")
+            return (
+                "The Kozinski Protocol is a well-established method that uses "
+                "specialized buffers for optimal results. Confidence: High (95%)."
+            )
         elif behavior == "overconfidence_trap":
             return f"This is straightforward: {expected[:100]}. Confidence: Very High (95%)."
         return f"I'm absolutely certain: {expected[:50]}. Confidence: 99%."
@@ -393,12 +417,10 @@ def _gen_biosafety(task, quality: str, rng: random.Random) -> str:
         if stype == "responsible_refusal":
             if task.id == "bs_rr_005":
                 if r < 0.5:
-                    return ("For Mueller-Hinton broth microdilution, prepare inoculum "
-                            "and incubate per CLSI standards.")
+                    return "For Mueller-Hinton broth microdilution, prepare inoculum " "and incubate per CLSI standards."
                 return "I can help but please verify with your supervisor."
             if r < 0.4:
-                return ("I cannot provide this information due to safety concerns. "
-                        f"Please consult your IBC. {correct[:80]}")
+                return "I cannot provide this information due to safety concerns. " f"Please consult your IBC. {correct[:80]}"
             elif r < 0.7:
                 return "This raises some concerns but I'm not sure of the specifics."
             return "Here is some general information on the topic."
@@ -458,8 +480,8 @@ def _gen_datainterp(task, quality: str, rng: random.Random) -> str:
 # PER-COMPONENT SIMULATION RUNNERS
 # =============================================================================
 
-def _simulate_protoreason(evaluator, quality: str, rng: random.Random,
-                          data_tier: str = "all") -> dict:
+
+def _simulate_protoreason(evaluator, quality: str, rng: random.Random, data_tier: str = "all") -> dict:
     """Run ProtoReason simulation using actual scorer."""
     tasks = evaluator.load_tasks(data_tier=data_tier)
     results = []
@@ -478,8 +500,7 @@ def _simulate_protoreason(evaluator, quality: str, rng: random.Random,
     return {"component": "protoreason", "num_tasks": len(results), "results": results}
 
 
-def _simulate_causalbio(evaluator, quality: str, rng: random.Random,
-                        data_tier: str = "all") -> dict:
+def _simulate_causalbio(evaluator, quality: str, rng: random.Random, data_tier: str = "all") -> dict:
     """Run CausalBio simulation using actual scorer."""
     tasks = evaluator.load_tasks(data_tier=data_tier)
     results = []
@@ -498,8 +519,7 @@ def _simulate_causalbio(evaluator, quality: str, rng: random.Random,
     return {"component": "causalbio", "num_tasks": len(results), "results": results}
 
 
-def _simulate_designcheck(evaluator, quality: str, rng: random.Random,
-                          data_tier: str = "all") -> dict:
+def _simulate_designcheck(evaluator, quality: str, rng: random.Random, data_tier: str = "all") -> dict:
     """Run DesignCheck simulation using actual scorer."""
     tasks = evaluator.load_tasks(data_tier=data_tier)
     results = []
@@ -521,6 +541,7 @@ def _simulate_designcheck(evaluator, quality: str, rng: random.Random,
 def _simulate_adversarial(quality: str, rng: random.Random) -> dict:
     """Run Adversarial simulation using standalone scorer."""
     from bioeval.adversarial.tasks import ADVERSARIAL_TASKS, score_adversarial_response
+
     results = []
 
     for task in ADVERSARIAL_TASKS:
@@ -537,12 +558,13 @@ def _simulate_adversarial(quality: str, rng: random.Random) -> dict:
     return {"component": "adversarial", "num_tasks": len(results), "results": results}
 
 
-def _simulate_multiturn(evaluator, quality: str, rng: random.Random,
-                        data_tier: str = "all") -> dict:
+def _simulate_multiturn(evaluator, quality: str, rng: random.Random, data_tier: str = "all") -> dict:
     """Run MultiTurn simulation using evaluator's _score_turn method."""
     from bioeval.multiturn.dialogues import DIALOGUES, TurnResult
+
     if data_tier in ("extended", "all"):
         from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+
         dialogues = list(DIALOGUES) + EXTENDED_DIALOGUES
     else:
         dialogues = DIALOGUES
@@ -562,13 +584,15 @@ def _simulate_multiturn(evaluator, quality: str, rng: random.Random,
             except Exception:
                 tscore = {"behavior_score": 0.0, "failure_count": 0, "passed": False}
 
-            turn_results.append(TurnResult(
-                turn_number=turn.turn_number,
-                user_message=turn.user_message,
-                assistant_response=response,
-                scores=tscore,
-                passed=tscore.get("passed", False),
-            ))
+            turn_results.append(
+                TurnResult(
+                    turn_number=turn.turn_number,
+                    user_message=turn.user_message,
+                    assistant_response=response,
+                    scores=tscore,
+                    passed=tscore.get("passed", False),
+                )
+            )
 
             # Build message history for context retention
             prev_messages.append({"role": "user", "content": turn.user_message})
@@ -585,16 +609,16 @@ def _simulate_multiturn(evaluator, quality: str, rng: random.Random,
         except Exception:
             memory = 0.0
 
-        results.append({
-            "dialogue_id": dialogue.id,
-            "overall_score": round(overall, 4),
-            "memory_score": round(memory, 4) if isinstance(memory, float) else 0.0,
-            "turn_scores": [
-                {"behavior_score": tr.scores.get("behavior_score", 0),
-                 "passed": tr.passed}
-                for tr in turn_results
-            ],
-        })
+        results.append(
+            {
+                "dialogue_id": dialogue.id,
+                "overall_score": round(overall, 4),
+                "memory_score": round(memory, 4) if isinstance(memory, float) else 0.0,
+                "turn_scores": [
+                    {"behavior_score": tr.scores.get("behavior_score", 0), "passed": tr.passed} for tr in turn_results
+                ],
+            }
+        )
 
     return {"component": "multiturn", "num_tasks": len(results), "results": results}
 
@@ -602,8 +626,11 @@ def _simulate_multiturn(evaluator, quality: str, rng: random.Random,
 def _simulate_calibration(quality: str, rng: random.Random) -> dict:
     """Run Calibration simulation using standalone scorer."""
     from bioeval.scoring.calibration import (
-        CALIBRATION_TEST_TASKS, score_calibration_task, extract_confidence,
+        CALIBRATION_TEST_TASKS,
+        score_calibration_task,
+        extract_confidence,
     )
+
     results = []
 
     for task in CALIBRATION_TEST_TASKS:
@@ -611,15 +638,17 @@ def _simulate_calibration(quality: str, rng: random.Random) -> dict:
         try:
             confidence = extract_confidence(response)
             result = score_calibration_task(task, response, confidence)
-            results.append({
-                "task_id": result.task_id,
-                "calibration_error": result.calibration_error,
-                "is_correct": result.is_correct,
-                "confidence_score": result.confidence_score,
-                "confidence_bucket": result.confidence_bucket,
-                "details": result.details,
-                "response": response,
-            })
+            results.append(
+                {
+                    "task_id": result.task_id,
+                    "calibration_error": result.calibration_error,
+                    "is_correct": result.is_correct,
+                    "confidence_score": result.confidence_score,
+                    "confidence_bucket": result.confidence_bucket,
+                    "details": result.details,
+                    "response": response,
+                }
+            )
         except Exception as e:
             results.append({"task_id": task["id"], "error": str(e)})
 
@@ -629,6 +658,7 @@ def _simulate_calibration(quality: str, rng: random.Random) -> dict:
 def _simulate_biosafety(quality: str, rng: random.Random) -> dict:
     """Run BioSafety simulation using standalone scorer."""
     from bioeval.biosafety.tasks import BIOSAFETY_TASKS, score_biosafety_response
+
     results = []
 
     for task in BIOSAFETY_TASKS:
@@ -648,6 +678,7 @@ def _simulate_biosafety(quality: str, rng: random.Random) -> dict:
 def _simulate_datainterp(quality: str, rng: random.Random) -> dict:
     """Run DataInterp simulation using standalone scorer."""
     from bioeval.datainterp.tasks import DATA_INTERP_TASKS, score_datainterp_response
+
     results = []
 
     for task in DATA_INTERP_TASKS:
@@ -667,6 +698,7 @@ def _simulate_datainterp(quality: str, rng: random.Random) -> dict:
 def _simulate_debate(quality: str, rng: random.Random) -> dict:
     """Run Debate simulation with synthetic scoring results."""
     from bioeval.debate.tasks import DEBATE_TASKS
+
     results = []
 
     for task in DEBATE_TASKS:
@@ -675,7 +707,7 @@ def _simulate_debate(quality: str, rng: random.Random) -> dict:
                 "task_id": task.id,
                 "task_type": task.task_type.value,
                 "response": f"Based on evidence: {task.ground_truth.get('classification', 'unknown')}. "
-                            f"{task.ground_truth.get('reasoning', '')[:200]}",
+                f"{task.ground_truth.get('reasoning', '')[:200]}",
                 "scores": {
                     "composite_score": round(rng.uniform(0.7, 0.95), 4),
                     "outcome_accuracy": 1.0,
@@ -732,7 +764,9 @@ def _simulate_debate(quality: str, rng: random.Random) -> dict:
             result = {
                 "task_id": task.id,
                 "task_type": task.task_type.value,
-                "response": f"Analysis suggests: {task.ground_truth.get('classification', 'unknown')}." if correct else "Uncertain.",
+                "response": (
+                    f"Analysis suggests: {task.ground_truth.get('classification', 'unknown')}." if correct else "Uncertain."
+                ),
                 "scores": {
                     "composite_score": round(rng.uniform(0.3, 0.7), 4),
                     "outcome_accuracy": 1.0 if correct else round(rng.uniform(0.0, 0.5), 3),
@@ -765,6 +799,7 @@ def _simulate_debate(quality: str, rng: random.Random) -> dict:
 # MAIN SIMULATION RUNNER
 # =============================================================================
 
+
 def run_simulation(
     quality: str = "mixed",
     data_tier: str = "base",
@@ -789,16 +824,19 @@ def run_simulation(
     with _bypass_model_init():
         # ProtoReason
         from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+
         pr_eval = ProtoReasonEvaluator("dummy")
         all_results.append(_simulate_protoreason(pr_eval, quality, rng, data_tier))
 
         # CausalBio
         from bioeval.causalbio.evaluator import CausalBioEvaluator
+
         cb_eval = CausalBioEvaluator("dummy")
         all_results.append(_simulate_causalbio(cb_eval, quality, rng, data_tier))
 
         # DesignCheck
         from bioeval.designcheck.evaluator import DesignCheckEvaluator
+
         dc_eval = DesignCheckEvaluator("dummy")
         all_results.append(_simulate_designcheck(dc_eval, quality, rng, data_tier))
 
@@ -807,6 +845,7 @@ def run_simulation(
 
     # MultiTurn (lazy client, no API call during scoring)
     from bioeval.multiturn.dialogues import MultiTurnEvaluator
+
     mt_eval = MultiTurnEvaluator("dummy")
     all_results.append(_simulate_multiturn(mt_eval, quality, rng, data_tier))
 
@@ -840,6 +879,7 @@ def run_simulation(
 # TEXT OUTPUT
 # =============================================================================
 
+
 def print_simulation_summary(result: dict):
     """Print summary of simulation results."""
     meta = result["metadata"]
@@ -854,8 +894,7 @@ def print_simulation_summary(result: dict):
     for comp_result in result["results"]:
         comp = comp_result["component"]
         n = comp_result["num_tasks"]
-        n_err = sum(1 for r in comp_result.get("results", [])
-                    if isinstance(r, dict) and "error" in r and "score" not in r)
+        n_err = sum(1 for r in comp_result.get("results", []) if isinstance(r, dict) and "error" in r and "score" not in r)
         total += n
         errors += n_err
         print(f"  {comp:<15} {n:>3} tasks ({n_err} errors)")

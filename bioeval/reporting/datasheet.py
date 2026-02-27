@@ -13,7 +13,6 @@ def generate_datasheet() -> dict:
     return {
         "title": "BioEval: A Multi-Component Benchmark for Evaluating LLM Biology Reasoning",
         "version": __version__,
-
         # ── Motivation ────────────────────────────────────────────────
         "motivation": {
             "purpose": (
@@ -29,7 +28,6 @@ def generate_datasheet() -> dict:
                 "molecular biology, cancer biology, and bioinformatics."
             ),
         },
-
         # ── Composition ───────────────────────────────────────────────
         "composition": {
             "instance_types": (
@@ -56,7 +54,6 @@ def generate_datasheet() -> dict:
             "confidentiality": "No confidential data. All tasks are constructed from public biology knowledge.",
             "offensive_content": "No offensive content. Tasks are scientific in nature.",
         },
-
         # ── Collection ────────────────────────────────────────────────
         "collection": {
             "process": (
@@ -70,7 +67,6 @@ def generate_datasheet() -> dict:
             "ethical_review": "Not applicable — no human subjects data.",
             "third_party_data": "No third-party data was used.",
         },
-
         # ── Preprocessing ────────────────────────────────────────────
         "preprocessing": {
             "steps": (
@@ -80,7 +76,6 @@ def generate_datasheet() -> dict:
             ),
             "raw_data_preserved": "All task data is stored in Python source files with full metadata.",
         },
-
         # ── Uses ──────────────────────────────────────────────────────
         "uses": {
             "intended_uses": (
@@ -98,7 +93,6 @@ def generate_datasheet() -> dict:
                 "genuine reasoning improvement. Private test split mitigates this risk."
             ),
         },
-
         # ── Distribution ──────────────────────────────────────────────
         "distribution": {
             "how_distributed": "Open-source Python package (pip installable).",
@@ -106,7 +100,6 @@ def generate_datasheet() -> dict:
             "access_restrictions": "None — fully open access.",
             "export_controls": "Not applicable.",
         },
-
         # ── Maintenance ───────────────────────────────────────────────
         "maintenance": {
             "who_maintains": "Original benchmark authors.",

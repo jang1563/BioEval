@@ -177,8 +177,7 @@ def _generate_recommendations(overall: dict, by_component: dict) -> list[str]:
         )
     if pct_hard > 50:
         recs.append(
-            f"Too many hard tasks ({pct_hard:.0f}%). Consider adding baseline "
-            "tasks that competent models should pass."
+            f"Too many hard tasks ({pct_hard:.0f}%). Consider adding baseline " "tasks that competent models should pass."
         )
     if pct_medium < 30:
         recs.append(
@@ -195,15 +194,9 @@ def _generate_recommendations(overall: dict, by_component: dict) -> list[str]:
         c_hard = dist["pct_hard"]
 
         if c_easy > 70:
-            recs.append(
-                f"{comp}: {c_easy:.0f}% easy — add challenging tasks "
-                "for this component."
-            )
+            recs.append(f"{comp}: {c_easy:.0f}% easy — add challenging tasks " "for this component.")
         if c_hard > 70:
-            recs.append(
-                f"{comp}: {c_hard:.0f}% hard — add easier baseline tasks "
-                "for this component."
-            )
+            recs.append(f"{comp}: {c_hard:.0f}% hard — add easier baseline tasks " "for this component.")
 
     # Cross-component gap
     if by_component:
@@ -228,6 +221,7 @@ def _generate_recommendations(overall: dict, by_component: dict) -> list[str]:
 # =============================================================================
 # TEXT OUTPUT
 # =============================================================================
+
 
 def print_difficulty(result_path: str):
     """Print difficulty analysis and recommendations."""
@@ -256,8 +250,10 @@ def print_difficulty(result_path: str):
     print(f"{'Component':<15} {'N':>4} {'Mean':>6} {'Easy':>5} {'Med':>5} {'Hard':>5}")
     print(f"{'─' * 45}")
     for comp, d in sorted(result["by_component"].items()):
-        print(f"  {comp:<13} {d['n']:>4} {d['mean']:>6.3f} "
-              f"{d['pct_easy']:>4.0f}% {d['pct_medium']:>4.0f}% {d['pct_hard']:>4.0f}%")
+        print(
+            f"  {comp:<13} {d['n']:>4} {d['mean']:>6.3f} "
+            f"{d['pct_easy']:>4.0f}% {d['pct_medium']:>4.0f}% {d['pct_hard']:>4.0f}%"
+        )
 
     print(f"\nHardest tasks:")
     for t in result["hardest_tasks"][:5]:
@@ -277,6 +273,7 @@ def print_difficulty(result_path: str):
 # =============================================================================
 # TASK METADATA ANALYSIS (INTENDED DIFFICULTY & DOMAIN COVERAGE)
 # =============================================================================
+
 
 def analyze_task_metadata(data_tier: str = "all") -> dict:
     """Analyze intended difficulty and domain coverage across all tasks.
@@ -300,8 +297,10 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     # ProtoReason
     try:
         from bioeval.simulation import _bypass_model_init
+
         with _bypass_model_init():
             from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+
             pr = ProtoReasonEvaluator("dummy")
             tasks = pr.load_tasks(data_tier=data_tier)
         by_type = defaultdict(int)
@@ -318,6 +317,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     try:
         with _bypass_model_init():
             from bioeval.causalbio.evaluator import CausalBioEvaluator
+
             cb = CausalBioEvaluator("dummy")
             tasks = cb.load_tasks(data_tier=data_tier)
         by_type = defaultdict(int)
@@ -334,6 +334,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     try:
         with _bypass_model_init():
             from bioeval.designcheck.evaluator import DesignCheckEvaluator
+
             dc = DesignCheckEvaluator("dummy")
             tasks = dc.load_tasks(data_tier=data_tier)
         components["designcheck"] = {"n": len(tasks), "task_types": {"flaw_detection": len(tasks)}}
@@ -346,6 +347,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     # Adversarial
     try:
         from bioeval.adversarial.tasks import ADVERSARIAL_TASKS
+
         by_type = defaultdict(int)
         by_domain = defaultdict(int)
         by_diff = defaultdict(int)
@@ -370,6 +372,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     try:
         from bioeval.multiturn.dialogues import DIALOGUES
         from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+
         if data_tier in ("extended", "all"):
             dialogues = list(DIALOGUES) + EXTENDED_DIALOGUES
         else:
@@ -398,6 +401,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     # Calibration
     try:
         from bioeval.scoring.calibration import CALIBRATION_TEST_TASKS
+
         by_type = defaultdict(int)
         for t in CALIBRATION_TEST_TASKS:
             by_type[t["correct_behavior"]] += 1
@@ -412,6 +416,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     # BioSafety
     try:
         from bioeval.biosafety.tasks import BIOSAFETY_TASKS
+
         by_type = defaultdict(int)
         by_domain = defaultdict(int)
         by_diff = defaultdict(int)
@@ -435,6 +440,7 @@ def analyze_task_metadata(data_tier: str = "all") -> dict:
     # DataInterp
     try:
         from bioeval.datainterp.tasks import DATA_INTERP_TASKS
+
         by_type = defaultdict(int)
         by_domain = defaultdict(int)
         by_diff = defaultdict(int)

@@ -1,7 +1,7 @@
 """
 CausalBio Extended Dataset
 
-Comprehensive perturbation prediction tasks covering gene knockouts, 
+Comprehensive perturbation prediction tasks covering gene knockouts,
 drug responses, pathway reasoning, and epistasis.
 
 These tasks are designed to test causal biological reasoning using
@@ -24,9 +24,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.2,
-            "explanation": "Oncogene addiction - KRAS-mutant cells depend on mutant KRAS signaling"
+            "explanation": "Oncogene addiction - KRAS-mutant cells depend on mutant KRAS signaling",
         },
-        "reasoning_type": "oncogene_addiction"
+        "reasoning_type": "oncogene_addiction",
     },
     {
         "id": "ko_002",
@@ -36,9 +36,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.5,
-            "explanation": "BRAF V600E is the primary driver - cells die without it"
+            "explanation": "BRAF V600E is the primary driver - cells die without it",
         },
-        "reasoning_type": "oncogene_addiction"
+        "reasoning_type": "oncogene_addiction",
     },
     {
         "id": "ko_003",
@@ -48,9 +48,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.3,
-            "explanation": "EGFR-mutant NSCLC lines are addicted to EGFR signaling"
+            "explanation": "EGFR-mutant NSCLC lines are addicted to EGFR signaling",
         },
-        "reasoning_type": "oncogene_addiction"
+        "reasoning_type": "oncogene_addiction",
     },
     {
         "id": "ko_004",
@@ -60,9 +60,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -2.0,
-            "explanation": "BCR-ABL fusion is the sole driver of CML proliferation"
+            "explanation": "BCR-ABL fusion is the sole driver of CML proliferation",
         },
-        "reasoning_type": "oncogene_addiction"
+        "reasoning_type": "oncogene_addiction",
     },
     {
         "id": "ko_005",
@@ -72,11 +72,10 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.8,
-            "explanation": "MYC translocation drives proliferation in Burkitt lymphoma"
+            "explanation": "MYC translocation drives proliferation in Burkitt lymphoma",
         },
-        "reasoning_type": "oncogene_addiction"
+        "reasoning_type": "oncogene_addiction",
     },
-    
     # -------------------------------------------------------------------------
     # TUMOR SUPPRESSOR CONTEXT
     # -------------------------------------------------------------------------
@@ -88,9 +87,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "non-essential",
             "depmap_score": 0.1,
-            "explanation": "Loss of TP53 provides growth advantage but not immediately lethal"
+            "explanation": "Loss of TP53 provides growth advantage but not immediately lethal",
         },
-        "reasoning_type": "tumor_suppressor"
+        "reasoning_type": "tumor_suppressor",
     },
     {
         "id": "ko_007",
@@ -100,9 +99,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "mildly_beneficial",
             "depmap_score": 0.2,
-            "explanation": "RB1 loss removes cell cycle checkpoint, may enhance proliferation"
+            "explanation": "RB1 loss removes cell cycle checkpoint, may enhance proliferation",
         },
-        "reasoning_type": "tumor_suppressor"
+        "reasoning_type": "tumor_suppressor",
     },
     {
         "id": "ko_008",
@@ -112,9 +111,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "non-essential",
             "depmap_score": 0.0,
-            "explanation": "Already PTEN-null - additional knockout has no effect"
+            "explanation": "Already PTEN-null - additional knockout has no effect",
         },
-        "reasoning_type": "pre_existing_loss"
+        "reasoning_type": "pre_existing_loss",
     },
     {
         "id": "ko_009",
@@ -124,11 +123,10 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "non-essential",
             "depmap_score": 0.05,
-            "explanation": "Already BRCA1-deficient - no additional effect"
+            "explanation": "Already BRCA1-deficient - no additional effect",
         },
-        "reasoning_type": "pre_existing_loss"
+        "reasoning_type": "pre_existing_loss",
     },
-    
     # -------------------------------------------------------------------------
     # SYNTHETIC LETHALITY
     # -------------------------------------------------------------------------
@@ -140,9 +138,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -0.9,
-            "explanation": "Synthetic lethality - BRCA1-deficient cells depend on PARP for DNA repair"
+            "explanation": "Synthetic lethality - BRCA1-deficient cells depend on PARP for DNA repair",
         },
-        "reasoning_type": "synthetic_lethality"
+        "reasoning_type": "synthetic_lethality",
     },
     {
         "id": "ko_011",
@@ -152,9 +150,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.0,
-            "explanation": "MTAP deletion creates dependency on PRMT5 for methionine salvage"
+            "explanation": "MTAP deletion creates dependency on PRMT5 for methionine salvage",
         },
-        "reasoning_type": "synthetic_lethality"
+        "reasoning_type": "synthetic_lethality",
     },
     {
         "id": "ko_012",
@@ -164,11 +162,10 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -0.7,
-            "explanation": "HR-deficient cells depend on POLQ-mediated alternative end joining"
+            "explanation": "HR-deficient cells depend on POLQ-mediated alternative end joining",
         },
-        "reasoning_type": "synthetic_lethality"
+        "reasoning_type": "synthetic_lethality",
     },
-    
     # -------------------------------------------------------------------------
     # CORE ESSENTIAL GENES
     # -------------------------------------------------------------------------
@@ -180,9 +177,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.5,
-            "explanation": "Ribosomal protein - essential for protein synthesis in all cells"
+            "explanation": "Ribosomal protein - essential for protein synthesis in all cells",
         },
-        "reasoning_type": "core_essential"
+        "reasoning_type": "core_essential",
     },
     {
         "id": "ko_014",
@@ -192,9 +189,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -2.0,
-            "explanation": "RNA Pol II subunit - required for mRNA transcription"
+            "explanation": "RNA Pol II subunit - required for mRNA transcription",
         },
-        "reasoning_type": "core_essential"
+        "reasoning_type": "core_essential",
     },
     {
         "id": "ko_015",
@@ -204,11 +201,10 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.8,
-            "explanation": "Splicing factor - essential for mRNA processing"
+            "explanation": "Splicing factor - essential for mRNA processing",
         },
-        "reasoning_type": "core_essential"
+        "reasoning_type": "core_essential",
     },
-    
     # -------------------------------------------------------------------------
     # CONTEXT-DEPENDENT
     # -------------------------------------------------------------------------
@@ -220,9 +216,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -0.8,
-            "explanation": "KEAP1-mutant cells have high NRF2 activity and depend on cystine import"
+            "explanation": "KEAP1-mutant cells have high NRF2 activity and depend on cystine import",
         },
-        "reasoning_type": "context_dependency"
+        "reasoning_type": "context_dependency",
     },
     {
         "id": "ko_017",
@@ -232,9 +228,9 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "non-essential",
             "depmap_score": 0.0,
-            "explanation": "KRAS wild-type cells don't depend on KRAS - other drivers present"
+            "explanation": "KRAS wild-type cells don't depend on KRAS - other drivers present",
         },
-        "reasoning_type": "context_dependency"
+        "reasoning_type": "context_dependency",
     },
     {
         "id": "ko_018",
@@ -244,10 +240,10 @@ KNOCKOUT_TASKS = [
         "ground_truth": {
             "effect": "essential",
             "depmap_score": -1.2,
-            "explanation": "MSI-high cells have expanded TA dinucleotide repeats causing WRN dependency"
+            "explanation": "MSI-high cells have expanded TA dinucleotide repeats causing WRN dependency",
         },
-        "reasoning_type": "synthetic_lethality"
-    }
+        "reasoning_type": "synthetic_lethality",
+    },
 ]
 
 
@@ -271,11 +267,11 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["MYC", "CCND1", "BCL2", "VEGFA"],
-                "upregulated": ["BIM", "p27", "FOXO targets"]
+                "upregulated": ["BIM", "p27", "FOXO targets"],
             },
             "phenotype": "G1 arrest, apoptosis in sensitive cells",
-            "resistance_mechanisms": ["T790M mutation", "MET amplification", "HER2 amplification"]
-        }
+            "resistance_mechanisms": ["T790M mutation", "MET amplification", "HER2 amplification"],
+        },
     },
     {
         "id": "pathway_002",
@@ -288,13 +284,12 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["MYC", "CCND1", "survival genes"],
-                "upregulated": ["p27", "pro-apoptotic genes"]
+                "upregulated": ["p27", "pro-apoptotic genes"],
             },
             "phenotype": "Growth arrest, ADCC (trastuzumab)",
-            "resistance_mechanisms": ["PIK3CA mutation", "PTEN loss", "HER3 upregulation"]
-        }
+            "resistance_mechanisms": ["PIK3CA mutation", "PTEN loss", "HER3 upregulation"],
+        },
     },
-    
     # -------------------------------------------------------------------------
     # MAPK PATHWAY
     # -------------------------------------------------------------------------
@@ -308,12 +303,12 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["MYC", "CCND1", "DUSP6", "SPRY"],
-                "upregulated": ["BIM", "differentiation genes"]
+                "upregulated": ["BIM", "differentiation genes"],
             },
             "phenotype": "Rapid tumor regression in sensitive cells",
             "resistance_mechanisms": ["NRAS mutation", "BRAF amplification", "MEK mutation", "RTK upregulation"],
-            "paradox": "Activates MAPK in BRAF-WT cells via RAF dimerization"
-        }
+            "paradox": "Activates MAPK in BRAF-WT cells via RAF dimerization",
+        },
     },
     {
         "id": "pathway_004",
@@ -323,15 +318,11 @@ PATHWAY_TASKS = [
             "affected_pathways": [
                 {"pathway": "MAPK", "direction": "decreased", "key_nodes": ["MEK1/2", "ERK1/2"]},
             ],
-            "transcriptional_effects": {
-                "downregulated": ["FOS", "JUN", "EGR1", "DUSP6"],
-                "upregulated": ["BIM", "p27"]
-            },
+            "transcriptional_effects": {"downregulated": ["FOS", "JUN", "EGR1", "DUSP6"], "upregulated": ["BIM", "p27"]},
             "phenotype": "Cytostatic effect, less apoptosis than expected",
-            "compensatory_mechanisms": ["PI3K pathway activation", "RTK reactivation", "CRAF upregulation"]
-        }
+            "compensatory_mechanisms": ["PI3K pathway activation", "RTK reactivation", "CRAF upregulation"],
+        },
     },
-    
     # -------------------------------------------------------------------------
     # PI3K-AKT-mTOR
     # -------------------------------------------------------------------------
@@ -346,11 +337,11 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["ribosome biogenesis genes", "SREBP targets"],
-                "upregulated": ["autophagy genes", "FOXO targets"]
+                "upregulated": ["autophagy genes", "FOXO targets"],
             },
             "phenotype": "Cytostatic, autophagy induction",
-            "compensatory_mechanisms": ["AKT activation via S6K-IRS1 feedback relief", "mTORC2 still active"]
-        }
+            "compensatory_mechanisms": ["AKT activation via S6K-IRS1 feedback relief", "mTORC2 still active"],
+        },
     },
     {
         "id": "pathway_006",
@@ -363,13 +354,12 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["glycolysis genes", "lipogenesis genes"],
-                "upregulated": ["FOXO targets", "apoptosis genes"]
+                "upregulated": ["FOXO targets", "apoptosis genes"],
             },
             "phenotype": "Growth arrest, hyperglycemia (systemic effect)",
-            "side_effects": ["Hyperglycemia due to insulin signaling inhibition"]
-        }
+            "side_effects": ["Hyperglycemia due to insulin signaling inhibition"],
+        },
     },
-    
     # -------------------------------------------------------------------------
     # CELL CYCLE
     # -------------------------------------------------------------------------
@@ -383,13 +373,12 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["E2F targets", "S-phase genes", "CCNE1", "CCNA2"],
-                "upregulated": ["senescence markers"]
+                "upregulated": ["senescence markers"],
             },
             "phenotype": "G1 arrest, senescence",
-            "resistance_mechanisms": ["RB1 loss", "CCNE1 amplification", "CDK6 amplification"]
-        }
+            "resistance_mechanisms": ["RB1 loss", "CCNE1 amplification", "CDK6 amplification"],
+        },
     },
-    
     # -------------------------------------------------------------------------
     # DNA DAMAGE RESPONSE
     # -------------------------------------------------------------------------
@@ -404,8 +393,8 @@ PATHWAY_TASKS = [
             ],
             "mechanism": "PARP trapping creates toxic DNA-protein complexes; HR-deficient cells cannot repair",
             "phenotype": "Synthetic lethality in HR-deficient cells, replication catastrophe",
-            "resistance_mechanisms": ["BRCA reversion", "53BP1 loss", "PARP1 mutation", "drug efflux"]
-        }
+            "resistance_mechanisms": ["BRCA reversion", "53BP1 loss", "PARP1 mutation", "drug efflux"],
+        },
     },
     {
         "id": "pathway_009",
@@ -417,10 +406,9 @@ PATHWAY_TASKS = [
             ],
             "mechanism": "ATM-deficient cells rely on ATR for DNA damage response",
             "phenotype": "Synthetic lethality, replication catastrophe",
-            "context_dependency": "Requires high replication stress background"
-        }
+            "context_dependency": "Requires high replication stress background",
+        },
     },
-    
     # -------------------------------------------------------------------------
     # METABOLISM
     # -------------------------------------------------------------------------
@@ -435,12 +423,12 @@ PATHWAY_TASKS = [
             ],
             "transcriptional_effects": {
                 "downregulated": ["biosynthesis genes"],
-                "upregulated": ["stress response genes", "ATF4 targets"]
+                "upregulated": ["stress response genes", "ATF4 targets"],
             },
             "phenotype": "Growth arrest in glutamine-dependent cells",
-            "context_dependency": "MYC-high cells are glutamine-addicted"
-        }
-    }
+            "context_dependency": "MYC-high cells are glutamine-addicted",
+        },
+    },
 ]
 
 
@@ -460,8 +448,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["GILZ/TSC22D3", "FKBP5", "DUSP1", "SGK1", "PER1"],
             "downregulated": ["IL2", "IFNG", "TNF", "IL6", "CCL2"],
             "phenotype": "Immunosuppression, T cell apoptosis",
-            "clinical_use": "Immunosuppression, lymphoid malignancies"
-        }
+            "clinical_use": "Immunosuppression, lymphoid malignancies",
+        },
     },
     {
         "id": "drug_002",
@@ -474,8 +462,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["BIM/BCL2L11", "CDKN1B/p27", "PUMA", "BAX"],
             "downregulated": ["MYC", "CCND1", "BCL2", "MCL1", "STAT5 targets"],
             "phenotype": "Cell cycle arrest, apoptosis",
-            "clinical_use": "First-line CML treatment"
-        }
+            "clinical_use": "First-line CML treatment",
+        },
     },
     {
         "id": "drug_003",
@@ -488,8 +476,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["ISG15", "MX1", "OAS1", "IFIT1", "IRF7", "STAT1"],
             "downregulated": ["cell cycle genes (indirect)"],
             "phenotype": "Antiviral state, immune activation, growth inhibition",
-            "clinical_use": "Hepatitis, melanoma, hairy cell leukemia"
-        }
+            "clinical_use": "Hepatitis, melanoma, hairy cell leukemia",
+        },
     },
     {
         "id": "drug_004",
@@ -502,8 +490,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["CDKN1A/p21", "MDM2", "BAX", "PUMA", "GADD45A", "TIGAR"],
             "downregulated": ["indirect via p53-mediated arrest"],
             "phenotype": "G1/G2 arrest, apoptosis in p53-WT cells only",
-            "context_dependency": "No effect in TP53-mutant cells"
-        }
+            "context_dependency": "No effect in TP53-mutant cells",
+        },
     },
     {
         "id": "drug_005",
@@ -516,8 +504,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["HEXIM1", "CDKN1A"],
             "downregulated": ["MYC", "BCL2", "FOSL1", "super-enhancer targets"],
             "phenotype": "MYC suppression, growth arrest, differentiation",
-            "clinical_relevance": "Effective in MYC-amplified cancers, NUT midline carcinoma"
-        }
+            "clinical_relevance": "Effective in MYC-amplified cancers, NUT midline carcinoma",
+        },
     },
     {
         "id": "drug_006",
@@ -530,8 +518,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["Tumor suppressors (p15, p16)", "ERV transcripts", "dsRNA sensors"],
             "downregulated": ["proliferation genes (indirect)"],
             "phenotype": "Differentiation, viral mimicry immune response",
-            "delayed_effect": "Requires multiple cell divisions for incorporation"
-        }
+            "delayed_effect": "Requires multiple cell divisions for incorporation",
+        },
     },
     {
         "id": "drug_007",
@@ -544,8 +532,8 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["Caspase activation (protein level)"],
             "downregulated": ["N/A - mechanism is protein-level"],
             "phenotype": "Rapid apoptosis in BCL2-dependent cells",
-            "context_dependency": "Requires BCL2 dependency - MCL1-high cells resistant"
-        }
+            "context_dependency": "Requires BCL2 dependency - MCL1-high cells resistant",
+        },
     },
     {
         "id": "drug_008",
@@ -558,9 +546,9 @@ DRUG_RESPONSE_TASKS = [
             "upregulated": ["BIM", "p27", "autophagy genes"],
             "downregulated": ["DUSP6", "SPRY2", "FOS", "EGR1", "MYC"],
             "phenotype": "Cytostatic in most contexts",
-            "feedback": "Loss of negative feedback leads to RAF/MEK reactivation"
-        }
-    }
+            "feedback": "Loss of negative feedback leads to RAF/MEK reactivation",
+        },
+    },
 ]
 
 
@@ -576,14 +564,11 @@ EPISTASIS_TASKS = [
         "context": "Breast cancer",
         "ground_truth": {
             "interaction_type": "synthetic_lethal",
-            "single_effects": {
-                "BRCA1_loss": "HR deficiency, viable",
-                "PARP1_loss": "Minor effect, viable"
-            },
+            "single_effects": {"BRCA1_loss": "HR deficiency, viable", "PARP1_loss": "Minor effect, viable"},
             "combined_effect": "Lethal - trapped PARP + no HR = replication catastrophe",
             "mechanism": "PARP inhibition creates lesions requiring HR for repair",
-            "clinical_relevance": "Basis for PARP inhibitor therapy in BRCA-mutant cancers"
-        }
+            "clinical_relevance": "Basis for PARP inhibitor therapy in BRCA-mutant cancers",
+        },
     },
     {
         "id": "epi_002",
@@ -592,14 +577,11 @@ EPISTASIS_TASKS = [
         "context": "Breast cancer",
         "ground_truth": {
             "interaction_type": "suppressive",
-            "single_effects": {
-                "BRCA1_loss": "HR deficiency, PARP-sensitive",
-                "53BP1_loss": "Mild HR defect"
-            },
+            "single_effects": {"BRCA1_loss": "HR deficiency, PARP-sensitive", "53BP1_loss": "Mild HR defect"},
             "combined_effect": "53BP1 loss partially rescues BRCA1 deficiency",
             "mechanism": "53BP1 blocks resection; its loss allows resection even without BRCA1",
-            "clinical_relevance": "53BP1 loss causes PARP inhibitor resistance"
-        }
+            "clinical_relevance": "53BP1 loss causes PARP inhibitor resistance",
+        },
     },
     {
         "id": "epi_003",
@@ -608,14 +590,11 @@ EPISTASIS_TASKS = [
         "context": "Lung cancer",
         "ground_truth": {
             "interaction_type": "enhancing",
-            "single_effects": {
-                "KRAS_mut": "Proliferative drive",
-                "STK11_loss": "Metabolic dysregulation"
-            },
+            "single_effects": {"KRAS_mut": "Proliferative drive", "STK11_loss": "Metabolic dysregulation"},
             "combined_effect": "Aggressive phenotype, immunotherapy resistance",
             "mechanism": "STK11 loss removes AMPK-mediated metabolic checkpoint",
-            "clinical_relevance": "KRAS-STK11 co-mutation = poor prognosis, IO resistance"
-        }
+            "clinical_relevance": "KRAS-STK11 co-mutation = poor prognosis, IO resistance",
+        },
     },
     {
         "id": "epi_004",
@@ -624,14 +603,11 @@ EPISTASIS_TASKS = [
         "context": "SCLC transformation",
         "ground_truth": {
             "interaction_type": "synergistic",
-            "single_effects": {
-                "RB1_loss": "Cell cycle checkpoint loss",
-                "TP53_loss": "DNA damage checkpoint loss"
-            },
+            "single_effects": {"RB1_loss": "Cell cycle checkpoint loss", "TP53_loss": "DNA damage checkpoint loss"},
             "combined_effect": "Enables neuroendocrine transformation (SCLC)",
             "mechanism": "Combined checkpoint loss allows lineage plasticity",
-            "clinical_relevance": "Seen in de novo SCLC and EGFR-TKI transformed cases"
-        }
+            "clinical_relevance": "Seen in de novo SCLC and EGFR-TKI transformed cases",
+        },
     },
     {
         "id": "epi_005",
@@ -640,14 +616,11 @@ EPISTASIS_TASKS = [
         "context": "Ovarian cancer",
         "ground_truth": {
             "interaction_type": "synthetic_lethal",
-            "single_effects": {
-                "ARID1A_loss": "SWI/SNF dysfunction, viable",
-                "EZH2_loss": "PRC2 dysfunction, viable"
-            },
+            "single_effects": {"ARID1A_loss": "SWI/SNF dysfunction, viable", "EZH2_loss": "PRC2 dysfunction, viable"},
             "combined_effect": "Lethal in ARID1A-mutant context",
             "mechanism": "ARID1A loss creates EZH2 dependency for gene silencing",
-            "clinical_relevance": "EZH2 inhibitors effective in ARID1A-mutant cancers"
-        }
+            "clinical_relevance": "EZH2 inhibitors effective in ARID1A-mutant cancers",
+        },
     },
     {
         "id": "epi_006",
@@ -658,12 +631,12 @@ EPISTASIS_TASKS = [
             "interaction_type": "synthetic_lethal",
             "single_effects": {
                 "MTAP_deletion": "Loss of methionine salvage, MTA accumulation",
-                "PRMT5_inhibition": "Reduced protein methylation"
+                "PRMT5_inhibition": "Reduced protein methylation",
             },
             "combined_effect": "Lethal - MTA inhibits PRMT5, cells become dependent",
             "mechanism": "MTAP deletion → MTA accumulation → partial PRMT5 inhibition → addiction",
-            "clinical_relevance": "PRMT5 inhibitors in development for MTAP-deleted tumors"
-        }
+            "clinical_relevance": "PRMT5 inhibitors in development for MTAP-deleted tumors",
+        },
     },
     {
         "id": "epi_007",
@@ -672,14 +645,11 @@ EPISTASIS_TASKS = [
         "context": "TP53-wild-type cancer",
         "ground_truth": {
             "interaction_type": "suppressive",
-            "single_effects": {
-                "TP53_active": "Tumor suppression",
-                "MDM2_overexpression": "p53 degradation"
-            },
+            "single_effects": {"TP53_active": "Tumor suppression", "MDM2_overexpression": "p53 degradation"},
             "combined_effect": "MDM2 inhibition synthetic lethal with TP53 wild-type",
             "mechanism": "MDM2 inhibitors (Nutlins) release p53 to induce apoptosis",
-            "clinical_relevance": "MDM2 inhibitors only work in TP53-WT tumors"
-        }
+            "clinical_relevance": "MDM2 inhibitors only work in TP53-WT tumors",
+        },
     },
     {
         "id": "epi_008",
@@ -690,19 +660,20 @@ EPISTASIS_TASKS = [
             "interaction_type": "synthetic_lethal",
             "single_effects": {
                 "KEAP1_mutation": "NRF2 activation, oxidative stress adaptation",
-                "SLC7A11_loss": "Loss of cystine import"
+                "SLC7A11_loss": "Loss of cystine import",
             },
             "combined_effect": "Lethal - NRF2-high cells depend on cystine for glutathione",
             "mechanism": "KEAP1-mutant cells have high ROS, need cystine for antioxidant defense",
-            "clinical_relevance": "SLC7A11/system xc- as target in KEAP1-mutant NSCLC"
-        }
-    }
+            "clinical_relevance": "SLC7A11/system xc- as target in KEAP1-mutant NSCLC",
+        },
+    },
 ]
 
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def get_all_knockout_tasks():
     """Return all knockout prediction tasks."""
@@ -733,7 +704,7 @@ def get_task_statistics():
         "drug_response_tasks": len(DRUG_RESPONSE_TASKS),
         "epistasis_tasks": len(EPISTASIS_TASKS),
         "epistasis_by_type": _count_by_field(EPISTASIS_TASKS, lambda x: x["ground_truth"]["interaction_type"]),
-        "total_tasks": len(KNOCKOUT_TASKS) + len(PATHWAY_TASKS) + len(DRUG_RESPONSE_TASKS) + len(EPISTASIS_TASKS)
+        "total_tasks": len(KNOCKOUT_TASKS) + len(PATHWAY_TASKS) + len(DRUG_RESPONSE_TASKS) + len(EPISTASIS_TASKS),
     }
 
 

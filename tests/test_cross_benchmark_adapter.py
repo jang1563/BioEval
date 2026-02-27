@@ -162,13 +162,7 @@ def test_validate_adapter_payload_fails_missing_score():
 def test_apply_strict_mode_fails_on_warnings():
     from bioeval.adapters.validation import apply_strict_mode, validate_benchmark_payload
 
-    payload = [
-        {
-            "id": "lab_warn_001",
-            "task_type": "protocol_ordering",
-            "score": 1.0
-        }
-    ]
+    payload = [{"id": "lab_warn_001", "task_type": "protocol_ordering", "score": 1.0}]
     result = validate_benchmark_payload(payload, benchmark="lab-bench")
     assert result["ok"] is True
     assert result["n_warnings"] >= 1
@@ -206,13 +200,7 @@ def test_validate_with_jsonschema_if_available():
 
     from bioeval.adapters.validation import validate_with_jsonschema
 
-    payload = [
-        {
-            "id": "lab_schema_001",
-            "task_type": "protocol_ordering",
-            "score": 0.8
-        }
-    ]
+    payload = [{"id": "lab_schema_001", "task_type": "protocol_ordering", "score": 0.8}]
     result = validate_with_jsonschema(payload, "lab-bench")
     assert result["ok"] is True
 

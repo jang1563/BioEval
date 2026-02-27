@@ -131,8 +131,10 @@ def _to_bioeval_item(rec: dict, i: int, benchmark: str, strict: bool = False) ->
 
     task_id = _extract_task_id(rec, i, benchmark)
     score = _extract_score(rec)
-    if strict and score == 0.0 and not any(
-        k in rec for k in ("score", "normalized_score", "accuracy", "f1", "exact_match", "correct", "passed")
+    if (
+        strict
+        and score == 0.0
+        and not any(k in rec for k in ("score", "normalized_score", "accuracy", "f1", "exact_match", "correct", "passed"))
     ):
         raise ValueError(f"Missing score-like fields for record {task_id}")
 
@@ -194,11 +196,13 @@ def convert_benchmark_payload(
 
     results = []
     for component, rows in sorted(by_component.items()):
-        results.append({
-            "component": component,
-            "num_tasks": len(rows),
-            "results": rows,
-        })
+        results.append(
+            {
+                "component": component,
+                "num_tasks": len(rows),
+                "results": rows,
+            }
+        )
 
     return {
         "metadata": {

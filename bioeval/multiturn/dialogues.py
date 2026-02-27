@@ -20,6 +20,7 @@ from enum import Enum
 
 class DialogueType(Enum):
     """Types of multi-turn dialogues."""
+
     HYPOTHESIS_REFINEMENT = "hypothesis_refinement"
     EXPERIMENTAL_DESIGN = "experimental_design"
     TROUBLESHOOTING = "troubleshooting"
@@ -30,6 +31,7 @@ class DialogueType(Enum):
 
 class TurnType(Enum):
     """Types of dialogue turns."""
+
     INITIAL_QUESTION = "initial_question"
     FOLLOW_UP = "follow_up"
     CLARIFICATION_REQUEST = "clarification_request"
@@ -42,6 +44,7 @@ class TurnType(Enum):
 @dataclass
 class DialogueTurn:
     """Single turn in a dialogue."""
+
     turn_number: int
     turn_type: TurnType
     user_message: str
@@ -51,9 +54,10 @@ class DialogueTurn:
     scoring_criteria: dict = field(default_factory=dict)
 
 
-@dataclass 
+@dataclass
 class MultiTurnDialogue:
     """Complete multi-turn dialogue scenario."""
+
     id: str
     title: str
     dialogue_type: DialogueType
@@ -89,11 +93,11 @@ DIALOGUES = [
                 after 6 months of treatment. What are the most likely mechanisms?""",
                 expected_behaviors=[
                     "List common resistance mechanisms: T790M mutation, MET amplification, etc.",
-                    "Suggest diagnostic tests to distinguish mechanisms"
+                    "Suggest diagnostic tests to distinguish mechanisms",
                 ],
                 failure_modes=["Giving only one mechanism", "Not suggesting how to test"],
                 context_dependency="None - initial question",
-                scoring_criteria={"coverage": "Lists 3+ mechanisms", "actionable": "Suggests tests"}
+                scoring_criteria={"coverage": "Lists 3+ mechanisms", "actionable": "Suggests tests"},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -103,14 +107,11 @@ DIALOGUES = [
                 expected_behaviors=[
                     "Acknowledge T790M ruled out",
                     "Suggest alternative mechanisms: MET, HER2, histological transformation",
-                    "Recommend specific tests (FISH for MET, IHC for markers)"
+                    "Recommend specific tests (FISH for MET, IHC for markers)",
                 ],
-                failure_modes=[
-                    "Suggesting T790M testing again",
-                    "Not updating hypothesis based on new info"
-                ],
+                failure_modes=["Suggesting T790M testing again", "Not updating hypothesis based on new info"],
                 context_dependency="Must remember T790M was ruled out",
-                scoring_criteria={"updates_hypothesis": True, "suggests_alternatives": True}
+                scoring_criteria={"updates_hypothesis": True, "suggests_alternatives": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -121,14 +122,11 @@ DIALOGUES = [
                     "Confirm MET amplification as likely resistance mechanism",
                     "Explain MET bypass signaling",
                     "Suggest combination therapy (EGFR + MET inhibitor)",
-                    "Mention specific drugs (capmatinib, tepotinib)"
+                    "Mention specific drugs (capmatinib, tepotinib)",
                 ],
-                failure_modes=[
-                    "Not connecting MET to EGFR resistance",
-                    "Not suggesting treatment change"
-                ],
+                failure_modes=["Not connecting MET to EGFR resistance", "Not suggesting treatment change"],
                 context_dependency="Must connect to initial erlotinib resistance question",
-                scoring_criteria={"mechanism_correct": True, "treatment_suggestion": True}
+                scoring_criteria={"mechanism_correct": True, "treatment_suggestion": True},
             ),
             DialogueTurn(
                 turn_number=4,
@@ -140,18 +138,14 @@ DIALOGUES = [
                     "Recognize the nuance - pre-existing vs acquired",
                     "Explain clonal selection under drug pressure",
                     "Acknowledge both interpretations are possible",
-                    "Suggest it's likely selection of pre-existing clone"
+                    "Suggest it's likely selection of pre-existing clone",
                 ],
-                failure_modes=[
-                    "Ignoring the pre-treatment data",
-                    "Not understanding clonal evolution"
-                ],
+                failure_modes=["Ignoring the pre-treatment data", "Not understanding clonal evolution"],
                 context_dependency="Must integrate all previous information",
-                scoring_criteria={"nuanced_response": True, "understands_evolution": True}
+                scoring_criteria={"nuanced_response": True, "understands_evolution": True},
             ),
-        ]
+        ],
     ),
-    
     MultiTurnDialogue(
         id="mt_hyp_002",
         title="Understanding Unexpected Knockout Phenotype",
@@ -169,11 +163,11 @@ DIALOGUES = [
                 expected_behaviors=[
                     "Express surprise - MYC is usually essential",
                     "Suggest possible explanations: incomplete KO, MYCN compensation, etc.",
-                    "Ask clarifying questions about validation"
+                    "Ask clarifying questions about validation",
                 ],
                 failure_modes=["Accepting result without questioning", "Not suggesting alternatives"],
                 context_dependency="None - initial question",
-                scoring_criteria={"questions_result": True, "suggests_explanations": True}
+                scoring_criteria={"questions_result": True, "suggests_explanations": True},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -184,14 +178,11 @@ DIALOGUES = [
                     "Acknowledge thorough validation",
                     "Shift to biological explanations: MYCN/MYCL compensation",
                     "Suggest checking other MYC family members",
-                    "Consider cell line-specific wiring"
+                    "Consider cell line-specific wiring",
                 ],
-                failure_modes=[
-                    "Continuing to question KO validity",
-                    "Not considering paralog compensation"
-                ],
+                failure_modes=["Continuing to question KO validity", "Not considering paralog compensation"],
                 context_dependency="Must accept KO is valid based on evidence",
-                scoring_criteria={"accepts_evidence": True, "biological_hypothesis": True}
+                scoring_criteria={"accepts_evidence": True, "biological_hypothesis": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -202,15 +193,14 @@ DIALOGUES = [
                     "Confirm this is likely explanation",
                     "Explain MYC/MYCN functional redundancy",
                     "Suggest double KO experiment to test",
-                    "Mention this is known phenomenon in some cancers"
+                    "Mention this is known phenomenon in some cancers",
                 ],
                 failure_modes=["Not connecting MYCN to MYC compensation"],
                 context_dependency="Must connect to initial MYC question",
-                scoring_criteria={"confirms_hypothesis": True, "suggests_test": True}
+                scoring_criteria={"confirms_hypothesis": True, "suggests_test": True},
             ),
-        ]
+        ],
     ),
-
     # -------------------------------------------------------------------------
     # EXPERIMENTAL DESIGN
     # -------------------------------------------------------------------------
@@ -231,11 +221,11 @@ DIALOGUES = [
                 expected_behaviors=[
                     "Confirm CRISPR screen is appropriate",
                     "Ask about positive vs negative selection",
-                    "Ask about cell line and drug properties"
+                    "Ask about cell line and drug properties",
                 ],
                 failure_modes=["Jumping to protocol without clarifying questions"],
                 context_dependency="None",
-                scoring_criteria={"appropriate_method": True, "asks_clarification": True}
+                scoring_criteria={"appropriate_method": True, "asks_clarification": True},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -246,11 +236,11 @@ DIALOGUES = [
                     "Recommend positive selection screen",
                     "Suggest appropriate library (Brunello, Toronto)",
                     "Discuss MOI and coverage requirements",
-                    "Mention timeline considerations"
+                    "Mention timeline considerations",
                 ],
                 failure_modes=["Recommending wrong screen type", "Not discussing technical parameters"],
                 context_dependency="Must use the IC90/survival context",
-                scoring_criteria={"correct_screen_type": True, "technical_details": True}
+                scoring_criteria={"correct_screen_type": True, "technical_details": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -261,11 +251,11 @@ DIALOGUES = [
                     "Recommend MOI 0.3-0.5 for single integration",
                     "Calculate cell numbers: 500-1000x library coverage",
                     "Brunello is ~77k guides, so need ~40-80M cells",
-                    "Explain rationale for these numbers"
+                    "Explain rationale for these numbers",
                 ],
                 failure_modes=["Wrong MOI recommendation", "Incorrect calculation"],
                 context_dependency="Must remember they're using Brunello library",
-                scoring_criteria={"correct_moi": True, "correct_calculation": True}
+                scoring_criteria={"correct_moi": True, "correct_calculation": True},
             ),
             DialogueTurn(
                 turn_number=4,
@@ -276,11 +266,11 @@ DIALOGUES = [
                     "Acknowledge limitation honestly",
                     "Discuss tradeoffs of reduced coverage",
                     "Suggest focused library as alternative",
-                    "Or suggest scaling up cells before screen"
+                    "Or suggest scaling up cells before screen",
                 ],
                 failure_modes=["Saying 20M is fine without caveats", "Not offering alternatives"],
                 context_dependency="Must remember previous coverage calculation",
-                scoring_criteria={"honest_about_limitation": True, "offers_solutions": True}
+                scoring_criteria={"honest_about_limitation": True, "offers_solutions": True},
             ),
             DialogueTurn(
                 turn_number=5,
@@ -291,15 +281,14 @@ DIALOGUES = [
                     "Recommend NGS to count sgRNA abundance",
                     "Suggest analysis tools (MAGeCK, BAGEL)",
                     "Explain enrichment vs depletion analysis",
-                    "Recommend validation of top hits"
+                    "Recommend validation of top hits",
                 ],
                 failure_modes=["Not adapting to new library choice", "Incomplete analysis plan"],
                 context_dependency="Must remember switch to kinase library",
-                scoring_criteria={"appropriate_analysis": True, "validation_plan": True}
+                scoring_criteria={"appropriate_analysis": True, "validation_plan": True},
             ),
-        ]
+        ],
     ),
-    
     # -------------------------------------------------------------------------
     # TROUBLESHOOTING
     # -------------------------------------------------------------------------
@@ -320,11 +309,11 @@ DIALOGUES = [
                 expected_behaviors=[
                     "Suggest checking transfer (Ponceau staining)",
                     "Ask about protein loading amount",
-                    "Ask if gel ran properly"
+                    "Ask if gel ran properly",
                 ],
                 failure_modes=["Jumping to antibody issues without basics"],
                 context_dependency="None",
-                scoring_criteria={"systematic_approach": True, "starts_with_basics": True}
+                scoring_criteria={"systematic_approach": True, "starts_with_basics": True},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -335,11 +324,11 @@ DIALOGUES = [
                     "Acknowledge transfer is fine",
                     "Move to antibody/detection issues",
                     "Ask about blocking conditions",
-                    "Ask about antibody dilutions"
+                    "Ask about antibody dilutions",
                 ],
                 failure_modes=["Suggesting transfer problems again"],
                 context_dependency="Must accept transfer is good",
-                scoring_criteria={"moves_to_next_step": True, "logical_progression": True}
+                scoring_criteria={"moves_to_next_step": True, "logical_progression": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -350,11 +339,11 @@ DIALOGUES = [
                     "Note new antibody - could be issue",
                     "Ask about secondary antibody",
                     "Ask about detection method/ECL",
-                    "Suggest trying higher antibody concentration"
+                    "Suggest trying higher antibody concentration",
                 ],
                 failure_modes=["Not focusing on the new antibody as likely cause"],
                 context_dependency="Must note the new antibody",
-                scoring_criteria={"identifies_likely_cause": True}
+                scoring_criteria={"identifies_likely_cause": True},
             ),
             DialogueTurn(
                 turn_number=4,
@@ -366,15 +355,14 @@ DIALOGUES = [
                     "High background but no signal suggests antibody doesn't recognize target",
                     "New antibody might not work for Western (some work only for IP/IF)",
                     "Suggest trying positive control cell line",
-                    "Consider antibody is bad batch"
+                    "Consider antibody is bad batch",
                 ],
                 failure_modes=["Not recognizing antibody validation issue"],
                 context_dependency="Must integrate all previous troubleshooting",
-                scoring_criteria={"correct_diagnosis": True, "suggests_validation": True}
+                scoring_criteria={"correct_diagnosis": True, "suggests_validation": True},
             ),
-        ]
+        ],
     ),
-
     # -------------------------------------------------------------------------
     # DATA INTERPRETATION
     # -------------------------------------------------------------------------
@@ -397,14 +385,11 @@ DIALOGUES = [
                     "Don't dismiss as error - this is known phenomenon",
                     "Explain paradoxical activation / RAF dimerization",
                     "Ask about cell line and BRAF status",
-                    "Suggest this might be expected in some contexts"
+                    "Suggest this might be expected in some contexts",
                 ],
-                failure_modes=[
-                    "Assuming experiment is wrong",
-                    "Not knowing about paradoxical activation"
-                ],
+                failure_modes=["Assuming experiment is wrong", "Not knowing about paradoxical activation"],
                 context_dependency="None",
-                scoring_criteria={"recognizes_phenomenon": True, "doesnt_dismiss": True}
+                scoring_criteria={"recognizes_phenomenon": True, "doesnt_dismiss": True},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -415,11 +400,11 @@ DIALOGUES = [
                     "Explain RAF dimerization mechanism",
                     "Note that in V600E cells, should see inhibition eventually",
                     "1 hour might be early - ask about later timepoints",
-                    "Suggest the increase might be transient"
+                    "Suggest the increase might be transient",
                 ],
                 failure_modes=["Not explaining mechanism clearly"],
                 context_dependency="Must address V600E context",
-                scoring_criteria={"explains_mechanism": True, "timepoint_relevant": True}
+                scoring_criteria={"explains_mechanism": True, "timepoint_relevant": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -430,15 +415,14 @@ DIALOGUES = [
                     "Confirm biphasic response is consistent with mechanism",
                     "Explain possible mechanisms for early spike",
                     "Mention feedback loops being disrupted",
-                    "Note this is valuable data showing drug dynamics"
+                    "Note this is valuable data showing drug dynamics",
                 ],
                 failure_modes=["Not integrating early and late timepoints"],
                 context_dependency="Must connect 1h and 4h data",
-                scoring_criteria={"integrates_timepoints": True, "coherent_explanation": True}
+                scoring_criteria={"integrates_timepoints": True, "coherent_explanation": True},
             ),
-        ]
+        ],
     ),
-
     # -------------------------------------------------------------------------
     # PEER REVIEW SIMULATION
     # -------------------------------------------------------------------------
@@ -461,11 +445,11 @@ DIALOGUES = [
                     "Acknowledge reviewer has valid point",
                     "Suggest experiments to show causation (knockdown/overexpression)",
                     "Help frame a constructive response",
-                    "Don't be defensive"
+                    "Don't be defensive",
                 ],
                 failure_modes=["Being defensive", "Dismissing valid critique"],
                 context_dependency="None",
-                scoring_criteria={"acknowledges_validity": True, "constructive": True}
+                scoring_criteria={"acknowledges_validity": True, "constructive": True},
             ),
             DialogueTurn(
                 turn_number=2,
@@ -476,11 +460,11 @@ DIALOGUES = [
                     "Partial restoration is actually expected",
                     "Resistance is often multifactorial",
                     "Frame this positively - X is necessary but not sufficient",
-                    "Suggest additional experiments if possible"
+                    "Suggest additional experiments if possible",
                 ],
                 failure_modes=["Agreeing that partial isn't meaningful"],
                 context_dependency="Must build on causation discussion",
-                scoring_criteria={"reframes_positively": True, "scientifically_sound": True}
+                scoring_criteria={"reframes_positively": True, "scientifically_sound": True},
             ),
             DialogueTurn(
                 turn_number=3,
@@ -491,13 +475,13 @@ DIALOGUES = [
                     "n=3 is common in cell biology but has limitations",
                     "Suggest emphasizing effect size over p-values",
                     "Recommend power analysis if possible",
-                    "Point out if results are consistent and reproducible"
+                    "Point out if results are consistent and reproducible",
                 ],
                 failure_modes=["Saying n=3 is definitely enough without nuance"],
                 context_dependency="Different issue - sample size",
-                scoring_criteria={"nuanced_response": True, "practical_advice": True}
+                scoring_criteria={"nuanced_response": True, "practical_advice": True},
             ),
-        ]
+        ],
     ),
 ]
 
@@ -506,9 +490,11 @@ DIALOGUES = [
 # DIALOGUE RUNNER
 # =============================================================================
 
+
 @dataclass
 class TurnResult:
     """Result from a single dialogue turn."""
+
     turn_number: int
     user_message: str
     assistant_response: str
@@ -519,6 +505,7 @@ class TurnResult:
 @dataclass
 class DialogueResult:
     """Result from complete dialogue."""
+
     dialogue_id: str
     dialogue_title: str
     turns: list[TurnResult]
@@ -529,6 +516,7 @@ class DialogueResult:
 
 class _DialogueTaskWrapper:
     """Wrapper to give MultiTurnDialogue the .id / .task_type interface the CLI expects."""
+
     __slots__ = ("id", "task_type", "prompt", "ground_truth", "dialogue")
 
     def __init__(self, dialogue: "MultiTurnDialogue"):
@@ -545,11 +533,12 @@ class MultiTurnEvaluator:
     def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
         self.model_name = model_name
         self._client = None
-    
+
     @property
     def client(self):
         if self._client is None:
             from anthropic import Anthropic
+
             self._client = Anthropic()
         return self._client
 
@@ -563,6 +552,7 @@ class MultiTurnEvaluator:
         """
         if data_tier in ("extended", "all"):
             from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
+
             dialogues = list(DIALOGUES) + EXTENDED_DIALOGUES
         else:
             dialogues = DIALOGUES
@@ -591,13 +581,14 @@ class MultiTurnEvaluator:
         """Run a complete multi-turn dialogue."""
         messages = []
         turn_results = []
-        
+
         for turn in dialogue.turns:
             # Add user message
             messages.append({"role": "user", "content": turn.user_message})
-            
+
             # Get assistant response (with retry on transient errors)
             import time as _time
+
             last_err = None
             for _attempt in range(3):
                 try:
@@ -605,51 +596,48 @@ class MultiTurnEvaluator:
                         model=self.model_name,
                         max_tokens=1500,
                         system=f"You are a helpful scientific assistant discussing {dialogue.domain}. "
-                               f"Engage in a multi-turn conversation, building on previous exchanges.",
-                        messages=messages
+                        f"Engage in a multi-turn conversation, building on previous exchanges.",
+                        messages=messages,
                     )
                     break
                 except (BrokenPipeError, ConnectionError, OSError) as exc:
                     last_err = exc
                     if _attempt < 2:
-                        _time.sleep(2 ** _attempt)
+                        _time.sleep(2**_attempt)
                         self._client = None
             else:
                 raise last_err  # type: ignore[misc]
 
             assistant_message = response.content[0].text
             messages.append({"role": "assistant", "content": assistant_message})
-            
+
             # Score this turn
             scores = self._score_turn(turn, assistant_message, messages[:-1])
-            
-            turn_results.append(TurnResult(
-                turn_number=turn.turn_number,
-                user_message=turn.user_message,
-                assistant_response=assistant_message,
-                scores=scores,
-                passed=scores.get("passed", False)
-            ))
-        
+
+            turn_results.append(
+                TurnResult(
+                    turn_number=turn.turn_number,
+                    user_message=turn.user_message,
+                    assistant_response=assistant_message,
+                    scores=scores,
+                    passed=scores.get("passed", False),
+                )
+            )
+
         # Calculate overall scores
         overall_score = sum(1 for t in turn_results if t.passed) / len(turn_results)
         memory_score = self._calculate_memory_score(dialogue, turn_results)
-        
+
         return DialogueResult(
             dialogue_id=dialogue.id,
             dialogue_title=dialogue.title,
             turns=turn_results,
             overall_score=overall_score,
             memory_score=memory_score,
-            summary=self._generate_summary(turn_results)
+            summary=self._generate_summary(turn_results),
         )
-    
-    def _score_turn(
-        self,
-        turn: DialogueTurn,
-        response: str,
-        previous_messages: list
-    ) -> dict:
+
+    def _score_turn(self, turn: DialogueTurn, response: str, previous_messages: list) -> dict:
         """Score a single turn with improved behavior matching and context retention.
 
         Improvements over v0.2:
@@ -659,6 +647,7 @@ class MultiTurnEvaluator:
         - Graduated scoring instead of binary pass/fail
         """
         from bioeval.scoring.matching import extract_key_terms, matched_list, any_match, phrase_match
+
         response_lower = response.lower()
 
         scores = {
@@ -677,11 +666,13 @@ class MultiTurnEvaluator:
             is_shown = len(matched_terms) >= threshold
             if is_shown:
                 behaviors_shown += 1
-            behavior_details.append({
-                "behavior": behavior[:80],
-                "shown": is_shown,
-                "matched_terms": matched_terms,
-            })
+            behavior_details.append(
+                {
+                    "behavior": behavior[:80],
+                    "shown": is_shown,
+                    "matched_terms": matched_terms,
+                }
+            )
 
         scores["behavior_coverage"] = behaviors_shown / len(turn.expected_behaviors) if turn.expected_behaviors else 0
         scores["behavior_details"] = behavior_details
@@ -696,10 +687,12 @@ class MultiTurnEvaluator:
             is_triggered = len(matched) == len(key_terms) and len(key_terms) > 0
             if is_triggered:
                 failures += 1
-            failure_details.append({
-                "failure": failure[:80],
-                "triggered": is_triggered,
-            })
+            failure_details.append(
+                {
+                    "failure": failure[:80],
+                    "triggered": is_triggered,
+                }
+            )
 
         scores["failure_modes_triggered"] = failures
         scores["failure_details"] = failure_details
@@ -711,25 +704,55 @@ class MultiTurnEvaluator:
         if turn.context_dependency and turn.context_dependency != "None" and previous_messages:
             # Check for explicit continuity markers
             continuity_markers = [
-                "as mentioned", "as we discussed", "you said", "earlier",
-                "previous", "building on", "to your point", "indeed",
-                "as i noted", "given that", "based on", "from our",
-                "we established", "you mentioned", "as before",
+                "as mentioned",
+                "as we discussed",
+                "you said",
+                "earlier",
+                "previous",
+                "building on",
+                "to your point",
+                "indeed",
+                "as i noted",
+                "given that",
+                "based on",
+                "from our",
+                "we established",
+                "you mentioned",
+                "as before",
             ]
             has_continuity_marker = any_match(continuity_markers, response_lower)
 
             # Check for key entity references from previous assistant messages
             entity_retention = 0
             entity_total = 0
-            stop_words = {'about', 'after', 'their', 'there', 'these', 'those',
-                          'which', 'would', 'could', 'should', 'being', 'other',
-                          'where', 'while', 'using', 'first', 'based', 'known',
-                          'shown', 'given', 'since', 'might'}
+            stop_words = {
+                "about",
+                "after",
+                "their",
+                "there",
+                "these",
+                "those",
+                "which",
+                "would",
+                "could",
+                "should",
+                "being",
+                "other",
+                "where",
+                "while",
+                "using",
+                "first",
+                "based",
+                "known",
+                "shown",
+                "given",
+                "since",
+                "might",
+            }
             for msg in previous_messages:
                 if msg.get("role") == "assistant":
                     # Extract key scientific terms from previous responses
-                    sample_terms = extract_key_terms(msg["content"], min_length=4, max_terms=5,
-                                                     stop_words=stop_words)
+                    sample_terms = extract_key_terms(msg["content"], min_length=4, max_terms=5, stop_words=stop_words)
                     for term in sample_terms:
                         entity_total += 1
                         if phrase_match(term, response_lower):
@@ -749,40 +772,36 @@ class MultiTurnEvaluator:
         scores["passed"] = turn_score >= 0.4  # Slightly relaxed from 0.5
 
         return scores
-    
-    def _calculate_memory_score(
-        self, 
-        dialogue: MultiTurnDialogue, 
-        results: list[TurnResult]
-    ) -> float:
+
+    def _calculate_memory_score(self, dialogue: MultiTurnDialogue, results: list[TurnResult]) -> float:
         """Calculate how well model maintained context across turns."""
         if len(results) <= 1:
             return 1.0
-        
+
         memory_checks = 0
         memory_passes = 0
-        
+
         for i, result in enumerate(results[1:], 1):
             # Check if later turns properly reference earlier context
             turn = dialogue.turns[i]
-            
+
             if turn.context_dependency and turn.context_dependency != "None":
                 memory_checks += 1
-                
+
                 # Simple check: does response show awareness of previous turns?
                 if result.scores.get("shows_continuity", False):
                     memory_passes += 1
                 elif result.scores.get("behavior_coverage", 0) >= 0.5:
                     # If behaviors are right, probably remembers context
                     memory_passes += 0.5
-        
+
         return memory_passes / memory_checks if memory_checks > 0 else 1.0
-    
+
     def _generate_summary(self, results: list[TurnResult]) -> str:
         """Generate summary of dialogue performance."""
         passed = sum(1 for r in results if r.passed)
         total = len(results)
-        
+
         if passed == total:
             return "All turns handled successfully"
         elif passed >= total * 0.7:
@@ -791,40 +810,43 @@ class MultiTurnEvaluator:
             return f"Mixed performance: {passed}/{total} turns passed"
         else:
             return f"Poor performance: only {passed}/{total} turns passed"
-    
+
     def run_all_dialogues(self) -> dict:
         """Run all dialogues and aggregate results."""
         results = []
-        
+
         for dialogue in DIALOGUES:
             print(f"Running: {dialogue.title}...")
             result = self.run_dialogue(dialogue)
-            results.append({
-                "dialogue_id": result.dialogue_id,
-                "title": result.dialogue_title,
-                "overall_score": result.overall_score,
-                "memory_score": result.memory_score,
-                "turns_passed": sum(1 for t in result.turns if t.passed),
-                "total_turns": len(result.turns),
-                "summary": result.summary
-            })
-        
+            results.append(
+                {
+                    "dialogue_id": result.dialogue_id,
+                    "title": result.dialogue_title,
+                    "overall_score": result.overall_score,
+                    "memory_score": result.memory_score,
+                    "turns_passed": sum(1 for t in result.turns if t.passed),
+                    "total_turns": len(result.turns),
+                    "summary": result.summary,
+                }
+            )
+
         # Aggregate
         avg_score = sum(r["overall_score"] for r in results) / len(results)
         avg_memory = sum(r["memory_score"] for r in results) / len(results)
-        
+
         return {
             "model": self.model_name,
             "total_dialogues": len(results),
             "average_score": avg_score,
             "average_memory_score": avg_memory,
-            "results": results
+            "results": results,
         }
 
 
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
 
 def get_all_dialogues() -> list[MultiTurnDialogue]:
     """Return all dialogue scenarios."""
@@ -836,22 +858,22 @@ def get_statistics() -> dict:
     by_type = {}
     by_difficulty = {}
     total_turns = 0
-    
+
     for d in DIALOGUES:
         t = d.dialogue_type.value
         by_type[t] = by_type.get(t, 0) + 1
-        
+
         diff = d.difficulty
         by_difficulty[diff] = by_difficulty.get(diff, 0) + 1
-        
+
         total_turns += len(d.turns)
-    
+
     return {
         "total_dialogues": len(DIALOGUES),
         "total_turns": total_turns,
         "by_type": by_type,
         "by_difficulty": by_difficulty,
-        "avg_turns_per_dialogue": total_turns / len(DIALOGUES) if DIALOGUES else 0
+        "avg_turns_per_dialogue": total_turns / len(DIALOGUES) if DIALOGUES else 0,
     }
 
 

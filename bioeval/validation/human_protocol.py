@@ -76,26 +76,32 @@ def _load_tasks_for_component(component: str) -> list[dict]:
     """Load tasks from a component for annotation."""
     if component == "protoreason":
         from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+
         ev = ProtoReasonEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks(data_tier="extended")
     elif component == "causalbio":
         from bioeval.causalbio.evaluator import CausalBioEvaluator
+
         ev = CausalBioEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks(data_tier="extended")
     elif component == "designcheck":
         from bioeval.designcheck.evaluator import DesignCheckEvaluator
+
         ev = DesignCheckEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks(data_tier="extended")
     elif component == "adversarial":
         from bioeval.adversarial.tasks import AdversarialEvaluator
+
         ev = AdversarialEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks()
     elif component == "multiturn":
         from bioeval.multiturn.dialogues import MultiTurnEvaluator
+
         ev = MultiTurnEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks(data_tier="extended")
     elif component == "calibration":
         from bioeval.scoring.calibration import CalibrationEvaluator
+
         ev = CalibrationEvaluator("claude-sonnet-4-20250514")
         tasks = ev.load_tasks()
     else:
@@ -112,9 +118,7 @@ def _load_tasks_for_component(component: str) -> list[dict]:
         if hasattr(t, "ground_truth"):
             gt = t.ground_truth
             entry["ground_truth_summary"] = (
-                json.dumps(gt, indent=2, default=str)[:500]
-                if isinstance(gt, dict)
-                else str(gt)[:500]
+                json.dumps(gt, indent=2, default=str)[:500] if isinstance(gt, dict) else str(gt)[:500]
             )
         result.append(entry)
     return result
@@ -170,6 +174,7 @@ def generate_worksheet(
 # =============================================================================
 # INTER-RATER AGREEMENT
 # =============================================================================
+
 
 def _cohens_kappa(ratings_a: list, ratings_b: list) -> float:
     """Compute Cohen's kappa for two raters on ordinal data.
@@ -310,6 +315,7 @@ def compute_agreement(file_a: str, file_b: str) -> dict:
 # =============================================================================
 # CLI
 # =============================================================================
+
 
 def main():
     import argparse

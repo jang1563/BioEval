@@ -20,14 +20,16 @@ from functools import lru_cache
 # MATCH CONFIGURATION (for ablation studies)
 # =============================================================================
 
+
 @dataclass
 class MatchConfig:
     """Configuration flags for phrase_match behavior.
 
     Used in ablation studies to measure the contribution of each feature.
     """
-    use_stemming: bool = True      # Phase 2: stemmed token matching
-    use_synonyms: bool = True      # Phase 3: synonym expansion
+
+    use_stemming: bool = True  # Phase 2: stemmed token matching
+    use_synonyms: bool = True  # Phase 3: synonym expansion
     use_word_boundary: bool = True  # Word-boundary guard for short terms
 
 
@@ -56,23 +58,66 @@ def match_config(config: MatchConfig):
     finally:
         _active_config = old
 
+
 # =============================================================================
 # SIMPLE STEMMER (no NLTK dependency)
 # =============================================================================
 
 # Order matters — try longer suffixes first
 _SUFFIXES = [
-    "isation", "ization", "ational", "fulness",
-    "iously", "lessly", "ments", "ation", "ement",
-    "iness", "ously", "ively", "ional", "ness",
-    "ment", "tion", "sion", "ible", "able",
-    "ious", "eous", "ical", "ally", "ated",
-    "ting", "ling", "ence", "ance", "ment",
-    "ity", "ous", "ive", "ing", "ful",
-    "ism", "ist", "ary", "ory", "ant",
-    "ent", "ial", "ure", "ise", "ize",
-    "ify", "ate", "ble", "ive",
-    "ly", "ed", "er", "al", "es",
+    "isation",
+    "ization",
+    "ational",
+    "fulness",
+    "iously",
+    "lessly",
+    "ments",
+    "ation",
+    "ement",
+    "iness",
+    "ously",
+    "ively",
+    "ional",
+    "ness",
+    "ment",
+    "tion",
+    "sion",
+    "ible",
+    "able",
+    "ious",
+    "eous",
+    "ical",
+    "ally",
+    "ated",
+    "ting",
+    "ling",
+    "ence",
+    "ance",
+    "ment",
+    "ity",
+    "ous",
+    "ive",
+    "ing",
+    "ful",
+    "ism",
+    "ist",
+    "ary",
+    "ory",
+    "ant",
+    "ent",
+    "ial",
+    "ure",
+    "ise",
+    "ize",
+    "ify",
+    "ate",
+    "ble",
+    "ive",
+    "ly",
+    "ed",
+    "er",
+    "al",
+    "es",
 ]
 
 # Minimum stem length after stripping
@@ -118,39 +163,31 @@ _SYNONYM_GROUPS: list[tuple[str, ...]] = [
     # Directionality
     ("decrease", "reduce", "inhibit", "suppress", "downregulate", "attenuate", "diminish", "lower", "block"),
     ("increase", "enhance", "activate", "upregulate", "promote", "elevate", "stimulate", "induce", "amplify"),
-
     # Essentiality
     ("essential", "required", "necessary", "critical", "indispensable", "vital"),
     ("dispensable", "non-essential", "nonessential", "unnecessary", "redundant", "expendable"),
-
     # Experimental
     ("replicate", "repeat", "reproduce", "independent experiment"),
     ("control", "vehicle", "untreated", "baseline", "reference"),
-
     # Effects
     ("lethal", "cell death", "kill", "apoptosis", "cytotoxic"),
     ("resistance", "refractory", "insensitive", "non-responsive", "unresponsive"),
     ("sensitive", "responsive", "susceptible", "vulnerable"),
-
     # Uncertainty
     ("uncertain", "unsure", "unclear", "ambiguous", "indeterminate"),
     ("confident", "certain", "definite", "conclusive", "unambiguous"),
-
     # Statistical
     ("significant", "statistically significant", "p-value", "p value"),
     ("underpowered", "insufficient sample", "low power", "small sample"),
     ("pseudoreplication", "pseudo-replication", "technical replicate"),
-
     # Design
     ("confound", "confounder", "confounding", "confounded"),
     ("batch effect", "batch confound", "batch variation"),
     ("overstatement", "overclaim", "overinterpret", "exaggerate"),
-
     # Mechanisms
     ("gain-of-function", "gain of function", "neomorphic", "gof"),
     ("loss-of-function", "loss of function", "lof", "null"),
     ("mutually exclusive", "mutual exclusivity", "co-exclusive"),
-
     # Correction language
     ("incorrect", "wrong", "false", "erroneous", "mistaken", "inaccurate"),
     ("actually", "in fact", "contrary", "however", "rather"),
@@ -215,6 +252,7 @@ def _stem_tokens(text_key: str) -> list[str]:
 # =============================================================================
 # CORE MATCHING FUNCTIONS
 # =============================================================================
+
 
 def phrase_match(query: str, text: str) -> bool:
     """Check if a query phrase matches in text.
@@ -291,6 +329,7 @@ def matched_list(indicators: list[str], text: str) -> list[str]:
 # SPECIALIZED HELPERS
 # =============================================================================
 
+
 def term_overlap_score(terms: list[str], text: str, min_matches: int = 2) -> float:
     """Fraction of terms that match, with a minimum threshold.
 
@@ -316,10 +355,29 @@ def extract_key_terms(
     """
     if stop_words is None:
         stop_words = {
-            "about", "after", "their", "there", "these", "those",
-            "which", "would", "could", "should", "being", "other",
-            "where", "while", "using", "first", "based", "known",
-            "shown", "given", "since", "might", "could",
+            "about",
+            "after",
+            "their",
+            "there",
+            "these",
+            "those",
+            "which",
+            "would",
+            "could",
+            "should",
+            "being",
+            "other",
+            "where",
+            "while",
+            "using",
+            "first",
+            "based",
+            "known",
+            "shown",
+            "given",
+            "since",
+            "might",
+            "could",
         }
 
     tokens = tokenize(text)

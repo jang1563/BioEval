@@ -32,15 +32,17 @@ def _collect_candidates(result_data: dict) -> list[dict]:
             except Exception:
                 auto_score = None
 
-            rows.append({
-                "task_id": r.get("task_id", r.get("dialogue_id", "")),
-                "component": component,
-                "task_type": task_type,
-                "task_prompt": r.get("prompt", ""),
-                "model_response": r.get("response", ""),
-                "auto_score": auto_score,
-                "judge_score": float(judge_score),
-            })
+            rows.append(
+                {
+                    "task_id": r.get("task_id", r.get("dialogue_id", "")),
+                    "component": component,
+                    "task_type": task_type,
+                    "task_prompt": r.get("prompt", ""),
+                    "model_response": r.get("response", ""),
+                    "auto_score": auto_score,
+                    "judge_score": float(judge_score),
+                }
+            )
     return rows
 
 
@@ -86,11 +88,13 @@ def generate_judge_validation_pack(
         )
         writer.writeheader()
         for row in sampled:
-            writer.writerow({
-                **row,
-                "human_score": "",
-                "human_notes": "",
-            })
+            writer.writerow(
+                {
+                    **row,
+                    "human_score": "",
+                    "human_notes": "",
+                }
+            )
 
     agreement = analyze_agreement(result_file)
     summary = {
@@ -111,4 +115,3 @@ def generate_judge_validation_pack(
         "csv_path": str(csv_path),
         "summary_path": str(summary_path),
     }
-

@@ -46,12 +46,14 @@ def analyze_scoring_feedback(result_path: str) -> dict:
             task_type = r.get("task_type", r.get("adversarial_type", ""))
             try:
                 ns = normalize_result(r, comp, task_type)
-                by_component[comp].append({
-                    "task_id": r.get("task_id", r.get("dialogue_id", "")),
-                    "task_type": task_type,
-                    "score": ns.score,
-                    "passed": ns.passed,
-                })
+                by_component[comp].append(
+                    {
+                        "task_id": r.get("task_id", r.get("dialogue_id", "")),
+                        "task_type": task_type,
+                        "score": ns.score,
+                        "passed": ns.passed,
+                    }
+                )
                 all_scores.append(ns.score)
             except Exception:
                 pass
@@ -67,26 +69,30 @@ def analyze_scoring_feedback(result_path: str) -> dict:
     n_zero = sum(1 for s in all_scores if s <= 0.01)
     pass_rate = sum(1 for s in all_scores if s >= 0.5) / len(all_scores)
 
-    diagnostics.append({
-        "type": "overall_distribution",
-        "n": len(all_scores),
-        "mean": round(mean, 4),
-        "std": round(std, 4),
-        "pass_rate": round(pass_rate, 4),
-        "n_perfect": n_perfect,
-        "n_zero": n_zero,
-        "pct_perfect": round(n_perfect / len(all_scores) * 100, 1),
-        "pct_zero": round(n_zero / len(all_scores) * 100, 1),
-    })
+    diagnostics.append(
+        {
+            "type": "overall_distribution",
+            "n": len(all_scores),
+            "mean": round(mean, 4),
+            "std": round(std, 4),
+            "pass_rate": round(pass_rate, 4),
+            "n_perfect": n_perfect,
+            "n_zero": n_zero,
+            "pct_perfect": round(n_perfect / len(all_scores) * 100, 1),
+            "pct_zero": round(n_zero / len(all_scores) * 100, 1),
+        }
+    )
 
     # --- 2. Ceiling effect detection ---
     if n_perfect / len(all_scores) > 0.4:
-        warnings.append({
-            "severity": "high",
-            "type": "ceiling_effect",
-            "message": f"{n_perfect}/{len(all_scores)} ({n_perfect/len(all_scores):.0%}) tasks scored perfectly. "
-                       "Scorer may be too lenient.",
-        })
+        warnings.append(
+            {
+                "severity": "high",
+                "type": "ceiling_effect",
+                "message": f"{n_perfect}/{len(all_scores)} ({n_perfect/len(all_scores):.0%}) tasks scored perfectly. "
+                "Scorer may be too lenient.",
+            }
+        )
         suggestions.append(
             "Consider tightening scoring criteria or adding harder tasks. "
             "NeurIPS reviewers expect meaningful score separation."
@@ -94,12 +100,14 @@ def analyze_scoring_feedback(result_path: str) -> dict:
 
     # --- 3. Floor effect detection ---
     if n_zero / len(all_scores) > 0.3:
-        warnings.append({
-            "severity": "high",
-            "type": "floor_effect",
-            "message": f"{n_zero}/{len(all_scores)} ({n_zero/len(all_scores):.0%}) tasks scored zero. "
-                       "Scorer may be too strict or responses are genuinely poor.",
-        })
+        warnings.append(
+            {
+                "severity": "high",
+                "type": "floor_effect",
+                "message": f"{n_zero}/{len(all_scores)} ({n_zero/len(all_scores):.0%}) tasks scored zero. "
+                "Scorer may be too strict or responses are genuinely poor.",
+            }
+        )
         suggestions.append(
             "Review zero-scoring tasks manually. If responses contain partial knowledge, "
             "consider graduated scoring instead of binary pass/fail."
@@ -107,12 +115,14 @@ def analyze_scoring_feedback(result_path: str) -> dict:
 
     # --- 4. Low variance detection ---
     if std < 0.1 and len(all_scores) > 10:
-        warnings.append({
-            "severity": "medium",
-            "type": "low_variance",
-            "message": f"Score std={std:.3f} is very low. Most tasks score similarly (~{mean:.2f}). "
-                       "The benchmark may not discriminate well between models.",
-        })
+        warnings.append(
+            {
+                "severity": "medium",
+                "type": "low_variance",
+                "message": f"Score std={std:.3f} is very low. Most tasks score similarly (~{mean:.2f}). "
+                "The benchmark may not discriminate well between models.",
+            }
+        )
         suggestions.append(
             "Add tasks of varying difficulty levels. "
             "Item analysis (bioeval item-analysis) can identify tasks needing adjustment."
@@ -129,23 +139,27 @@ def analyze_scoring_feedback(result_path: str) -> dict:
         min_mean = min(comp_means.values())
         gap = max_mean - min_mean
 
-        diagnostics.append({
-            "type": "component_balance",
-            "means": {k: round(v, 4) for k, v in comp_means.items()},
-            "max_gap": round(gap, 4),
-            "hardest": min(comp_means, key=comp_means.get),
-            "easiest": max(comp_means, key=comp_means.get),
-        })
+        diagnostics.append(
+            {
+                "type": "component_balance",
+                "means": {k: round(v, 4) for k, v in comp_means.items()},
+                "max_gap": round(gap, 4),
+                "hardest": min(comp_means, key=comp_means.get),
+                "easiest": max(comp_means, key=comp_means.get),
+            }
+        )
 
         if gap > 0.4:
             easy = max(comp_means, key=comp_means.get)
             hard = min(comp_means, key=comp_means.get)
-            warnings.append({
-                "severity": "medium",
-                "type": "component_imbalance",
-                "message": f"Large gap between easiest ({easy}: {comp_means[easy]:.2f}) "
-                           f"and hardest ({hard}: {comp_means[hard]:.2f}). Gap={gap:.2f}.",
-            })
+            warnings.append(
+                {
+                    "severity": "medium",
+                    "type": "component_imbalance",
+                    "message": f"Large gap between easiest ({easy}: {comp_means[easy]:.2f}) "
+                    f"and hardest ({hard}: {comp_means[hard]:.2f}). Gap={gap:.2f}.",
+                }
+            )
             suggestions.append(
                 f"Rebalance difficulty: add harder tasks to {easy} "
                 f"or easier tasks to {hard} for fairer cross-component comparison."
@@ -175,32 +189,38 @@ def analyze_scoring_feedback(result_path: str) -> dict:
             comp_issues[comp] = issues
 
     if comp_issues:
-        diagnostics.append({
-            "type": "per_component_issues",
-            "components": comp_issues,
-        })
+        diagnostics.append(
+            {
+                "type": "per_component_issues",
+                "components": comp_issues,
+            }
+        )
 
     # --- 7. Adversarial-specific checks ---
     adv_scores = by_component.get("adversarial", [])
     if adv_scores:
         adv_pass_rate = sum(1 for s in adv_scores if s["passed"]) / len(adv_scores)
         if adv_pass_rate > 0.9:
-            warnings.append({
-                "severity": "low",
-                "type": "adversarial_too_easy",
-                "message": f"Adversarial pass rate is {adv_pass_rate:.0%}. "
-                           "Tasks may be too easy or scorer too lenient for adversarial detection.",
-            })
+            warnings.append(
+                {
+                    "severity": "low",
+                    "type": "adversarial_too_easy",
+                    "message": f"Adversarial pass rate is {adv_pass_rate:.0%}. "
+                    "Tasks may be too easy or scorer too lenient for adversarial detection.",
+                }
+            )
 
         # Check by adversarial type
         by_atype = defaultdict(list)
         for s in adv_scores:
             by_atype[s["task_type"]].append(s["score"])
-        type_means = {t: sum(ss)/len(ss) for t, ss in by_atype.items()}
-        diagnostics.append({
-            "type": "adversarial_by_type",
-            "type_means": {k: round(v, 4) for k, v in sorted(type_means.items())},
-        })
+        type_means = {t: sum(ss) / len(ss) for t, ss in by_atype.items()}
+        diagnostics.append(
+            {
+                "type": "adversarial_by_type",
+                "type_means": {k: round(v, 4) for k, v in sorted(type_means.items())},
+            }
+        )
 
     # --- 8. Calibration-specific checks ---
     cal_scores = by_component.get("calibration", [])
@@ -225,6 +245,7 @@ def analyze_scoring_feedback(result_path: str) -> dict:
 # =============================================================================
 # TEXT OUTPUT
 # =============================================================================
+
 
 def print_feedback(result_path: str):
     """Print scoring feedback analysis."""
