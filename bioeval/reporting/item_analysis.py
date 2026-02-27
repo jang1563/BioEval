@@ -18,7 +18,6 @@ from pathlib import Path
 from bioeval.reporting.analysis import load_and_normalize
 from bioeval.scoring.normalizer import NormalizedScore
 
-
 # =============================================================================
 # ITEM DIFFICULTY (CLASSICAL P-VALUE)
 # =============================================================================

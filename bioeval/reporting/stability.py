@@ -18,7 +18,6 @@ from collections import defaultdict
 
 from bioeval.scoring.normalizer import normalize_result
 
-
 # =============================================================================
 # RESPONSE PERTURBATION FUNCTIONS
 # =============================================================================

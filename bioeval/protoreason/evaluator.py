@@ -24,7 +24,6 @@ def _deterministic_seed(s: str) -> int:
 
 from bioeval.models.base import BaseEvaluator, EvalTask, EvalResult
 
-
 # Sample protocols for demonstration (in production, load from protocols.io API)
 SAMPLE_PROTOCOLS = {
     "western_blot": {

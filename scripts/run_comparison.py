@@ -26,7 +26,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Import after path setup
 import bioeval.config as config
 
-
 # Retry configuration
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds

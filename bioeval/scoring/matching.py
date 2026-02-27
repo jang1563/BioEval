@@ -15,7 +15,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import lru_cache
 
-
 # =============================================================================
 # MATCH CONFIGURATION (for ablation studies)
 # =============================================================================

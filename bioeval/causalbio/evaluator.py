@@ -20,7 +20,6 @@ from bioeval.prompts import (
 from bioeval import config
 from bioeval.version import __version__
 
-
 # Sample perturbation tasks (in production, load from DepMap/CMap)
 # These represent real biological knowledge that can be validated against experimental data
 KNOCKOUT_TASKS = [

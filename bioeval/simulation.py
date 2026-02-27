@@ -21,7 +21,6 @@ from datetime import datetime
 
 from bioeval.version import __version__
 
-
 # =============================================================================
 # DUMMY MODEL FOR BYPASSING API INITIALIZATION
 # =============================================================================

@@ -11,7 +11,6 @@ from dataclasses import dataclass
 
 from bioeval.models.base import BaseEvaluator, EvalTask
 
-
 # =============================================================================
 # FLAW TAXONOMY
 # =============================================================================

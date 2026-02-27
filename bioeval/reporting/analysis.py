@@ -15,7 +15,6 @@ from pathlib import Path
 
 from bioeval.scoring.normalizer import normalize_result, NormalizedScore
 
-
 # =============================================================================
 # RESULT LOADING & NORMALIZATION
 # =============================================================================

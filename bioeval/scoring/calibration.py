@@ -19,7 +19,6 @@ import math
 
 from bioeval.scoring.response_parser import extract_confidence_structured
 
-
 # =============================================================================
 # DATA STRUCTURES
 # =============================================================================

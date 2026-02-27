@@ -16,7 +16,6 @@ from bioeval.reporting.analysis import load_and_normalize
 from bioeval.scoring.matching import MatchConfig, match_config
 from bioeval.scoring.normalizer import NormalizedScore, normalize_result
 
-
 # =============================================================================
 # ABLATION CONFIGURATIONS
 # =============================================================================

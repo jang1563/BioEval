@@ -10,7 +10,6 @@ from typing import Optional
 from dataclasses import dataclass, field
 from enum import Enum
 
-
 # =============================================================================
 # SCORING RUBRICS
 # =============================================================================
@@ -318,19 +317,14 @@ def create_judge_prompt(
     if rubric is None:
         rubric = RUBRICS.get(task_type, DEFAULT_RUBRIC)
 
-    rubric_text = "\n".join(
-        [
-            f"""
+    rubric_text = "\n".join([f"""
 Dimension: {c.dimension.value}
 Weight: {c.weight}
 Description: {c.description}
 - Score 5: {c.score_5}
 - Score 3: {c.score_3}
 - Score 1: {c.score_1}
-"""
-            for c in rubric
-        ]
-    )
+""" for c in rubric])
 
     # Simplify ground truth for judge
     gt_summary = json.dumps(ground_truth, indent=2, default=str)[:2000]

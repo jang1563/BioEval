@@ -14,7 +14,6 @@ from typing import Optional
 from bioeval.debate.agents import AgentResponse, AgentRole
 from bioeval.debate.protocols import DebateTrace
 
-
 # =============================================================================
 # SCORE DATACLASSES
 # =============================================================================
