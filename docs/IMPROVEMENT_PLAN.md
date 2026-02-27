@@ -1,5 +1,8 @@
 # BioEval Improvement Plan
 
+> NOTE (Canonical Status): This plan contains historical phase snapshots and estimates.  
+> For current runtime counts/version/contracts, see [STATUS.md](STATUS.md) and [README.md](../README.md).
+
 > Version: 3.0
 > Last Updated: 2026-02-24
 > Status: **Revised after Phase 0 completion + Post-Phase 0 Review**

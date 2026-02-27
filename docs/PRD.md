@@ -1,5 +1,8 @@
 # BioEval — Product Requirements Document (PRD)
 
+> NOTE (Canonical Status): This PRD includes historical phase-planning targets.  
+> For current runtime counts/version/contracts, see [STATUS.md](STATUS.md) and [README.md](../README.md).
+
 > Version: 3.0
 > Author: JangKeun Kim
 > Last Updated: 2026-02-24

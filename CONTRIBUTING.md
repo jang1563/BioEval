@@ -70,8 +70,9 @@ pytest tests/test_adversarial.py
 
 This project uses:
 - **Black** for code formatting
-- **Flake8** for linting
+- **Ruff** for linting
 - **MyPy** for type checking
+- **pre-commit** for local quality gates
 
 Run formatting and linting:
 ```bash
@@ -79,10 +80,14 @@ Run formatting and linting:
 black bioeval/ scripts/ tests/
 
 # Check linting
-flake8 bioeval/ scripts/ tests/
+ruff check bioeval/ scripts/ tests/
 
 # Type checking
 mypy bioeval/
+
+# Optional but recommended
+pre-commit install
+pre-commit run --all-files
 ```
 
 ### Committing Changes

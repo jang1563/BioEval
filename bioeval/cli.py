@@ -13,6 +13,7 @@ Usage:
 import argparse
 import json
 import os
+import random
 import sys
 import time
 from datetime import datetime
@@ -20,113 +21,87 @@ from pathlib import Path
 
 
 from bioeval.config import COMPONENTS
+from bioeval.version import __version__
 
 
 def cmd_inventory(args):
-    """Show complete task inventory without making any API calls."""
-    from bioeval.protoreason.evaluator import SAMPLE_PROTOCOLS, CALCULATION_TASKS, TROUBLESHOOTING_TASKS
-    from bioeval.causalbio.evaluator import KNOCKOUT_TASKS, PATHWAY_TASKS, DRUG_RESPONSE_TASKS, EPISTASIS_TASKS
-    from bioeval.designcheck.evaluator import FLAWED_DESIGNS
-    from bioeval.adversarial.tasks import ADVERSARIAL_TASKS
-    from bioeval.multiturn.dialogues import DIALOGUES
-    from bioeval.scoring.calibration import CALIBRATION_TEST_TASKS
-    from bioeval.biosafety.tasks import BIOSAFETY_TASKS
-    from bioeval.datainterp.tasks import DATA_INTERP_TASKS
-    from bioeval.debate.tasks import DEBATE_TASKS
+    """Show complete task inventory using actual load_tasks() counts."""
+    from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+    from bioeval.causalbio.evaluator import CausalBioEvaluator
+    from bioeval.designcheck.evaluator import DesignCheckEvaluator
+    from bioeval.adversarial.tasks import AdversarialEvaluator, ADVERSARIAL_TASKS
+    from bioeval.multiturn.dialogues import MultiTurnEvaluator
+    from bioeval.scoring.calibration import CalibrationEvaluator
+    from bioeval.biosafety.tasks import BiosafetyEvaluator
+    from bioeval.datainterp.tasks import DataInterpEvaluator
+    from bioeval.debate.evaluator import DebateEvaluator
 
     print("=" * 60)
     print("BioEval Task Inventory")
     print("=" * 60)
 
-    # Base data
-    pr_base = len(SAMPLE_PROTOCOLS) * 3 + len(CALCULATION_TASKS) + len(TROUBLESHOOTING_TASKS)
-    cb_base = len(KNOCKOUT_TASKS) + len(PATHWAY_TASKS) + len(DRUG_RESPONSE_TASKS) + len(EPISTASIS_TASKS)
-    dc_base = len(FLAWED_DESIGNS)
-    adv_base = len(ADVERSARIAL_TASKS)
-    mt_base = len(DIALOGUES)
-    cal_base = len(CALIBRATION_TEST_TASKS)
-    bs_base = len(BIOSAFETY_TASKS)
-    di_base = len(DATA_INTERP_TASKS)
-    debate_base = len(DEBATE_TASKS)
+    # Count base tasks from actual evaluator load_tasks()
+    tiered_evaluators = {
+        "ProtoReason": (ProtoReasonEvaluator, "base"),
+        "CausalBio": (CausalBioEvaluator, "base"),
+        "DesignCheck": (DesignCheckEvaluator, "base"),
+        "MultiTurn": (MultiTurnEvaluator, "base"),
+    }
+    no_tier_evaluators = {
+        "Adversarial": AdversarialEvaluator,
+        "Calibration": CalibrationEvaluator,
+        "BioSafety": BiosafetyEvaluator,
+        "DataInterp": DataInterpEvaluator,
+        "Debate": DebateEvaluator,
+    }
+
+    base_counts = {}
+    for name, (cls, tier) in tiered_evaluators.items():
+        e = cls()
+        base_counts[name] = len(e.load_tasks(tier))
+
+    for name, cls in no_tier_evaluators.items():
+        e = cls()
+        base_counts[name] = len(e.load_tasks())
+
+    base_total = sum(base_counts.values())
 
     print(f"\nBase tasks:")
-    print(f"  ProtoReason:  {pr_base:3d}  ({len(SAMPLE_PROTOCOLS)} protocols x3 + {len(CALCULATION_TASKS)} calc + {len(TROUBLESHOOTING_TASKS)} troubleshoot)")
-    print(f"  CausalBio:    {cb_base:3d}  ({len(KNOCKOUT_TASKS)} ko + {len(PATHWAY_TASKS)} path + {len(DRUG_RESPONSE_TASKS)} drug + {len(EPISTASIS_TASKS)} epi)")
-    print(f"  DesignCheck:  {dc_base:3d}")
-    print(f"  Adversarial:  {adv_base:3d}")
-    print(f"  MultiTurn:    {mt_base:3d}")
-    print(f"  Calibration:  {cal_base:3d}")
-    print(f"  BioSafety:    {bs_base:3d}")
-    print(f"  DataInterp:   {di_base:3d}")
-    print(f"  Debate:       {debate_base:3d}")
-    base_total = pr_base + cb_base + dc_base + adv_base + mt_base + cal_base + bs_base + di_base + debate_base
+    for name, count in base_counts.items():
+        print(f"  {name + ':':14s} {count:3d}")
     print(f"  {'─' * 30}")
     print(f"  Base total:   {base_total:3d}")
 
-    # Extended data
-    try:
-        from bioeval.protoreason.extended_data import PROTOCOLS as EXT_PR, CALCULATION_TASKS as EXT_CALC
-        from bioeval.protoreason.extended_data import TROUBLESHOOTING_TASKS as EXT_TS, SAFETY_TASKS as EXT_SAFETY
-        from bioeval.causalbio.extended_data import KNOCKOUT_TASKS as EXT_KO, PATHWAY_TASKS as EXT_PATH
-        from bioeval.causalbio.extended_data import DRUG_RESPONSE_TASKS as EXT_DRUG, EPISTASIS_TASKS as EXT_EPI
-
-        pr_ext = len(EXT_PR) * 3 + len(EXT_CALC) + len(EXT_TS) + len(EXT_SAFETY)
-        cb_ext = len(EXT_KO) + len(EXT_PATH) + len(EXT_DRUG) + len(EXT_EPI)
-
-        # DesignCheck extended
-        dc_ext = dc_base
+    # Extended additions (unique tasks not in base)
+    ext_additions = {}
+    for name, (cls, _) in tiered_evaluators.items():
+        e = cls()
         try:
-            from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
-            dc_ext += len(EXTENDED_FLAWED_DESIGNS)
-        except ImportError:
+            base_tasks = e.load_tasks("base")
+            ext_tasks = e.load_tasks("extended")
+            base_ids = {t.id for t in base_tasks}
+            ext_ids = {t.id for t in ext_tasks}
+            additions = len(ext_ids - base_ids)
+            if additions > 0:
+                ext_additions[name] = additions
+        except Exception:
             pass
 
-        # MultiTurn extended
-        mt_ext = mt_base
-        try:
-            from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES
-            mt_ext += len(EXTENDED_DIALOGUES)
-        except ImportError:
-            pass
-
-        ext_total = pr_ext + cb_ext + (dc_ext - dc_base) + (mt_ext - mt_base)
-        print(f"\nExtended tasks (additions over base):")
-        print(f"  ProtoReason:  {pr_ext:3d}")
-        print(f"  CausalBio:    {cb_ext:3d}")
-        print(f"  DesignCheck:  +{dc_ext - dc_base:2d}  (total {dc_ext})")
-        print(f"  MultiTurn:    +{mt_ext - mt_base:2d}  (total {mt_ext})")
+    ext_total = sum(ext_additions.values())
+    if ext_additions:
+        print(f"\nExtended tasks (unique additions over base):")
+        for name, count in ext_additions.items():
+            print(f"  {name + ':':14s} +{count}")
         print(f"  {'─' * 30}")
         print(f"  Extended additions: {ext_total:3d}")
-    except ImportError:
-        ext_total = 0
+    else:
         print("\nExtended data: not available")
 
-    # Advanced data
-    try:
-        from bioeval.protoreason.advanced_data import ADVANCED_PROTOCOLS, ADVANCED_CALCULATIONS, ADVANCED_TROUBLESHOOTING
-        from bioeval.causalbio.advanced_data import BIOMARKER_TASKS, COMBINATION_TASKS, MULTI_OMIC_TASKS, RESISTANCE_TASKS
-        from bioeval.designcheck.advanced_data import ANIMAL_DESIGNS, CLINICAL_DESIGNS, MULTICENTER_DESIGNS, SEQUENCING_DESIGNS
-
-        pr_adv = len(ADVANCED_PROTOCOLS) * 3 + len(ADVANCED_CALCULATIONS) + len(ADVANCED_TROUBLESHOOTING)
-        cb_adv = len(BIOMARKER_TASKS) + len(COMBINATION_TASKS) + len(MULTI_OMIC_TASKS) + len(RESISTANCE_TASKS)
-        dc_adv = len(ANIMAL_DESIGNS) + len(CLINICAL_DESIGNS) + len(MULTICENTER_DESIGNS) + len(SEQUENCING_DESIGNS)
-        adv_total = pr_adv + cb_adv + dc_adv
-        print(f"\nAdvanced tasks:")
-        print(f"  ProtoReason:  {pr_adv:3d}")
-        print(f"  CausalBio:    {cb_adv:3d}")
-        print(f"  DesignCheck:  {dc_adv:3d}")
-        print(f"  {'─' * 30}")
-        print(f"  Advanced total: {adv_total:3d}")
-    except ImportError:
-        adv_total = 0
-        print("\nAdvanced data: not available")
-
-    grand = base_total + ext_total + adv_total
+    total_unique = base_total + ext_total
     print(f"\n{'=' * 40}")
-    print(f"GRAND TOTAL: {grand} tasks")
+    print(f"TOTAL UNIQUE: {total_unique} tasks")
     print(f"  Base:     {base_total}")
-    print(f"  Extended: {ext_total}")
-    print(f"  Advanced: {adv_total}")
+    print(f"  Extended: +{ext_total}")
     print(f"{'=' * 40}")
 
     # Adversarial breakdown
@@ -149,6 +124,14 @@ def cmd_run(args):
     else:
         print("Error: specify --all or -c <component>")
         sys.exit(1)
+
+    # Reproducibility control for any stochastic local logic
+    random.seed(args.seed)
+    try:
+        import numpy as np
+        np.random.seed(args.seed)
+    except Exception:
+        pass
 
     # Check API key
     if "claude" in model.lower() and not os.environ.get("ANTHROPIC_API_KEY"):
@@ -178,6 +161,7 @@ def cmd_run(args):
     print(f"# Time: {datetime.now().isoformat()}")
     print(f"# Data tier: {args.data_tier}")
     print(f"# Split: {args.split}")
+    print(f"# Seed: {args.seed}")
     if args.runs > 1:
         print(f"# Runs: {args.runs}")
     if args.use_judge:
@@ -241,11 +225,12 @@ def cmd_run(args):
                 "split": args.split,
                 "run_index": run_idx,
                 "n_runs": n_runs,
+                "seed": args.seed,
                 "use_judge": args.use_judge,
                 "judge_model": args.judge_model if args.use_judge else None,
                 "timestamp": datetime.now().isoformat(),
                 "elapsed_seconds": round(total_elapsed, 1),
-                "bioeval_version": "0.3.0",
+                "bioeval_version": __version__,
             },
             "summary": summary,
             "results": all_results,
@@ -349,7 +334,8 @@ def _run_component(component: str, model: str, data_tier: str = "base", judge=No
     else:
         raise ValueError(f"Unknown component: {component}")
 
-    # Map task types to judge rubric types
+    # Map task types to judge rubric types.
+    # Unmapped task types fall back to their own name, which uses default rubric.
     TASK_TYPE_TO_RUBRIC = {
         "knockout_prediction": "knockout_prediction",
         "pathway_reasoning": "pathway_reasoning",
@@ -384,30 +370,27 @@ def _run_component(component: str, model: str, data_tier: str = "base", judge=No
 
             # Run LLM judge if enabled
             if judge and isinstance(result_dict, dict) and "response" in result_dict:
-                rubric_type = TASK_TYPE_TO_RUBRIC.get(task_type, None)
-                if rubric_type:
-                    try:
-                        judge_result = judge.evaluate(
-                            task_id=task_id,
-                            task_type=rubric_type,
-                            task_prompt=task.prompt if hasattr(task, "prompt") else "",
-                            model_response=result_dict["response"],
-                            ground_truth=task.ground_truth if hasattr(task, "ground_truth") else {},
-                        )
-                        result_dict["judge_scores"] = {
-                            "overall_score": judge_result.overall_score,
-                            "dimension_scores": judge_result.dimension_scores,
-                            "reasoning": judge_result.reasoning,
-                            "strengths": judge_result.strengths,
-                            "weaknesses": judge_result.weaknesses,
-                            "critical_errors": judge_result.critical_errors,
-                        }
-                        print("done (+ judge)", end="")
-                    except Exception as je:
-                        result_dict["judge_scores"] = {"error": str(je)}
-                        print(f"done (judge error: {je})", end="")
-                else:
-                    print("done (no rubric)", end="")
+                rubric_type = TASK_TYPE_TO_RUBRIC.get(task_type, task_type)
+                try:
+                    judge_result = judge.evaluate(
+                        task_id=task_id,
+                        task_type=rubric_type,
+                        task_prompt=task.prompt if hasattr(task, "prompt") else "",
+                        model_response=result_dict["response"],
+                        ground_truth=task.ground_truth if hasattr(task, "ground_truth") else {},
+                    )
+                    result_dict["judge_scores"] = {
+                        "overall_score": judge_result.overall_score,
+                        "dimension_scores": judge_result.dimension_scores,
+                        "reasoning": judge_result.reasoning,
+                        "strengths": judge_result.strengths,
+                        "weaknesses": judge_result.weaknesses,
+                        "critical_errors": judge_result.critical_errors,
+                    }
+                    print("done (+ judge)", end="")
+                except Exception as je:
+                    result_dict["judge_scores"] = {"error": str(je)}
+                    print(f"done (judge error: {je})", end="")
             else:
                 print("done", end="")
 
@@ -534,6 +517,8 @@ def main():
                            help="Which test split to run (default: all)")
     run_parser.add_argument("--runs", type=int, default=1,
                            help="Number of evaluation runs for multi-run aggregation")
+    run_parser.add_argument("--seed", type=int, default=42,
+                           help="Random seed for reproducibility (default: 42)")
     run_parser.add_argument("--debate-protocol",
         choices=["round_robin", "simultaneous", "judge_mediated"],
         default="simultaneous", help="Debate protocol (debate component only)")
@@ -607,6 +592,16 @@ def main():
     agree_parser.add_argument("result_file", help="Result JSON file with judge_scores")
     agree_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # --- judge-pack ---
+    jv_parser = subparsers.add_parser("judge-pack", help="Generate human validation pack for judge calibration")
+    jv_parser.add_argument("result_file", help="Result JSON file with judge_scores")
+    jv_parser.add_argument("--output-dir", "-o", default="results/validation",
+                           help="Directory to write validation artifacts")
+    jv_parser.add_argument("--sample-size", "-n", type=int, default=50,
+                           help="Number of tasks to sample for human validation")
+    jv_parser.add_argument("--seed", type=int, default=42,
+                           help="Sampling seed (default: 42)")
+
     # --- difficulty ---
     diff_parser = subparsers.add_parser("difficulty", help="Task difficulty analysis and rebalancing")
     diff_parser.add_argument("result_file", help="Result JSON file to analyze")
@@ -620,6 +615,30 @@ def main():
     # --- reproducibility ---
     repro_parser = subparsers.add_parser("reproducibility", help="Verify scoring reproducibility")
     repro_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    # --- adapt ---
+    adapt_parser = subparsers.add_parser("adapt", help="Convert external benchmark JSON to BioEval schema")
+    adapt_parser.add_argument("benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"],
+                              help="Source benchmark format")
+    adapt_parser.add_argument("input_file", help="Input JSON file in source benchmark format")
+    adapt_parser.add_argument("--output", "-o", help="Output BioEval JSON path")
+    adapt_parser.add_argument("--model", default="external-model",
+                              help="Model label to store in converted metadata")
+    adapt_parser.add_argument("--split", choices=["all", "public", "private"], default="all",
+                              help="Split tag to store in converted metadata")
+    adapt_parser.add_argument("--strict", action="store_true",
+                              help="Fail on malformed/missing score records")
+
+    # --- validate-adapter ---
+    vadapt_parser = subparsers.add_parser("validate-adapter", help="Validate external benchmark adapter input JSON")
+    vadapt_parser.add_argument("benchmark", choices=["lab-bench", "bioprobench", "biolp-bench"],
+                               help="Source benchmark format")
+    vadapt_parser.add_argument("input_file", help="Input JSON file to validate")
+    vadapt_parser.add_argument("--schema-check", action="store_true",
+                               help="Run bundled JSON Schema validation (requires jsonschema package)")
+    vadapt_parser.add_argument("--strict", action="store_true",
+                               help="Fail validation if warnings are present")
+    vadapt_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     # --- simulate ---
     sim_parser = subparsers.add_parser("simulate", help="Run simulation with synthetic responses (no API)")
@@ -722,6 +741,15 @@ def main():
             print(json.dumps(result, indent=2, default=str))
         else:
             print_agreement(args.result_file)
+    elif args.command == "judge-pack":
+        from bioeval.reporting.judge_validation import generate_judge_validation_pack
+        result = generate_judge_validation_pack(
+            args.result_file,
+            output_dir=args.output_dir,
+            sample_size=args.sample_size,
+            seed=args.seed,
+        )
+        print(json.dumps(result, indent=2, default=str))
     elif args.command == "feedback":
         from bioeval.reporting.feedback import analyze_scoring_feedback, print_feedback
         if args.json:
@@ -736,6 +764,75 @@ def main():
             print(json.dumps(suite, indent=2, default=str))
         else:
             print_reproducibility()
+    elif args.command == "adapt":
+        from bioeval.adapters import convert_benchmark_file
+
+        output_path = args.output
+        if output_path is None:
+            os.makedirs("results", exist_ok=True)
+            ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+            stem = Path(args.input_file).stem
+            output_path = f"results/adapted_{args.benchmark}_{stem}_{ts}.json"
+
+        result = convert_benchmark_file(
+            input_path=args.input_file,
+            benchmark=args.benchmark,
+            model=args.model,
+            output_path=output_path,
+            split=args.split,
+            strict=args.strict,
+        )
+        print(json.dumps({
+            "ok": True,
+            "benchmark": args.benchmark,
+            "input_file": args.input_file,
+            "output_file": output_path,
+            "components": result.get("metadata", {}).get("components", []),
+            "total_tasks": result.get("summary", {}).get("total_tasks", 0),
+        }, indent=2, default=str))
+    elif args.command == "validate-adapter":
+        from bioeval.adapters import apply_strict_mode, validate_benchmark_file, validate_with_jsonschema
+
+        with open(args.input_file, encoding="utf-8") as f:
+            payload = json.load(f)
+
+        result = validate_benchmark_file(args.input_file, args.benchmark)
+        if args.schema_check:
+            schema_result = validate_with_jsonschema(payload, args.benchmark)
+            schema_issues = schema_result.get("issues", [])
+            result["issues"].extend(schema_issues)
+            result["n_errors"] = len([x for x in result["issues"] if x["severity"] == "error"])
+            result["n_warnings"] = len([x for x in result["issues"] if x["severity"] == "warning"])
+            result["ok"] = result["n_errors"] == 0
+            result["schema_check"] = {
+                "ok": schema_result.get("ok", False),
+                "schema_path": schema_result.get("schema_path"),
+            }
+        if args.strict:
+            result = apply_strict_mode(result)
+            result["ok"] = result["strict_ok"]
+        if args.json:
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print(f"Benchmark: {result['benchmark']}")
+            print(f"Input file: {args.input_file}")
+            print(f"Records: {result['n_records']}")
+            print(f"Errors: {result['n_errors']}, Warnings: {result['n_warnings']}")
+            if args.schema_check:
+                sc = result.get("schema_check", {})
+                print(f"Schema check: {'PASS' if sc.get('ok') else 'FAIL'}")
+                if sc.get("schema_path"):
+                    print(f"Schema path: {sc['schema_path']}")
+            if args.strict:
+                print("Mode: STRICT (warnings fail)")
+            print(f"Status: {'PASS' if result['ok'] else 'FAIL'}")
+            if result["issues"]:
+                print("\nTop issues:")
+                for issue in result["issues"][:20]:
+                    print(f"  - [{issue['severity']}] record {issue['index']} "
+                          f"{issue['field']}: {issue['message']}")
+        if not result["ok"]:
+            sys.exit(1)
     elif args.command == "simulate":
         from bioeval.simulation import run_simulation, print_simulation_summary
         result = run_simulation(quality=args.quality, seed=args.seed)

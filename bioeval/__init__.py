@@ -2,7 +2,7 @@
 BioEval: Multi-dimensional Evaluation of LLMs for Biological Research
 """
 
-__version__ = "0.1.0"
+from bioeval.version import __version__
 
 # Default model for evaluation
 DEFAULT_MODEL = "claude-sonnet-4-20250514"

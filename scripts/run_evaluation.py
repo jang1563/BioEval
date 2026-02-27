@@ -18,6 +18,8 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from bioeval.version import __version__
+
 
 def run_protoreason(model_name: str) -> dict:
     """Run ProtoReason evaluation."""
@@ -247,7 +249,7 @@ Examples:
             "model": args.model,
             "component": args.component,
             "timestamp": datetime.now().isoformat(),
-            "bioeval_version": "0.1.0"
+            "bioeval_version": __version__,
         },
         "summary": summary,
         "results": all_results

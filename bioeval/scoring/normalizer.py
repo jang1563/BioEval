@@ -198,11 +198,13 @@ def normalize_adversarial(result: dict) -> NormalizedScore:
 
 def normalize_multiturn(result: dict) -> NormalizedScore:
     """Normalize a MultiTurn dialogue result."""
-    # MultiTurn returns DialogueResult with overall_score
-    task_id = result.get("dialogue_id", "")
-    score = result.get("overall_score", 0.0)
+    # MultiTurn may arrive as either:
+    # - dialogue runner format: {"dialogue_id", "overall_score", ...}
+    # - CLI/evaluator format: {"task_id", "scores": {"overall_score", ...}, ...}
+    task_id = result.get("dialogue_id", result.get("task_id", ""))
+    score = result.get("overall_score", result.get("scores", {}).get("overall_score", 0.0))
     subscores = {
-        "memory_score": result.get("memory_score", 0.0),
+        "memory_score": result.get("memory_score", result.get("scores", {}).get("memory_score", 0.0)),
     }
     return NormalizedScore(
         task_id=task_id,

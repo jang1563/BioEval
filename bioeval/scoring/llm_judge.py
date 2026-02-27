@@ -421,6 +421,7 @@ class LLMJudge:
         response = self.client.messages.create(
             model=self.judge_model,
             max_tokens=2000,
+            temperature=0.0,
             system=JUDGE_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": judge_prompt}]
         )

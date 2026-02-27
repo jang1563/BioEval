@@ -2,8 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.2.0-green.svg)](https://github.com/jang1563/BioEval)
-[![Tests](https://img.shields.io/badge/tests-27%2F27%20passing-brightgreen.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-0.3.0-green.svg)](https://github.com/jang1563/BioEval)
+[![Tests](https://img.shields.io/badge/tests-299%2F299%20passing-brightgreen.svg)](#testing)
+
+Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
 
 ## Overview
 
@@ -23,27 +25,29 @@ BioEval is a benchmark framework that evaluates whether large language models ca
 | BioASQ | Question answering, not reasoning |
 | LAB-Bench | Factual accuracy only |
 
-BioEval fills this gap with **procedural reasoning**, **causal grounding** from experimental data, **design critique**, and **adversarial robustness** testing.
+BioEval fills this gap with **procedural reasoning**, **causal perturbation reasoning**, **design critique**, and **adversarial robustness** testing.
 
 ## Evaluation Components
 
 | Component | What It Tests | Base Tasks | Ground Truth |
 |-----------|--------------|:----------:|--------------|
-| **ProtoReason** | Protocol execution, calculation, troubleshooting | 17 | Expert annotation |
-| **CausalBio** | Perturbation outcome prediction | 13 | Experimental data (DepMap, CMap) |
+| **ProtoReason** | Protocol execution, calculation, troubleshooting | 14 | Expert annotation |
+| **CausalBio** | Perturbation outcome prediction | 13 | Curated benchmark ground truth (optional external loader) |
 | **DesignCheck** | Experimental design critique | 10 | Annotated flaws |
-| **Adversarial** | Robustness to trick questions | 24 | Trap detection |
+| **Adversarial** | Robustness to trick questions | 30 | Trap detection |
 | **MultiTurn** | Scientific dialogue coherence | 6 | Conversation flow |
-| **Calibration** | Confidence calibration | 10 | "I don't know" tests |
+| **Calibration** | Confidence calibration | 30 | Confidence-behavior alignment tasks |
+| **BioSafety** | Biosafety and dual-use risk judgment | 25 | Safety rubric |
+| **DataInterp** | Biological data interpretation | 25 | Quant/interpretation rubric |
+| **Debate** | Multi-agent debate reliability | 25 | Debate outcome/process rubric |
 
 ### Task Inventory
 
 | Tier | Tasks | Description |
 |------|:-----:|-------------|
-| **Base** | 80 | Core evaluation tasks across all 6 components |
-| **Extended** | 114 | Additional ProtoReason (70) and CausalBio (44) tasks |
-| **Advanced** | 78 | Advanced ProtoReason (49), CausalBio (19), DesignCheck (10) |
-| **Total** | **272** | Full benchmark suite |
+| **Base** | 178 | Base tasks across 9 components |
+| **Extended** | 123 | Additional ProtoReason (+45), CausalBio (+34), DesignCheck (+20), MultiTurn (+24) |
+| **Total Unique** | **301** | Full benchmark suite |
 
 ## Quick Start
 
@@ -74,7 +78,7 @@ bioeval run --all --dry-run
 
 # Run full evaluation
 export ANTHROPIC_API_KEY="your-key-here"
-bioeval run --all --model claude-sonnet-4-20250514
+bioeval run --all --model claude-sonnet-4-20250514 --seed 42
 
 # Run specific component
 bioeval run -c adversarial -m claude-sonnet-4-20250514
@@ -84,6 +88,25 @@ bioeval run --all --data-tier extended
 
 # Compare two result files
 bioeval compare results_a.json results_b.json
+
+# Generate human validation pack for judge reliability study
+bioeval judge-pack results.json --sample-size 50 --seed 42
+
+# Convert external benchmark outputs into BioEval canonical schema
+bioeval adapt lab-bench /path/to/labbench_results.json -o results/labbench_adapted.json
+bioeval adapt bioprobench /path/to/bioprobench_results.json -o results/bioprobench_adapted.json
+bioeval adapt biolp-bench /path/to/biolp_results.json -o results/biolp_adapted.json
+
+# Validate external benchmark JSON before conversion
+bioeval validate-adapter lab-bench /path/to/labbench_results.json
+bioeval validate-adapter bioprobench /path/to/bioprobench_results.json --json
+bioeval validate-adapter biolp-bench /path/to/biolp_results.json
+
+# Run bundled JSON Schema validation
+bioeval validate-adapter lab-bench /path/to/labbench_results.json --schema-check
+
+# Strict mode: warnings also fail (non-zero exit code)
+bioeval validate-adapter lab-bench /path/to/labbench_results.json --schema-check --strict
 
 # Show pre-cached results (no API key needed)
 bioeval demo
@@ -107,7 +130,22 @@ results = evaluator.run_evaluation()
 
 ## Preliminary Results
 
-### Enhanced vs Baseline Prompt Comparison (Claude Sonnet 4)
+### 9-Component Evaluation (Claude Sonnet 4, seed=42)
+
+| Component | Tasks | Mean Score | Primary Metric |
+|-----------|:-----:|:----------:|----------------|
+| ProtoReason | 14 | **0.910** | Step ordering / calculation / troubleshooting accuracy |
+| MultiTurn | 6 | **0.911** | Dialogue coherence & context retention |
+| BioSafety | 25 | **0.857** | Safety judgment & dual-use risk identification |
+| Adversarial | 30 | **0.811** | Robustness against hallucination traps |
+| Calibration | 30 | **0.720** | 1 − calibration error |
+| CausalBio | 13 | **0.715** | Perturbation prediction accuracy |
+| DataInterp | 25 | **0.624** | Quantitative data interpretation |
+| Debate | 25 | **0.453** | Multi-agent debate composite score |
+| DesignCheck | 10 | **0.318** | Flaw detection F1 (recall=1.0, precision limited) |
+| **Overall** | **178** | **0.705** | Weighted mean across all components |
+
+### Enhanced vs Baseline Prompt Comparison (Adversarial subset)
 
 | Test Type | Baseline | Enhanced | Improvement |
 |-----------|:--------:|:--------:|:-----------:|
@@ -171,20 +209,23 @@ BioEval/
 │   ├── prompts/
 │   │   └── prompt_templates.py  # Enhancement templates
 │   ├── protoreason/             # Protocol reasoning component
-│   │   ├── evaluator.py         # Base tasks (17)
-│   │   ├── extended_data.py     # Extended tasks (70)
-│   │   └── advanced_data.py     # Advanced tasks (49)
+│   │   ├── evaluator.py         # Base tasks (14)
+│   │   ├── extended_data.py     # Extended tasks (+45)
+│   │   └── advanced_data.py     # Advanced tier
 │   ├── causalbio/               # Causal biology component
 │   │   ├── evaluator.py         # Base tasks (13)
-│   │   ├── extended_data.py     # Extended tasks (44)
-│   │   └── advanced_data.py     # Advanced tasks (19)
+│   │   ├── extended_data.py     # Extended tasks (+34)
+│   │   └── advanced_data.py     # Advanced tier
 │   ├── designcheck/             # Experimental design critique
 │   │   ├── evaluator.py         # Base tasks (10)
-│   │   └── advanced_data.py     # Advanced tasks (10)
-│   ├── adversarial/             # Adversarial robustness (24 tasks)
+│   │   ├── extended_data.py     # Extended tasks (+20)
+│   │   └── advanced_data.py     # Advanced tier
+│   ├── adversarial/             # Adversarial robustness (30 tasks)
 │   ├── multiturn/               # Multi-turn dialogues (6 scenarios)
-│   ├── scoring/                 # Scoring & calibration
-│   └── calibration/             # Calibration tests (10 tasks)
+│   ├── biosafety/               # Biosafety evaluation (25 tasks)
+│   ├── datainterp/              # Data interpretation (25 tasks)
+│   ├── debate/                  # Multi-agent debate (25 tasks)
+│   └── scoring/                 # Scoring & calibration
 ├── scripts/
 │   ├── run_evaluation.py        # Basic evaluation runner
 │   ├── run_enhanced.py          # Full-featured async runner
@@ -199,7 +240,7 @@ BioEval/
 │   ├── PUBLICATION_QUALITY_REVIEW.md   # Quality review
 │   └── PHASE0_BASELINE.md      # Phase 0 baseline report
 ├── results/                     # Evaluation outputs
-├── tests/                       # Test suite (27 tests)
+├── tests/                       # Test suite (299 tests currently passing)
 ├── notebooks/                   # Analysis notebooks
 ├── setup.py
 ├── requirements.txt
@@ -223,13 +264,17 @@ Publication target: **NeurIPS Datasets & Benchmarks** / **Nature Methods**
 ### Built-in Data
 
 BioEval includes expert-curated evaluation tasks that work out of the box:
-- 13+ protocols with 235+ steps (sources: protocols.io, Nature Protocols, STAR Protocols)
-- 44+ causal biology tasks with experimental ground truth
-- 10 flawed experimental designs with 30 annotated flaws
-- 24 adversarial robustness tests across 7 categories
-- 6 multi-turn dialogue scenarios
+- 14 ProtoReason tasks: step ordering, missing step detection, calculation, troubleshooting
+- 13 CausalBio tasks (+ 34 extended): knockout, pathway, epistasis, drug response
+- 10 DesignCheck tasks (+ 20 extended) with annotated flaw taxonomy (30 flaw types)
+- 30 adversarial robustness tests across 8 categories
+- 6 multi-turn dialogue scenarios (+ 24 extended)
+- 30 calibration tasks including overconfidence traps
+- 25 biosafety dual-use risk judgment tasks
+- 25 data interpretation tasks
+- 25 multi-agent debate tasks
 
-### External Data Sources (Optional)
+### External Data Sources (Optional, Not Required for Base Run)
 
 | Source | License | Used For |
 |--------|---------|----------|
@@ -238,17 +283,34 @@ BioEval includes expert-curated evaluation tasks that work out of the box:
 | [protocols.io](https://www.protocols.io/) | Various | Additional protocols |
 | [GEO](https://www.ncbi.nlm.nih.gov/geo/) | Public | Expression data |
 
+Current release note: base CausalBio tasks are bundled curated tasks. External loaders are optional and intended for expanded/production pipelines.
+
 ## Testing
 
 ```bash
 # Run full test suite
 pytest tests/ -v
 
-# Expected output: 27 passed in ~1s
+# Expected: 299 passed
+
+# Format + lint checks (publication-grade hygiene)
+black --check bioeval/ scripts/ tests/
+ruff check bioeval/ scripts/ tests/
+
+# Optional: install git hooks
+pre-commit install
+pre-commit run --all-files
+
+# One-shot local quality suite (pytest + release checks + optional lint/type tools)
+python scripts/run_quality_checks.py
+# CI-like strict mode (fails if black/ruff/mypy missing)
+python scripts/run_quality_checks.py --require-tools
 ```
 
+CI note: GitHub Actions uses `python scripts/run_quality_checks.py --require-tools` as the primary quality gate.
+
 Test coverage includes:
-- Data loading for all 6 components
+- Data loading for all components
 - Task structure validation
 - Confidence extraction
 - Adversarial scoring
@@ -256,13 +318,34 @@ Test coverage includes:
 - Response caching
 - Statistics functions
 
+Release consistency:
+
+```bash
+python scripts/check_release_consistency.py
+```
+
+Cross-benchmark adapter output uses the same top-level schema as native runs:
+- `metadata` (includes `source_benchmark`, `adapter_version`, `adapter_schema`)
+- `summary` (`total_tasks`, `by_component`)
+- `results` (per-component task rows with `task_id`, `task_type`, `prompt`, `response`, `score`, `passed`)
+
+Input template JSON files are provided in:
+- `examples/adapters/lab-bench_input_template.json`
+- `examples/adapters/bioprobench_input_template.json`
+- `examples/adapters/biolp-bench_input_template.json`
+
+Companion JSON Schema references are provided in:
+- `examples/adapters/schemas/lab-bench_input.schema.json`
+- `examples/adapters/schemas/bioprobench_input.schema.json`
+- `examples/adapters/schemas/biolp-bench_input.schema.json`
+
 ## API Cost Estimates
 
 | Tier | Tasks | Cost per Run (Claude) |
 |------|:-----:|-----------------:|
-| Base | 80 | ~$1.40 |
-| Base + Judge | 80 | ~$1.80 |
-| Extended + Judge | 194 | ~$3.50 |
+| Base (all components) | 178 | Environment/model-dependent |
+| Base + Judge | 178 | Environment/model-dependent |
+| Extended + Judge | 301 | Environment/model-dependent |
 
 ## Citation
 

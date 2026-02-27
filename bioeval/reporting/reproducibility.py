@@ -144,7 +144,7 @@ def verify_quality_separation() -> dict:
 
 
 def verify_component_coverage() -> dict:
-    """Verify all 6 components produce non-trivial results.
+    """Verify all components produce non-trivial results.
 
     Checks that no component is silently broken or always-zero.
 

@@ -248,12 +248,33 @@ def _validate_causalbio(all_ids: list[str], data_tier: str) -> list[ValidationIs
     issues: list[ValidationIssue] = []
     try:
         from bioeval.causalbio.evaluator import (
-            KNOCKOUT_TASKS, PATHWAY_TASKS, DRUG_RESPONSE_TASKS, EPISTASIS_TASKS
+            KNOCKOUT_TASKS, PATHWAY_TASKS, DRUG_RESPONSE_TASKS, EPISTASIS_TASKS,
+            ensure_task_provenance, PROVENANCE_CURATED, PROVENANCE_EXTERNAL
         )
     except ImportError:
         issues.append(ValidationIssue("error", "causalbio", "", "import",
                                       "Cannot import causalbio data"))
         return issues
+
+    valid_source_types = {PROVENANCE_CURATED, PROVENANCE_EXTERNAL}
+
+    def _check_provenance(task: dict, tid: str):
+        normalized = ensure_task_provenance(task, "bioeval.causalbio.evaluator")
+        prov = normalized.get("provenance", {})
+        if not isinstance(prov, dict):
+            issues.append(ValidationIssue("error", "causalbio", tid, "provenance",
+                                          "Missing provenance metadata dict"))
+            return
+        source_type = prov.get("source_type")
+        if source_type not in valid_source_types:
+            issues.append(ValidationIssue("warning", "causalbio", tid, "provenance.source_type",
+                                          f"Unexpected source_type: {source_type}"))
+        if not prov.get("source_id"):
+            issues.append(ValidationIssue("error", "causalbio", tid, "provenance.source_id",
+                                          "Missing source_id"))
+        if not prov.get("release"):
+            issues.append(ValidationIssue("warning", "causalbio", tid, "provenance.release",
+                                          "Missing release tag"))
 
     # Knockout tasks
     for t in KNOCKOUT_TASKS:
@@ -262,6 +283,7 @@ def _validate_causalbio(all_ids: list[str], data_tier: str) -> list[ValidationIs
         _check_id_format(tid, r"^ko_", "causalbio", issues)
         _check_required_str(t, "gene", "causalbio", tid, issues)
         _check_required_str(t, "question", "causalbio", tid, issues, min_len=10)
+        _check_provenance(t, tid)
 
         gt = t.get("ground_truth", {})
         if not gt:
@@ -278,6 +300,7 @@ def _validate_causalbio(all_ids: list[str], data_tier: str) -> list[ValidationIs
         all_ids.append(tid)
         _check_id_format(tid, r"^pathway_", "causalbio", issues)
         _check_required_str(t, "question", "causalbio", tid, issues, min_len=10)
+        _check_provenance(t, tid)
 
         gt = t.get("ground_truth", {})
         pathways = gt.get("affected_pathways", [])
@@ -299,6 +322,7 @@ def _validate_causalbio(all_ids: list[str], data_tier: str) -> list[ValidationIs
         all_ids.append(tid)
         _check_id_format(tid, r"^drug_", "causalbio", issues)
         _check_required_str(t, "drug", "causalbio", tid, issues)
+        _check_provenance(t, tid)
 
         gt = t.get("ground_truth", {})
         if not gt.get("upregulated") and not gt.get("downregulated"):
@@ -312,6 +336,7 @@ def _validate_causalbio(all_ids: list[str], data_tier: str) -> list[ValidationIs
         _check_id_format(tid, r"^epistasis_", "causalbio", issues)
         _check_required_str(t, "gene_a", "causalbio", tid, issues)
         _check_required_str(t, "gene_b", "causalbio", tid, issues)
+        _check_provenance(t, tid)
 
         gt = t.get("ground_truth", {})
         valid_interactions = {"enhancing", "suppressive", "synergistic", "synthetic_lethal"}

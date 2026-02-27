@@ -28,6 +28,28 @@ A comparison between enhanced and baseline prompt configurations on adversarial 
 | Contradictory | 50% | 50% | 0% |
 | Misleading Context | 0% | 0% | 0% |
 
+### Adapter input templates (`examples/adapters/`)
+
+- `lab-bench_input_template.json`
+- `bioprobench_input_template.json`
+- `biolp-bench_input_template.json`
+- `schemas/lab-bench_input.schema.json`
+- `schemas/bioprobench_input.schema.json`
+- `schemas/biolp-bench_input.schema.json`
+
+These are minimal, runnable JSON examples for `bioeval adapt`.
+
+```bash
+bioeval adapt lab-bench examples/adapters/lab-bench_input_template.json -o results/labbench_adapted.json
+bioeval adapt bioprobench examples/adapters/bioprobench_input_template.json -o results/bioprobench_adapted.json
+bioeval adapt biolp-bench examples/adapters/biolp-bench_input_template.json -o results/biolp_adapted.json
+
+# Optional: validate input before conversion
+bioeval validate-adapter lab-bench examples/adapters/lab-bench_input_template.json
+bioeval validate-adapter lab-bench examples/adapters/lab-bench_input_template.json --schema-check
+bioeval validate-adapter lab-bench examples/adapters/lab-bench_input_template.json --schema-check --strict
+```
+
 ## Generating Your Own Results
 
 To run the comparison test yourself:

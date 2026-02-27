@@ -1,5 +1,8 @@
 # BioEval Phase 0 Baseline Report
 
+> NOTE (Historical Snapshot): This document captures Phase 0 baseline state only.  
+> For current runtime counts/version/contracts, see [STATUS.md](STATUS.md) and [README.md](../README.md).
+
 > Date: 2026-02-24
 > Status: **Phase 0 COMPLETE**
 > Python environment: conda `bioeval` (Python 3.11.14, arm64)

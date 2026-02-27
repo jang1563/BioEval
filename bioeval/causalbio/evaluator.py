@@ -18,6 +18,7 @@ from bioeval.prompts import (
     SCIENTIFIC_REASONING_SYSTEM_PROMPT,
 )
 from bioeval import config
+from bioeval.version import __version__
 
 
 # Sample perturbation tasks (in production, load from DepMap/CMap)
@@ -226,6 +227,22 @@ DRUG_RESPONSE_TASKS = [
 ]
 
 
+PROVENANCE_CURATED = "curated_builtin"
+PROVENANCE_EXTERNAL = "external_verified"
+
+
+def ensure_task_provenance(task: dict, source_module: str) -> dict:
+    """Ensure causalbio task includes normalized provenance metadata."""
+    out = dict(task)
+    prov = dict(out.get("provenance", {}))
+    prov.setdefault("source_type", PROVENANCE_CURATED)
+    prov.setdefault("source_id", f"{source_module}:{out.get('id', 'unknown')}")
+    prov.setdefault("release", f"bioeval-v{__version__}")
+    prov.setdefault("external_verified", prov.get("source_type") == PROVENANCE_EXTERNAL)
+    out["provenance"] = prov
+    return out
+
+
 class CausalBioEvaluator(BaseEvaluator):
     """Evaluator for Causal Perturbation Prediction tasks."""
 
@@ -255,21 +272,23 @@ class CausalBioEvaluator(BaseEvaluator):
                 DRUG_RESPONSE_TASKS as dr_list,
                 EPISTASIS_TASKS as ep_list,
             )
+            source_module = "bioeval.causalbio.extended_data"
         else:
             ko_list = KNOCKOUT_TASKS
             pw_list = PATHWAY_TASKS
             dr_list = DRUG_RESPONSE_TASKS
             ep_list = EPISTASIS_TASKS
+            source_module = "bioeval.causalbio.evaluator"
 
         tasks = []
         for ko in ko_list:
-            tasks.append(self._create_knockout_task(ko))
+            tasks.append(self._create_knockout_task(ensure_task_provenance(ko, source_module)))
         for pathway in pw_list:
-            tasks.append(self._create_pathway_task(pathway))
+            tasks.append(self._create_pathway_task(ensure_task_provenance(pathway, source_module)))
         for epi in ep_list:
-            tasks.append(self._create_epistasis_task(epi))
+            tasks.append(self._create_epistasis_task(ensure_task_provenance(epi, source_module)))
         for drug in dr_list:
-            tasks.append(self._create_drug_response_task(drug))
+            tasks.append(self._create_drug_response_task(ensure_task_provenance(drug, source_module)))
         return tasks
     
     def _create_knockout_task(self, ko: dict) -> EvalTask:

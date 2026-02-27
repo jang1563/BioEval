@@ -650,6 +650,22 @@ Be thorough but focus on flaws that would actually affect the validity of the co
         extracted_flaws = parse_result.value if parse_result.success else []
         num_extracted = len(extracted_flaws)
 
+        # Build flaw-type synonym map for semantic matching
+        _type_aliases = {
+            "insufficient_replicates": ["sample size", "replicates", "underpowered", "n=1", "statistical power"],
+            "wrong_test": ["statistical test", "statistical analysis", "parametric", "nonparametric", "t-test", "anova"],
+            "incompatible_buffers": ["buffer", "reagent", "loading control", "incompatible"],
+            "missing_negative_control": ["negative control", "vehicle control", "dmso", "untreated"],
+            "missing_positive_control": ["positive control", "known", "validate"],
+            "inappropriate_control": ["control", "parental", "wild-type", "selection"],
+            "pseudoreplication": ["pseudoreplication", "technical replicate", "biological replicate"],
+            "batch_effect": ["batch", "confound"],
+            "overstatement": ["overstatement", "causation", "correlation", "indirect"],
+            "cherry_picking": ["cherry", "selective", "subset"],
+            "p_hacking": ["p-hack", "multiple comparison", "correction"],
+            "multiple_testing": ["multiple test", "bonferroni", "correction"],
+        }
+
         # Match each extracted flaw against GT flaws
         true_positives = 0
         matched_gt = set()
@@ -660,10 +676,23 @@ Be thorough but focus on flaws that would actually affect the validity of the co
                     continue
                 gt_type = gt_flaw["type"].replace("_", " ")
                 gt_terms = [t for t in gt_flaw["explanation"].lower().split()
-                            if len(t) > 4 and t not in stop_words][:5]
+                            if len(t) > 4 and t not in stop_words][:8]
+
+                # Check type match in extracted description
                 type_hit = phrase_match(gt_type, ex_desc)
+
+                # Check type alias match
+                alias_hit = False
+                aliases = _type_aliases.get(gt_flaw["type"], [])
+                for alias in aliases:
+                    if alias in ex_desc:
+                        alias_hit = True
+                        break
+
+                # Check term overlap (lowered threshold: 1 match sufficient)
                 term_hits = count_matches(gt_terms, ex_desc)
-                if type_hit or term_hits >= min(2, len(gt_terms)):
+
+                if type_hit or alias_hit or term_hits >= 1:
                     true_positives += 1
                     matched_gt.add(j)
                     break

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioEval - System Architecture Overview</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #161922;
+    --surface2: #1e2130;
+    --border: #2a2d3e;
+    --text: #e2e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #6c8cff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --orange: #fb923c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0f1117 0%, #1a1440 40%, #0f2847 70%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #6c8cff, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .hero .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .hero .badge-row {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 9999px;
+    background: rgba(108,140,255,.12);
+    color: var(--accent);
+    border: 1px solid rgba(108,140,255,.2);
+  }
+  .badge.green  { background: rgba(52,211,153,.1); color: var(--green); border-color: rgba(52,211,153,.2); }
+  .badge.amber  { background: rgba(251,191,36,.1); color: var(--amber); border-color: rgba(251,191,36,.2); }
+  .badge.pink   { background: rgba(244,114,182,.1); color: var(--pink); border-color: rgba(244,114,182,.2); }
+
+  /* NAV */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  .toc-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 4px;
+  }
+  .toc a {
+    display: block;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+  .toc a:hover { color: var(--text); text-decoration: none; border-bottom-color: var(--accent); }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 64px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+  h2 {
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+  h2 .num { color: var(--accent); margin-right: 8px; font-weight: 400; opacity: .6; font-size: 1.3rem; }
+  h3 { font-size: 1.15rem; font-weight: 600; margin: 28px 0 10px; color: var(--accent2); }
+  .section-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 32px; max-width: 800px; }
+  p { margin-bottom: 14px; }
+  p.dim { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* CARDS */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .card-grid.narrow { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color .2s;
+  }
+  .card:hover { border-color: rgba(108,140,255,.3); }
+  .card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .card-desc { font-size: 0.87rem; color: var(--text-dim); margin-bottom: 12px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  .card-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dot.green { background: var(--green); }
+  .dot.amber { background: var(--amber); }
+  .dot.blue  { background: var(--accent); }
+  .dot.pink  { background: var(--pink); }
+  .dot.cyan  { background: var(--cyan); }
+
+  /* TABLE */
+  .tbl-wrap { overflow-x: auto; margin: 16px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.87rem;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  tr:hover td { background: var(--surface2); }
+
+  /* CODE */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  /* FLOW DIAGRAM */
+  .flow { text-align: center; margin: 32px 0; }
+  .flow-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 22px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    min-width: 120px;
+    vertical-align: middle;
+  }
+  .flow-arrow {
+    display: inline-block;
+    color: var(--text-dim);
+    margin: 0 6px;
+    font-size: 1.2rem;
+    vertical-align: middle;
+  }
+  .flow-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+  }
+
+  /* STATS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  /* HIGHLIGHT */
+  .hl { color: var(--accent); }
+  .hl-g { color: var(--green); }
+  .hl-a { color: var(--amber); }
+  .hl-p { color: var(--pink); }
+  .hl-c { color: var(--cyan); }
+  .hl-o { color: var(--orange); }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2.2rem; }
+    .card-grid { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    section { padding: 40px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <h1>BioEval</h1>
+    <p class="subtitle">Multi-dimensional Evaluation of LLMs for Biological Research &mdash; LLM이 생물학을 <em>이해</em>하는지, 아니면 단순히 <em>알고 있는지</em>를 평가하는 벤치마크</p>
+    <div class="badge-row">
+      <span class="badge">v0.3.0</span>
+      <span class="badge green">9 Components</span>
+      <span class="badge amber">272+ Tasks</span>
+      <span class="badge pink">4 Model Backends</span>
+      <span class="badge">Python 3.12</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#components">Components</a>
+    <a href="#debate">Debate Module</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#cli">CLI</a>
+    <a href="#models">Models</a>
+    <a href="#reporting">Reporting</a>
+    <a href="#taxonomy">Taxonomy</a>
+    <a href="#testing">Testing</a>
+  </div>
+</nav>
+
+<!-- 1. OVERVIEW -->
+<section id="overview">
+<div class="container">
+  <h2><span class="num">01</span>System Overview</h2>
+  <p class="section-desc">BioEval은 LLM의 생물학적 추론 능력을 다차원적으로 평가하는 벤치마크 프레임워크이다. 단순 사실 확인이 아니라, 인과 추론, 실험 설계 비평, 멀티턴 대화, 안전성, 그리고 다중 에이전트 토론까지 9개 축으로 평가한다.</p>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-num">9</div><div class="stat-label">Evaluation Components</div></div>
+    <div class="stat-card"><div class="stat-num">272+</div><div class="stat-label">Total Tasks</div></div>
+    <div class="stat-card"><div class="stat-num">30+</div><div class="stat-label">Task Types</div></div>
+    <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Data Tiers</div></div>
+    <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Model Backends</div></div>
+    <div class="stat-card"><div class="stat-num">77</div><div class="stat-label">Test Cases</div></div>
+  </div>
+
+  <h3>Core Philosophy</h3>
+  <p>BioEval은 모델이 <strong>"생물학을 배웠는지"</strong>(factual knowledge retrieval) vs <strong>"생물학적으로 생각할 수 있는지"</strong>(causal reasoning, experimental critique, evidence synthesis)를 구분한다. 각 컴포넌트는 서로 다른 인지적 차원을 측정하여 모델의 강점과 약점을 정밀하게 프로파일링한다.</p>
+
+  <h3>Data Tier System</h3>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Tier</th><th>Description</th><th>Tasks</th><th>Components</th></tr>
+      <tr><td><code>base</code></td><td>핵심 태스크 셋 (모든 컴포넌트)</td><td>~80+</td><td>All 9</td></tr>
+      <tr><td><code>extended</code></td><td>확장 데이터 (ProtoReason, CausalBio, MultiTurn 등)</td><td>+114</td><td>3</td></tr>
+      <tr><td><code>advanced</code></td><td>고난도 태스크 (advanced_data.py)</td><td>+78</td><td>3</td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- 2. ARCHITECTURE -->
+<section id="architecture">
+<div class="container">
+  <h2><span class="num">02</span>System Architecture</h2>
+  <p class="section-desc">모듈화된 파이프라인: Task Loading &rarr; Model Execution &rarr; Scoring &rarr; Normalization &rarr; Reporting. Registry 시스템으로 새 컴포넌트를 코드 수정 없이 등록 가능.</p>
+
+  <h3>Data Flow Pipeline</h3>
+  <div class="flow-wrap">
+    <div class="flow-box" style="border-color:var(--accent);">CLI / API</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--green);">Registry</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--amber);">Evaluator</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--pink);">Model Pool</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--cyan);">Scoring</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--orange);">Normalizer</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--accent2);">Report</div>
+  </div>
+
+  <h3>Project Structure</h3>
+  <pre>bioeval/
+  __init__.py            <span style="color:var(--text-dim);"># Package exports</span>
+  cli.py                 <span style="color:var(--text-dim);"># 16+ CLI commands</span>
+  config.py              <span style="color:var(--text-dim);"># Central configuration</span>
+  registry.py            <span style="color:var(--text-dim);"># Component registry (9 entries)</span>
+  simulation.py          <span style="color:var(--text-dim);"># Synthetic simulation (no API)</span>
+
+  models/base.py         <span style="color:var(--text-dim);"># BaseEvaluator, EvalTask, EvalResult, Model wrappers</span>
+  prompts/               <span style="color:var(--text-dim);"># Prompt enhancement system (+20.8% adversarial improvement)</span>
+  scoring/               <span style="color:var(--text-dim);"># 6 modules: normalizer, calibration, llm_judge, matching, parser, splits</span>
+  execution/             <span style="color:var(--text-dim);"># Async runner + SQLite cache</span>
+  reporting/             <span style="color:var(--text-dim);"># 12 analysis modules</span>
+  taxonomy/              <span style="color:var(--text-dim);"># Error taxonomy (5 categories, 20+ subcategories)</span>
+  validation/            <span style="color:var(--text-dim);"># Task validation + human protocol</span>
+
+  <span style="color:var(--green);">protoreason/</span>           <span style="color:var(--text-dim);"># Protocol reasoning evaluator</span>
+  <span style="color:var(--green);">causalbio/</span>             <span style="color:var(--text-dim);"># Causal biology evaluator</span>
+  <span style="color:var(--green);">designcheck/</span>           <span style="color:var(--text-dim);"># Design critique evaluator</span>
+  <span style="color:var(--green);">adversarial/</span>           <span style="color:var(--text-dim);"># Adversarial robustness evaluator</span>
+  <span style="color:var(--green);">multiturn/</span>             <span style="color:var(--text-dim);"># Multi-turn dialogue evaluator</span>
+  <span style="color:var(--green);">biosafety/</span>             <span style="color:var(--text-dim);"># Biosafety evaluator</span>
+  <span style="color:var(--green);">datainterp/</span>            <span style="color:var(--text-dim);"># Data interpretation evaluator</span>
+  <span style="color:var(--accent);">debate/</span>                <span style="color:var(--text-dim);"># Multi-agent debate evaluator (NEW)</span></pre>
+
+  <h3>Registry System</h3>
+  <p>각 컴포넌트는 <code>ComponentInfo</code> dataclass로 등록된다. CLI는 registry를 통해 evaluator를 동적으로 import하고 instantiate한다.</p>
+  <pre>ComponentInfo(
+    name="debate",
+    description="Multi-agent debate: variant interpretation, ...",
+    evaluator_module="bioeval.debate.evaluator",
+    evaluator_class="DebateEvaluator",
+    task_types=["variant_interpretation", "differential_diagnosis", ...],
+    normalizer_name="normalize_debate",
+)</pre>
+</div>
+</section>
+
+<!-- 3. COMPONENTS -->
+<section id="components">
+<div class="container">
+  <h2><span class="num">03</span>9 Evaluation Components</h2>
+  <p class="section-desc">각 컴포넌트는 생물학적 추론의 서로 다른 차원을 평가한다. 단순 지식에서 인과 추론, 실험 설계 비평, 안전성, 그리고 다중 에이전트 협업까지.</p>
+
+  <div class="card-grid">
+
+    <!-- ProtoReason -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(108,140,255,.15);color:var(--accent);">PR</div> ProtoReason</div>
+      <div class="card-desc">실험 프로토콜 추론: 단계 순서, 누락 단계, 계산, 트러블슈팅, 안전성</div>
+      <div class="card-tags">
+        <span class="tag">step_ordering</span>
+        <span class="tag">missing_step</span>
+        <span class="tag">calculation</span>
+        <span class="tag">troubleshooting</span>
+        <span class="tag">safety</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 17 base</span>
+        <span><span class="dot amber"></span> +70 ext</span>
+        <span><span class="dot pink"></span> +49 adv</span>
+      </div>
+    </div>
+
+    <!-- CausalBio -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(52,211,153,.15);color:var(--green);">CB</div> CausalBio</div>
+      <div class="card-desc">인과 생물학: 유전자 녹아웃 예측, 경로 추론, 약물 반응, 상위성</div>
+      <div class="card-tags">
+        <span class="tag">knockout</span>
+        <span class="tag">pathway</span>
+        <span class="tag">drug_response</span>
+        <span class="tag">epistasis</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 13 base</span>
+        <span><span class="dot amber"></span> +44 ext</span>
+        <span><span class="dot pink"></span> +19 adv</span>
+      </div>
+    </div>
+
+    <!-- DesignCheck -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(251,191,36,.15);color:var(--amber);">DC</div> DesignCheck</div>
+      <div class="card-desc">실험 설계 비평: 방법론적 결함 식별, 심각도 분류, 교정 제안</div>
+      <div class="card-tags">
+        <span class="tag">flaw_detection</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 10 base</span>
+        <span><span class="dot pink"></span> +10 adv</span>
+      </div>
+    </div>
+
+    <!-- Adversarial -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(248,113,113,.15);color:var(--red);">AD</div> Adversarial</div>
+      <div class="card-desc">적대적 견고성: 거짓 전제, 환각 유도, 오도 맥락, 경계 사례, 모순</div>
+      <div class="card-tags">
+        <span class="tag">false_premise</span>
+        <span class="tag">hallucination_trap</span>
+        <span class="tag">misleading_context</span>
+        <span class="tag">edge_case</span>
+        <span class="tag">+4 more</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 24 base</span>
+      </div>
+    </div>
+
+    <!-- MultiTurn -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(167,139,250,.15);color:var(--accent2);">MT</div> MultiTurn</div>
+      <div class="card-desc">멀티턴 대화: 가설 정제, 실험 설계, 트러블슈팅, 데이터 해석, 피어 리뷰</div>
+      <div class="card-tags">
+        <span class="tag">hypothesis_refinement</span>
+        <span class="tag">experimental_design</span>
+        <span class="tag">troubleshooting</span>
+        <span class="tag">data_interpretation</span>
+        <span class="tag">peer_review</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 6 base</span>
+        <span><span class="dot amber"></span> extended</span>
+      </div>
+    </div>
+
+    <!-- Calibration -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(34,211,238,.15);color:var(--cyan);">CA</div> Calibration</div>
+      <div class="card-desc">신뢰도 보정: 불확실성 인정, 과신 회피, 부분 지식 인식</div>
+      <div class="card-tags">
+        <span class="tag">acknowledge_unknown</span>
+        <span class="tag">overconfidence_trap</span>
+        <span class="tag">partial_knowledge</span>
+        <span class="tag">+3 more</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> 10 base</span>
+      </div>
+    </div>
+
+    <!-- BioSafety -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(244,114,182,.15);color:var(--pink);">BS</div> BioSafety</div>
+      <div class="card-desc">생물안전: BSL 분류, 이중용도 인식, 책임 있는 거부, 위험 평가, 윤리</div>
+      <div class="card-tags">
+        <span class="tag">bsl_classification</span>
+        <span class="tag">dual_use</span>
+        <span class="tag">responsible_refusal</span>
+        <span class="tag">risk_assessment</span>
+        <span class="tag">ethics</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> base</span>
+      </div>
+    </div>
+
+    <!-- DataInterp -->
+    <div class="card">
+      <div class="card-title"><div class="icon" style="background:rgba(251,146,60,.15);color:var(--orange);">DI</div> DataInterp</div>
+      <div class="card-desc">데이터 해석: qPCR, 용량-반응, 통계 검정, 생존 분석, 멀티어세이</div>
+      <div class="card-tags">
+        <span class="tag">qpcr_analysis</span>
+        <span class="tag">dose_response</span>
+        <span class="tag">statistical_test</span>
+        <span class="tag">survival_analysis</span>
+        <span class="tag">multi_assay</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot green"></span> base</span>
+      </div>
+    </div>
+
+    <!-- Debate -->
+    <div class="card" style="border-color:rgba(108,140,255,.3); background: linear-gradient(135deg, var(--surface) 0%, rgba(108,140,255,.04) 100%);">
+      <div class="card-title"><div class="icon" style="background:rgba(108,140,255,.2);color:var(--accent);">DB</div> Debate <span class="badge" style="font-size:.65rem;padding:2px 8px;">NEW</span></div>
+      <div class="card-desc">다중 에이전트 토론: 변이 해석, 감별 진단, 실험 비평, 근거 종합, 기전 논쟁. 3개 프로토콜, 4계층 채점.</div>
+      <div class="card-tags">
+        <span class="tag">variant_interpretation</span>
+        <span class="tag">differential_diagnosis</span>
+        <span class="tag">experimental_critique</span>
+        <span class="tag">evidence_synthesis</span>
+        <span class="tag">mechanism_dispute</span>
+      </div>
+      <div class="card-meta">
+        <span><span class="dot blue"></span> 25 base</span>
+        <span><span class="dot cyan"></span> 3 protocols</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<!-- 4. DEBATE MODULE DEEP DIVE -->
+<section id="debate">
+<div class="container">
+  <h2><span class="num">04</span>Debate Module (Deep Dive)</h2>
+  <p class="section-desc">다중 LLM 에이전트가 생의학 문제에 대해 구조화된 토론을 수행하고, 결과와 과정을 모두 평가하는 시스템. 문헌 기반 설계 원칙: 모델 다양성, confidence-weighted voting, 3라운드 제한, self-consistency baseline 비교.</p>
+
+  <h3>Module Architecture</h3>
+  <pre>debate/
+  __init__.py       <span style="color:var(--text-dim);"># Module exports</span>
+  agents.py         <span style="color:var(--text-dim);"># AgentConfig, DebatePanel, AgentModelPool, factory functions</span>
+  protocols.py      <span style="color:var(--text-dim);"># 3 protocols: RoundRobin, Simultaneous, JudgeMediated</span>
+  tasks.py          <span style="color:var(--text-dim);"># 25 debate tasks (5 types x 5)</span>
+  scoring.py        <span style="color:var(--text-dim);"># 4-tier scoring: Outcome, Process, Efficiency, Comparison</span>
+  evaluator.py      <span style="color:var(--text-dim);"># DebateEvaluator (CLI-compatible)</span>
+  wrapper.py        <span style="color:var(--text-dim);"># Wrap existing BioEval tasks for debate</span></pre>
+
+  <h3>Agent Roles</h3>
+  <div class="card-grid narrow">
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;"><span class="hl">SOLVER</span></div>
+      <div class="card-desc">독립적 분석 후 답변 제시. 다수의 가설 고려.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;"><span class="hl-p">ADVOCATE</span></div>
+      <div class="card-desc">특정 입장을 옹호. 생물학적 근거 제시.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;"><span class="hl-a">CRITIC</span></div>
+      <div class="card-desc">약점, 논리 오류, 대안 설명 식별.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;"><span class="hl-g">JUDGE</span></div>
+      <div class="card-desc">모든 논증 평가, 최선 종합, 최종 판결.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;"><span class="hl-c">SYNTHESIZER</span></div>
+      <div class="card-desc">모순 해결, 근거 기반 통합 답변 생성.</div>
+    </div>
+  </div>
+
+  <h3>3 Debate Protocols</h3>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Protocol</th><th>Flow</th><th>Final Answer</th><th>Characteristics</th></tr>
+      <tr>
+        <td><strong>Round-Robin</strong></td>
+        <td>순차 응답, 모든 이전 응답 열람</td>
+        <td>Confidence-weighted vote</td>
+        <td>가장 풍부한 컨텍스트, 느림</td>
+      </tr>
+      <tr>
+        <td><strong>Simultaneous</strong></td>
+        <td>매 라운드 동시 응답 &rarr; 다음 라운드에서 공유</td>
+        <td>Confidence-weighted vote</td>
+        <td>독립적 초기 판단, groupthink 감소</td>
+      </tr>
+      <tr>
+        <td><strong>Judge-Mediated</strong></td>
+        <td>토론자 응답 &rarr; 심판 평가/종합 &rarr; 반복</td>
+        <td>심판의 최종 응답</td>
+        <td>구조적 조정, 수렴 유도</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>4-Tier Scoring System</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title"><span class="hl-g">Outcome</span> (40%)</div>
+      <div class="card-desc">최종 답변의 정확도. Ground truth 대비 position matching + partial credit + reasoning quality (key_criteria coverage).</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="hl-a">Process</span> (25%)</div>
+      <div class="card-desc">토론 과정 품질: correction rate (오답&rarr;정답), reversal rate (정답&rarr;오답), sycophancy detection (근거 없는 동조), dissent preservation (소수 의견 유지).</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="hl-c">Efficiency</span> (15%)</div>
+      <div class="card-desc">accuracy_per_1k_tokens: 같은 정확도를 더 적은 토큰으로 달성. rounds_needed: 답변 안정화 시점.</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="hl-p">Comparison</span> (20%)</div>
+      <div class="card-desc">Single-model baseline 대비, self-consistency (N회 독립 응답) 대비 debate lift. 토론이 실제로 가치를 더하는지 측정.</div>
+    </div>
+  </div>
+
+  <h3>Composite Score Formula</h3>
+  <pre>composite = 0.40 * outcome.accuracy
+         + 0.25 * (1 - sycophancy_score) * correction_rate
+         + 0.15 * min(1.0, accuracy_per_1k_tokens)
+         + 0.20 * dissent_preservation</pre>
+
+  <h3>Termination Conditions</h3>
+  <div class="card-grid narrow">
+    <div class="card" style="padding:14px;">
+      <code>FIXED_ROUNDS</code>
+      <div class="card-desc" style="margin-top:6px;">고정 라운드 수만큼 실행</div>
+    </div>
+    <div class="card" style="padding:14px;">
+      <code>CONSENSUS</code>
+      <div class="card-desc" style="margin-top:6px;">모든 에이전트 합의 시 조기 종료</div>
+    </div>
+    <div class="card" style="padding:14px;">
+      <code>CONFIDENCE</code>
+      <div class="card-desc" style="margin-top:6px;">전원 confidence threshold 초과 시</div>
+    </div>
+    <div class="card" style="padding:14px;">
+      <code>ADAPTIVE</code>
+      <div class="card-desc" style="margin-top:6px;">Position 변화 없으면 조기 종료 (default)</div>
+    </div>
+  </div>
+
+  <h3>25 Debate Tasks</h3>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Type</th><th>Count</th><th>Domain Examples</th><th>Example Scenario</th></tr>
+      <tr>
+        <td>Variant Interpretation</td>
+        <td>5</td>
+        <td>genetics, pharmacogenomics</td>
+        <td>BRCA2 VUS 분류 (ACMG/AMP criteria)</td>
+      </tr>
+      <tr>
+        <td>Differential Diagnosis</td>
+        <td>5</td>
+        <td>hematology, pulmonology, neurology</td>
+        <td>CML vs CMML vs atypical CML 감별</td>
+      </tr>
+      <tr>
+        <td>Experimental Critique</td>
+        <td>5</td>
+        <td>molecular biology, clinical trials</td>
+        <td>CRISPR KO 실험 설계 공방</td>
+      </tr>
+      <tr>
+        <td>Evidence Synthesis</td>
+        <td>5</td>
+        <td>epidemiology, cardiology</td>
+        <td>상충하는 메타분석 종합</td>
+      </tr>
+      <tr>
+        <td>Mechanism Dispute</td>
+        <td>5</td>
+        <td>pharmacology, neuroscience</td>
+        <td>Metformin 항암 기전 논쟁</td>
+      </tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- 5. SCORING -->
+<section id="scoring">
+<div class="container">
+  <h2><span class="num">05</span>Scoring & Normalization</h2>
+  <p class="section-desc">각 컴포넌트의 원시 점수를 0-1 범위의 NormalizedScore로 통일. 크로스 컴포넌트 비교와 집계를 가능하게 한다.</p>
+
+  <h3>NormalizedScore</h3>
+  <pre>@dataclass
+class NormalizedScore:
+    task_id: str          <span style="color:var(--text-dim);"># "debate_vi_001"</span>
+    component: str        <span style="color:var(--text-dim);"># "debate"</span>
+    task_type: str        <span style="color:var(--text-dim);"># "variant_interpretation"</span>
+    score: float          <span style="color:var(--text-dim);"># 0-1, higher = better</span>
+    passed: bool          <span style="color:var(--text-dim);"># score >= 0.5</span>
+    subscores: dict       <span style="color:var(--text-dim);"># named sub-metrics</span>
+    raw: dict             <span style="color:var(--text-dim);"># original result</span></pre>
+
+  <h3>Per-Component Normalizers</h3>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Component</th><th>Primary Metric</th><th>Key Subscores</th></tr>
+      <tr><td>ProtoReason</td><td>Kendall's tau / Recall / Numerical accuracy</td><td>adjacent_pair_accuracy, cause_coverage, shows_work</td></tr>
+      <tr><td>CausalBio</td><td>0.6&times;correctness + 0.4&times;reasoning</td><td>effect_correct, pathway_coverage, direction_accuracy</td></tr>
+      <tr><td>DesignCheck</td><td>F1 score</td><td>flaw_recall, critical_recall, estimated_precision</td></tr>
+      <tr><td>Adversarial</td><td>Trap detection + content score</td><td>trap_detected, hallucination_penalty</td></tr>
+      <tr><td>MultiTurn</td><td>Turn pass rate</td><td>memory_score</td></tr>
+      <tr><td>Calibration</td><td>1 - calibration_error</td><td>is_correct, confidence_appropriate</td></tr>
+      <tr><td>BioSafety</td><td>Element coverage</td><td>element_coverage, red_flag_penalty, depth_score</td></tr>
+      <tr><td>DataInterp</td><td>Composite score</td><td>numerical_accuracy, interpretation_coverage</td></tr>
+      <tr><td>Debate</td><td>Composite (4-tier)</td><td>outcome_accuracy, correction_rate, sycophancy_score, dissent_preservation</td></tr>
+    </table>
+  </div>
+
+  <h3>Additional Scoring Tools</h3>
+  <div class="card-grid narrow">
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;">LLM Judge</div>
+      <div class="card-desc">별도 LLM이 응답 품질을 평가. Multi-dimensional rubric scoring.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;">Calibration Scorer</div>
+      <div class="card-desc">Expected Calibration Error, Overconfidence Rate, Reliability Diagram.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;">Response Parser</div>
+      <div class="card-desc">구조화된 응답 추출: 숫자, 목록, confidence, classification.</div>
+    </div>
+    <div class="card" style="padding:16px;">
+      <div class="card-title" style="font-size:.9rem;">String Matching</div>
+      <div class="card-desc">Fuzzy matching, synonym resolution, keyword extraction.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 6. CLI -->
+<section id="cli">
+<div class="container">
+  <h2><span class="num">06</span>CLI Interface</h2>
+  <p class="section-desc">16+ 서브커맨드를 제공하는 통합 CLI. 평가 실행, 결과 분석, 시뮬레이션, 대시보드 생성까지.</p>
+
+  <h3>Core Commands</h3>
+  <pre><span class="hl"># 평가 실행</span>
+bioeval run --all                                       <span style="color:var(--text-dim);"># 전체 컴포넌트</span>
+bioeval run -c debate                                   <span style="color:var(--text-dim);"># debate만</span>
+bioeval run -c debate --debate-protocol judge_mediated  <span style="color:var(--text-dim);"># 심판 프로토콜</span>
+bioeval run -c debate --agent-models "claude-sonnet-4-20250514,gpt-4o" <span style="color:var(--text-dim);"># 이종 에이전트</span>
+bioeval run --all --model gpt-4o                        <span style="color:var(--text-dim);"># OpenAI 모델</span>
+bioeval run --all --use-judge                           <span style="color:var(--text-dim);"># LLM

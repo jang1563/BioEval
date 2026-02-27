@@ -5,12 +5,14 @@ Generates a structured datasheet following the Datasheets for Datasets
 framework, as recommended by NeurIPS Datasets & Benchmarks track.
 """
 
+from bioeval.version import __version__
+
 
 def generate_datasheet() -> dict:
     """Generate the BioEval datasheet as structured data."""
     return {
         "title": "BioEval: A Multi-Component Benchmark for Evaluating LLM Biology Reasoning",
-        "version": "0.3.0",
+        "version": __version__,
 
         # ── Motivation ────────────────────────────────────────────────
         "motivation": {
@@ -114,7 +116,7 @@ def generate_datasheet() -> dict:
                 "and track evolving LLM capabilities. Private split enables "
                 "contamination detection between versions."
             ),
-            "versioning": "Semantic versioning (MAJOR.MINOR.PATCH). Current: 0.3.0.",
+            "versioning": f"Semantic versioning (MAJOR.MINOR.PATCH). Current: {__version__}.",
         },
     }
 

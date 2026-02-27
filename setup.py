@@ -3,9 +3,13 @@ from setuptools import setup, find_packages
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+with open("bioeval/version.py", "r", encoding="utf-8") as fh:
+    version_ns = {}
+    exec(fh.read(), version_ns)
+
 setup(
     name="bioeval",
-    version="0.2.0",
+    version=version_ns["__version__"],
     description="Multi-dimensional Evaluation of LLMs for Biological Research",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -39,8 +43,9 @@ setup(
             "pytest>=7.0.0",
             "pytest-asyncio>=0.21.0",
             "black>=23.0.0",
-            "flake8>=6.0.0",
+            "ruff>=0.8.0",
             "mypy>=1.0.0",
+            "pre-commit>=3.0.0",
         ]
     },
     classifiers=[

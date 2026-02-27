@@ -66,7 +66,7 @@ class DebateScore:
             0.40 * self.outcome.accuracy
             + 0.25 * (1.0 - self.process.sycophancy_score) * self.process.correction_rate
             + 0.15 * min(1.0, self.efficiency.accuracy_per_1k_tokens)
-            + 0.20 * self.process.dissent_preservation
+            + 0.20 * self.outcome.reasoning_quality
         )
 
 

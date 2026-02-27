@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 127
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 127
+target-version = "py39"
+extend-exclude = ["results", "notebooks", "venv", "venv_fresh"]
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]
+

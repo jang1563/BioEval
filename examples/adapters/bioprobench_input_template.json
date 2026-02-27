@@ -1,0 +1,32 @@
+{
+  "predictions": [
+    {
+      "task_id": "bp_ord_001",
+      "task_type": "ORD",
+      "subset": "protocol_ordering",
+      "input": "Reorder the RNA extraction protocol steps.",
+      "output": "Lyse -> Bind -> Wash -> Elute",
+      "target": "Lyse -> Bind -> Wash -> Elute",
+      "normalized_score": 1.0
+    },
+    {
+      "task_id": "bp_err_001",
+      "task_type": "ERR",
+      "subset": "error_detection",
+      "input": "Find the critical protocol mistake.",
+      "output": "Incubation temperature is incorrectly listed as 95C.",
+      "target": "Temperature should be 37C for this step.",
+      "correct": true
+    },
+    {
+      "task_id": "bp_pqa_001",
+      "task_type": "PQA",
+      "subset": "protocol_qa",
+      "input": "Why is the wash buffer used twice?",
+      "output": "To reduce carryover contaminants before elution.",
+      "target": "Reduce contaminants and improve purity.",
+      "score": 0.75
+    }
+  ]
+}
+

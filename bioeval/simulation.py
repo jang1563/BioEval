@@ -19,6 +19,8 @@ import random
 from contextlib import contextmanager
 from datetime import datetime
 
+from bioeval.version import __version__
+
 
 # =============================================================================
 # DUMMY MODEL FOR BYPASSING API INITIALIZATION
@@ -828,7 +830,7 @@ def run_simulation(
             "quality": quality,
             "seed": seed,
             "timestamp": datetime.now().isoformat(),
-            "bioeval_version": "0.4.0",
+            "bioeval_version": __version__,
         },
         "results": all_results,
     }

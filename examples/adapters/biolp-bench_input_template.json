@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "item_id": "blp_001",
+      "category": "protocol_error_correction",
+      "task_type": "protocol_error_correction",
+      "prompt": "Identify and correct the dilution error in this protocol.",
+      "response": "Use 1:10 dilution instead of 1:100 at step 4.",
+      "reference": "1:10 dilution is correct for step 4.",
+      "f1": 0.85
+    },
+    {
+      "item_id": "blp_002",
+      "category": "protocol_error_detection",
+      "task_type": "protocol_error_detection",
+      "prompt": "Find missing negative control.",
+      "response": "Negative control condition is omitted.",
+      "reference": "Include untreated negative control.",
+      "accuracy": 1.0
+    },
+    {
+      "item_id": "blp_003",
+      "category": "protocol_revision_quality",
+      "task_type": "protocol_revision_quality",
+      "prompt": "Revise the protocol to remove ambiguity in incubation step.",
+      "response": "Incubate at 37C for exactly 30 minutes before wash.",
+      "reference": "Specify exact incubation temperature and duration.",
+      "score": 0.7
+    }
+  ]
+}
+

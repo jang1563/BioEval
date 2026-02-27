@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BioProBench Adapter Input",
+  "description": "Accepted JSON input shape for bioeval adapt bioprobench",
+  "oneOf": [
+    {
+      "type": "array",
+      "items": { "$ref": "#/definitions/record" }
+    },
+    {
+      "type": "object",
+      "anyOf": [
+        { "required": ["results"] },
+        { "required": ["predictions"] },
+        { "required": ["items"] },
+        { "required": ["tasks"] },
+        { "required": ["examples"] },
+        { "required": ["data"] }
+      ],
+      "properties": {
+        "predictions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "tasks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "examples": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        },
+        "data": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/record" }
+        }
+      },
+      "additionalProperties": true
+    }
+  ],
+  "definitions": {
+    "record": {
+      "type": "object",
+      "required": ["task_type"],
+      "properties": {
+        "task_id": { "type": ["string", "number"] },
+        "id": { "type": ["string", "number"] },
+        "task_type": {
+          "type": "string",
+          "description": "Expected values include ORD, ERR, PQA, REA, GEN"
+        },
+        "subset": { "type": "string" },
+        "input": { "type": "string" },
+        "question": { "type": "string" },
+        "output": { "type": "string" },
+        "prediction": { "type": "string" },
+        "target": {},
+        "label": {},
+        "score": { "type": "number" },
+        "normalized_score": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "f1": { "type": "number" },
+        "exact_match": { "type": "number" },
+        "correct": { "type": "boolean" },
+        "passed": { "type": "boolean" },
+        "is_correct": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  }
+}
