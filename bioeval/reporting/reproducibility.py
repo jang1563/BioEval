@@ -10,6 +10,8 @@ Checks:
 3. Cross-run consistency: Repeated full simulations → zero variance
 """
 
+from __future__ import annotations
+
 import json
 import hashlib
 from datetime import datetime

@@ -10,6 +10,8 @@ Replaces fragile `term in response_lower` with:
 All functions are deterministic and dependency-free.
 """
 
+from __future__ import annotations
+
 import re
 from contextlib import contextmanager
 from dataclasses import dataclass

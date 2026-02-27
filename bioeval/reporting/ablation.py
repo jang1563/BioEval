@@ -12,6 +12,8 @@ Usage:
     results = run_ablation("path/to/results.json")
 """
 
+from __future__ import annotations
+
 from bioeval.reporting.analysis import load_and_normalize
 from bioeval.scoring.matching import MatchConfig, match_config
 from bioeval.scoring.normalizer import NormalizedScore, normalize_result

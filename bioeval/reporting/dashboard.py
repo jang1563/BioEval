@@ -12,6 +12,8 @@ that visualizes evaluation results including:
 - Ablation comparison (if available)
 """
 
+from __future__ import annotations
+
 import json
 import html as html_mod
 from pathlib import Path

@@ -11,6 +11,8 @@ A good scorer should be insensitive to these surface-level changes.
 This is required for NeurIPS: reviewers expect scoring reliability evidence.
 """
 
+from __future__ import annotations
+
 import math
 import random
 import re
