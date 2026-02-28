@@ -82,6 +82,10 @@ def wilcoxon_signed_rank(
     if n == 0:
         return {"test_statistic": 0.0, "p_value": 1.0, "n_pairs": 0, "cohens_d": 0.0, "rank_biserial_r": 0.0}
 
+    # All differences zero → no effect, p = 1.0
+    if all(a == b for a, b in zip(scores_a, scores_b)):
+        return {"test_statistic": 0.0, "p_value": 1.0, "n_pairs": n, "cohens_d": 0.0, "rank_biserial_r": 0.0}
+
     try:
         from scipy.stats import wilcoxon as scipy_wilcoxon
 
