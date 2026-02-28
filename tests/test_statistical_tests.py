@@ -190,3 +190,69 @@ class TestDefaultExtractScore:
     def test_unknown_component(self):
         result = {"scores": {"score": 0.5}}
         assert _default_extract_score("unknown", result) is None
+
+
+class TestPermutationTestZeroDiff:
+    """Test that permutation_test handles all-equal scores."""
+
+    def test_zero_diff_returns_p1(self):
+        a = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+        b = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+        result = permutation_test(a, b)
+        assert result["p_value"] == 1.0
+        assert result["observed_statistic"] == 0.0
+
+    def test_zero_diff_early_exit(self):
+        """All-zero diffs should return immediately (n_permutations=0)."""
+        a = [0.7, 0.7, 0.7]
+        b = [0.7, 0.7, 0.7]
+        result = permutation_test(a, b)
+        assert result["n_permutations"] == 0
+        assert result["p_value"] == 1.0
+
+
+class TestMultipleComparisonCorrection:
+    """Tests for Bonferroni and BH correction."""
+
+    def test_bonferroni_basic(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        corrected = apply_correction([0.01, 0.05, 0.10], method="bonferroni")
+        assert abs(corrected[0] - 0.03) < 1e-9
+        assert abs(corrected[1] - 0.15) < 1e-9
+        assert abs(corrected[2] - 0.30) < 1e-9
+
+    def test_bonferroni_clamp(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        corrected = apply_correction([0.5, 0.8], method="bonferroni")
+        assert corrected[0] == 1.0
+        assert corrected[1] == 1.0
+
+    def test_bh_basic(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        corrected = apply_correction([0.01, 0.04, 0.05], method="bh")
+        # All corrected values in [0, 1]
+        assert all(0.0 <= c <= 1.0 for c in corrected)
+        # Monotonicity in sorted order of original p-values
+        sorted_pairs = sorted(zip([0.01, 0.04, 0.05], corrected))
+        for i in range(len(sorted_pairs) - 1):
+            assert sorted_pairs[i][1] <= sorted_pairs[i + 1][1]
+
+    def test_bh_single(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        corrected = apply_correction([0.03], method="bh")
+        assert abs(corrected[0] - 0.03) < 1e-9
+
+    def test_empty(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        assert apply_correction([], method="bonferroni") == []
+
+    def test_unknown_method_raises(self):
+        from bioeval.reporting.statistical_tests import apply_correction
+
+        with pytest.raises(ValueError, match="Unknown correction"):
+            apply_correction([0.05], method="invalid")

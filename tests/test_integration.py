@@ -5,6 +5,8 @@ Tests the full scoring → normalization → analysis chain
 without any API calls using synthetic responses.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -368,6 +370,79 @@ class TestSplits:
 
         ci = beta_binomial_ci(8, 10)
         assert 0.0 <= ci["lower"] <= ci["mean"] <= ci["upper"] <= 1.0
+
+    def test_aggregate_multi_run_uses_component_primary_scores(self):
+        from bioeval.scoring.splits import aggregate_multi_run
+
+        run_a = {
+            "results": [
+                {
+                    "component": "protoreason",
+                    "num_tasks": 2,
+                    "results": [
+                        {"task_id": "p1", "scores": {"adjacent_pair_accuracy": 0.9}},
+                        {"task_id": "p2", "scores": {"recall": 0.7}},
+                    ],
+                },
+                {
+                    "component": "debate",
+                    "num_tasks": 1,
+                    "results": [{"task_id": "d1", "scores": {"composite_score": 0.4}}],
+                },
+            ]
+        }
+        run_b = {
+            "results": [
+                {
+                    "component": "protoreason",
+                    "num_tasks": 2,
+                    "results": [
+                        {"task_id": "p1", "scores": {"adjacent_pair_accuracy": 0.8}},
+                        {"task_id": "p2", "scores": {"recall": 0.6}},
+                    ],
+                },
+                {
+                    "component": "debate",
+                    "num_tasks": 1,
+                    "results": [{"task_id": "d1", "scores": {"composite_score": 0.0}}],
+                },
+            ]
+        }
+
+        agg = aggregate_multi_run([run_a, run_b])
+        assert agg["by_component"]["protoreason"]["n_runs"] == 2
+        assert agg["by_component"]["protoreason"]["mean_score"] > 0.0
+        assert agg["by_component"]["debate"]["n_runs"] == 2
+        assert agg["by_component"]["debate"]["mean_score"] >= 0.0
+
+    def test_rate_limiter_handles_estimate_above_tpm(self):
+        import asyncio
+        from bioeval.execution.async_runner import RateLimiter
+
+        async def _acquire():
+            limiter = RateLimiter(rpm=10, tpm=100)
+            await asyncio.wait_for(limiter.acquire(estimated_tokens=1000), timeout=1.0)
+
+        asyncio.run(_acquire())
+
+    def test_benchmark_statistics_includes_all_components(self):
+        from bioeval.reporting.statistics import compute_benchmark_statistics
+
+        stats = compute_benchmark_statistics("base")
+        assert stats["totals"]["n_components"] == 9
+        assert stats["totals"]["total_tasks"] == 178
+        for comp in [
+            "protoreason",
+            "causalbio",
+            "designcheck",
+            "adversarial",
+            "multiturn",
+            "calibration",
+            "biosafety",
+            "datainterp",
+            "debate",
+        ]:
+            assert comp in stats["components"]
 
 
 # =============================================================================

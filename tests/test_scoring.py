@@ -360,6 +360,98 @@ class TestCalibrationTaskScoring:
         result = score_calibration_task(task, resp, conf)
         assert result.is_correct
 
+    def test_partial_knowledge_requires_unknown_acknowledgment(self):
+        """Partial-knowledge tasks should fail when model hallucinates unknown entity details."""
+        from bioeval.scoring.calibration import score_calibration_task, extract_confidence
+
+        task = {
+            "id": "test_partial",
+            "correct_behavior": "partial_knowledge",
+            "question": "What pathways are affected by the new drug Nexoribant, a PI3K inhibitor?",
+            "explanation": "",
+        }
+        resp = "Nexoribant strongly inhibits PI3K and mTOR in all tumors. **Confidence:** HIGH"
+        conf = extract_confidence(resp)
+        result = score_calibration_task(task, resp, conf)
+        assert not result.is_correct
+        assert result.details["content_detail"] == "hallucinated_specific_claims"
+
+    def test_partial_knowledge_passes_with_generalization_and_uncertainty(self):
+        """Partial-knowledge tasks pass when unknown entity is acknowledged and class-level reasoning is provided."""
+        from bioeval.scoring.calibration import score_calibration_task, extract_confidence
+
+        task = {
+            "id": "test_partial_ok",
+            "correct_behavior": "partial_knowledge",
+            "question": "What pathways are affected by the new drug Nexoribant, a PI3K inhibitor?",
+            "explanation": "",
+        }
+        resp = (
+            "I cannot verify Nexoribant as a known drug. "
+            "If it is truly a PI3K inhibitor, PI3K/AKT/mTOR signaling would likely decrease."
+        )
+        conf = extract_confidence(resp)
+        result = score_calibration_task(task, resp, conf)
+        assert result.is_correct
+        assert result.details["content_detail"] == "acknowledged_unknown_and_generalized"
+
+    def test_partial_knowledge_hypothetical_no_longer_triggers_unknown(self):
+        """'hypothetical' alone should NOT count as acknowledging unknown."""
+        from bioeval.scoring.calibration import score_calibration_task, extract_confidence
+
+        task = {
+            "id": "test_hypo",
+            "correct_behavior": "partial_knowledge",
+            "question": "What pathways does Nexoribant affect?",
+            "explanation": "",
+        }
+        # Uses 'hypothetical' but does NOT genuinely acknowledge the entity is unknown
+        resp = "This hypothetical drug likely acts through the PI3K/AKT signaling " "pathway and downstream mTOR activation."
+        conf = extract_confidence(resp)
+        result = score_calibration_task(task, resp, conf)
+        assert not result.is_correct
+
+    def test_partial_knowledge_fabricated_entity_treated_as_real(self):
+        """Confident assertions about fabricated entity should be rejected."""
+        from bioeval.scoring.calibration import score_calibration_task, extract_confidence
+
+        task = {
+            "id": "test_fab",
+            "correct_behavior": "partial_knowledge",
+            "question": "What pathways does Nexoribant affect?",
+            "fabricated_entity": "nexoribant",
+            "explanation": "",
+        }
+        # Model says "I'm not sure" (acknowledges_unknown) but then confidently
+        # describes the fabricated drug as if it's real
+        resp = (
+            "I'm unsure about the full profile, but nexoribant inhibits the MAPK "
+            "pathway through direct ERK kinase blockade."
+        )
+        conf = extract_confidence(resp)
+        result = score_calibration_task(task, resp, conf)
+        assert not result.is_correct
+        assert result.details["content_detail"] == "hallucinated_fabricated_entity_as_real"
+
+    def test_partial_knowledge_fabricated_entity_properly_flagged(self):
+        """Properly flagging fabricated entity + generalizing should pass."""
+        from bioeval.scoring.calibration import score_calibration_task, extract_confidence
+
+        task = {
+            "id": "test_fab_ok",
+            "correct_behavior": "partial_knowledge",
+            "fabricated_entity": "nexoribant",
+            "question": "What pathways does Nexoribant affect?",
+            "explanation": "",
+        }
+        resp = (
+            "I cannot verify nexoribant as a known drug. Generally, PI3K inhibitors "
+            "affect the AKT/mTOR signaling pathway and downstream growth signals."
+        )
+        conf = extract_confidence(resp)
+        result = score_calibration_task(task, resp, conf)
+        assert result.is_correct
+
     def test_overconfidence_trap_correct_nuanced_answer(self):
         """Model recognises nuance in overconfidence trap → is_correct=True."""
         from bioeval.scoring.calibration import score_calibration_task, extract_confidence
@@ -1106,6 +1198,343 @@ class TestDataInterpSimulation:
         assert ns.component == "datainterp"
         assert ns.score == 0.8
         assert ns.passed
+
+
+class TestLLMJudgeErrorHandling:
+    """Tests for P0-2 LLM Judge error handling fixes."""
+
+    def test_judge_json_parse_failure(self):
+        """Malformed JSON from LLM should return parse_error=True, score=None."""
+        from bioeval.scoring.llm_judge import LLMJudge
+        from unittest.mock import patch
+
+        judge = LLMJudge.__new__(LLMJudge)
+        judge.judge_model = "test-model"
+        judge.timeout = 120.0
+        judge.temperature = 0.0
+        judge._provider = "anthropic"
+        judge._client = None
+
+        with patch.object(judge, "_call_model", return_value="not valid json {{{"):
+            result = judge.evaluate("t1", "knockout_prediction", "prompt", "response", {})
+            assert result.parse_error is True
+            assert result.overall_score is None
+
+    def test_judge_returns_none_on_parse_error(self):
+        """Score should be None, not 0, on parse failure."""
+        from bioeval.scoring.llm_judge import LLMJudge
+        from unittest.mock import patch
+
+        judge = LLMJudge.__new__(LLMJudge)
+        judge.judge_model = "test-model"
+        judge.timeout = 120.0
+        judge.temperature = 0.0
+        judge._provider = "anthropic"
+        judge._client = None
+
+        with patch.object(judge, "_call_model", return_value="garbled output"):
+            result = judge.evaluate("t1", "unknown", "p", "r", {})
+            assert result.overall_score is None
+            assert result.overall_score != 0
+
+    def test_judge_timeout_handling(self):
+        """Timeout exception should produce parse_error result."""
+        from bioeval.scoring.llm_judge import LLMJudge
+        from unittest.mock import patch
+
+        judge = LLMJudge.__new__(LLMJudge)
+        judge.judge_model = "test-model"
+        judge.timeout = 120.0
+        judge.temperature = 0.0
+        judge._provider = "anthropic"
+        judge._client = None
+
+        with patch.object(judge, "_call_model", side_effect=TimeoutError("request timed out")):
+            result = judge.evaluate("t1", "unknown", "p", "r", {})
+            assert result.parse_error is True
+            assert result.overall_score is None
+            assert "TimeoutError" in result.reasoning
+
+    def test_judge_valid_json_no_parse_error(self):
+        """Valid JSON from LLM should return parse_error=False."""
+        from bioeval.scoring.llm_judge import LLMJudge
+        from unittest.mock import patch
+        import json
+
+        judge = LLMJudge.__new__(LLMJudge)
+        judge.judge_model = "test-model"
+        judge.timeout = 120.0
+        judge.temperature = 0.0
+        judge._provider = "anthropic"
+        judge._client = None
+
+        valid_response = json.dumps(
+            {
+                "dimension_scores": {"factual_accuracy": {"score": 4, "reasoning": "ok"}},
+                "overall_score": 4.0,
+                "strengths": ["good"],
+                "weaknesses": [],
+                "critical_errors": [],
+                "summary_reasoning": "Solid answer",
+            }
+        )
+        with patch.object(judge, "_call_model", return_value=valid_response):
+            result = judge.evaluate("t1", "knockout_prediction", "p", "r", {})
+            assert result.parse_error is False
+            assert result.overall_score == 4.0
+
+
+class TestECEEdgeCases:
+    def test_ece_single_sample(self):
+        """ECE with n=1 should not crash."""
+        from bioeval.scoring.calibration import compute_flex_ece, CalibrationResult
+
+        result = CalibrationResult(
+            task_id="t1",
+            confidence_score=0.9,
+            is_correct=True,
+            confidence_bucket="high",
+            calibration_error=0.1,
+        )
+        ece, mce, data = compute_flex_ece([result], n_bins=5)
+        assert isinstance(ece, float)
+        assert ece >= 0.0
+
+
+class TestAggregateEdgeCases:
+    def test_aggregate_zero_tasks(self):
+        """Aggregation with empty runs should not crash."""
+        from bioeval.scoring.splits import aggregate_multi_run
+
+        result = aggregate_multi_run([{"results": []}])
+        assert "by_component" in result
+
+    def test_aggregate_single_empty_component(self):
+        """Single component with no scoreable results."""
+        from bioeval.scoring.splits import aggregate_multi_run
+
+        result = aggregate_multi_run(
+            [
+                {
+                    "results": [
+                        {
+                            "component": "testcomp",
+                            "results": [{"task_id": "t1", "error": "API failed"}],
+                        }
+                    ]
+                }
+            ]
+        )
+        assert "by_component" in result
+
+
+class TestOverallPerComponent:
+    """Tests for per-component equal-weighted overall score (P1-3)."""
+
+    def test_per_component_present(self):
+        """analyze_results should include overall_per_component key."""
+        import json
+        import tempfile
+        from bioeval.reporting.analysis import analyze_results
+
+        data = {
+            "metadata": {"model": "test"},
+            "results": [
+                {
+                    "component": "compA",
+                    "results": [
+                        {"task_id": "a1", "score": 0.8, "scores": {}},
+                        {"task_id": "a2", "score": 0.6, "scores": {}},
+                    ],
+                },
+                {
+                    "component": "compB",
+                    "results": [
+                        {"task_id": "b1", "score": 0.4, "scores": {}},
+                    ],
+                },
+            ],
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(data, f)
+            f.flush()
+            result = analyze_results(f.name)
+
+        opc = result["overall_per_component"]
+        assert opc["n_components"] == 2
+        assert opc["weighting"] == "equal_per_component"
+        assert "compA" in opc["component_means"]
+        assert "compB" in opc["component_means"]
+
+    def test_equal_weighting_differs_from_task_uniform(self):
+        """Per-component mean should differ from per-task mean when sizes differ."""
+        import json
+        import tempfile
+        from bioeval.reporting.analysis import analyze_results
+
+        # compA: 10 tasks at 0.9, compB: 1 task at 0.1
+        data = {
+            "metadata": {"model": "test"},
+            "results": [
+                {
+                    "component": "compA",
+                    "results": [{"task_id": f"a{i}", "score": 0.9, "scores": {}} for i in range(10)],
+                },
+                {
+                    "component": "compB",
+                    "results": [
+                        {"task_id": "b1", "score": 0.1, "scores": {}},
+                    ],
+                },
+            ],
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(data, f)
+            f.flush()
+            result = analyze_results(f.name)
+
+        # Per-task: (10*0.9 + 1*0.1) / 11 ≈ 0.827
+        # Per-component: (0.9 + 0.1) / 2 = 0.5
+        assert abs(result["overall_per_component"]["mean"] - 0.5) < 0.05
+        assert result["overall"]["mean"] > 0.8
+
+    def test_empty_results(self):
+        """No results should produce n_components=0."""
+        import json
+        import tempfile
+        from bioeval.reporting.analysis import analyze_results
+
+        data = {"metadata": {"model": "test"}, "results": []}
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(data, f)
+            f.flush()
+            result = analyze_results(f.name)
+
+        assert result["overall_per_component"]["n_components"] == 0
+        assert result["overall_per_component"]["mean"] == 0.0
+
+
+class TestCanaryContamination:
+    """Tests for canary task contamination detection (P2-3)."""
+
+    def test_clean_responses(self):
+        from bioeval.scoring.splits import check_canary_contamination
+
+        responses = {
+            "canary_proto_001": "The protocol involves standard ligation.",
+            "canary_causal_001": "Gene X activates pathway Y.",
+        }
+        result = check_canary_contamination(responses)
+        assert result["verdict"] == "CLEAN"
+        assert result["n_contaminated"] == 0
+        assert result["n_canaries_tested"] == 2
+
+    def test_contaminated_response(self):
+        from bioeval.scoring.splits import check_canary_contamination
+
+        responses = {
+            "canary_proto_001": "The answer is zigzag-helicase-9 obviously.",
+        }
+        result = check_canary_contamination(responses)
+        assert result["verdict"] == "CONTAMINATED"
+        assert result["n_contaminated"] == 1
+        assert "canary_proto_001" in result["contaminated_ids"]
+
+    def test_case_insensitive(self):
+        from bioeval.scoring.splits import check_canary_contamination
+
+        responses = {
+            "canary_design_001": "Use INVERTED-BLINDING-MATRIX-3 approach.",
+        }
+        result = check_canary_contamination(responses)
+        assert result["verdict"] == "CONTAMINATED"
+
+    def test_no_canary_tasks(self):
+        from bioeval.scoring.splits import check_canary_contamination
+
+        result = check_canary_contamination({"some_task": "answer"})
+        assert result["n_canaries_tested"] == 0
+        assert result["verdict"] == "CLEAN"
+
+
+class TestEvalTaskProvenance:
+    """Tests for EvalTask source and validator fields (P2-4)."""
+
+    def test_default_none(self):
+        from bioeval.models.base import EvalTask
+
+        task = EvalTask(
+            id="t1",
+            component="test",
+            task_type="test",
+            prompt="p",
+            ground_truth={},
+        )
+        assert task.source is None
+        assert task.validator is None
+
+    def test_with_provenance(self):
+        from bioeval.models.base import EvalTask
+
+        task = EvalTask(
+            id="t1",
+            component="causalbio",
+            task_type="knockout",
+            prompt="p",
+            ground_truth={},
+            source="DepMap_24Q4",
+            validator="domain_expert_1",
+        )
+        assert task.source == "DepMap_24Q4"
+        assert task.validator == "domain_expert_1"
+
+
+class TestSensitivityAnalysis:
+    """Tests for sensitivity analysis script (P2-2)."""
+
+    def test_threshold_sensitivity(self):
+        from scripts.sensitivity_analysis import threshold_sensitivity
+        from bioeval.scoring.normalizer import NormalizedScore
+
+        ns_list = [
+            NormalizedScore("t1", "comp", "type", 0.3, False),
+            NormalizedScore("t2", "comp", "type", 0.5, True),
+            NormalizedScore("t3", "comp", "type", 0.7, True),
+        ]
+        result = threshold_sensitivity(ns_list, [0.4, 0.5, 0.6])
+        assert len(result) == 3
+        # At 0.4: t2 and t3 pass → 2/3
+        assert result[0]["n_passed"] == 2
+        # At 0.6: only t3 → 1/3
+        assert result[2]["n_passed"] == 1
+
+    def test_aggregation_comparison(self):
+        from scripts.sensitivity_analysis import aggregation_comparison
+        from bioeval.scoring.normalizer import NormalizedScore
+
+        ns_a = [NormalizedScore(f"a{i}", "compA", "t", 0.9, True) for i in range(5)]
+        ns_b = [NormalizedScore("b1", "compB", "t", 0.1, False)]
+        all_ns = ns_a + ns_b
+        by_comp = {"compA": ns_a, "compB": ns_b}
+
+        result = aggregation_comparison(all_ns, by_comp)
+        # Per-task: (5*0.9 + 0.1)/6 ≈ 0.767
+        # Per-component: (0.9 + 0.1)/2 = 0.5
+        assert result["per_task_mean"] > 0.7
+        assert abs(result["per_component_mean"] - 0.5) < 0.01
+        assert result["n_components"] == 2
+
+    def test_score_stability(self):
+        from scripts.sensitivity_analysis import score_stability
+        from bioeval.scoring.normalizer import NormalizedScore
+
+        by_comp = {
+            "compA": [NormalizedScore("a1", "compA", "t", 0.8, True)],
+            "compB": [NormalizedScore("b1", "compB", "t", 0.2, False)],
+        }
+        result = score_stability(by_comp)
+        assert result["range"] == 0.6
+        assert result["cv"] > 0
 
 
 if __name__ == "__main__":
