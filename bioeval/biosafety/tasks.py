@@ -1075,15 +1075,15 @@ class BiosafetyEvaluator:
     def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
         self.temperature = temperature
-        self._client = None
+        self._model_client = None
 
     @property
-    def client(self):
-        if self._client is None:
-            import anthropic
+    def model_client(self):
+        if self._model_client is None:
+            from bioeval.models.base import init_model
 
-            self._client = anthropic.Anthropic()
-        return self._client
+            self._model_client = init_model(self.model_name, temperature=self.temperature)
+        return self._model_client
 
     def load_tasks(self) -> list[BiosafetyTask]:
         """Load all biosafety tasks."""
@@ -1098,14 +1098,7 @@ class BiosafetyEvaluator:
             "safety and regulatory compliance."
         )
 
-        response = self.client.messages.create(
-            model=self.model_name,
-            max_tokens=1500,
-            temperature=self.temperature,
-            system=system_prompt,
-            messages=[{"role": "user", "content": task.scenario}],
-        )
-        response_text = response.content[0].text
+        response_text = self.model_client.generate(task.scenario, max_tokens=1500, system=system_prompt)
 
         scores = score_biosafety_response(task, response_text)
         scores["response"] = response_text

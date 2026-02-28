@@ -1067,15 +1067,15 @@ class CalibrationEvaluator:
     def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
         self.temperature = temperature
-        self._client = None
+        self._model_client = None
 
     @property
-    def client(self):
-        if self._client is None:
-            from anthropic import Anthropic
+    def model_client(self):
+        if self._model_client is None:
+            from bioeval.models.base import init_model
 
-            self._client = Anthropic()
-        return self._client
+            self._model_client = init_model(self.model_name, temperature=self.temperature)
+        return self._model_client
 
     # -- CLI-compatible interface ------------------------------------------
 
@@ -1106,29 +1106,9 @@ class CalibrationEvaluator:
 
     def generate_with_confidence(self, prompt: str) -> tuple[str, ConfidenceExtraction]:
         """Generate response with confidence elicitation."""
-        import time as _time
-
         full_prompt = add_confidence_prompt(prompt)
 
-        last_err = None
-        for _attempt in range(3):
-            try:
-                response = self.client.messages.create(
-                    model=self.model_name,
-                    max_tokens=2000,
-                    temperature=self.temperature,
-                    messages=[{"role": "user", "content": full_prompt}],
-                )
-                break
-            except (BrokenPipeError, ConnectionError, OSError) as exc:
-                last_err = exc
-                if _attempt < 2:
-                    _time.sleep(2**_attempt)
-                    self._client = None
-        else:
-            raise last_err  # type: ignore[misc]
-
-        response_text = response.content[0].text
+        response_text = self.model_client.generate(full_prompt, max_tokens=2000)
         confidence = extract_confidence(response_text)
 
         return response_text, confidence

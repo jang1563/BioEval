@@ -1584,7 +1584,7 @@ class TestTemperaturePropagation:
             )
 
     def test_model_routing_groq(self):
-        """Groq/llama models should route to OpenAICompatibleModel with Groq URL."""
+        """Groq models should route to OpenAICompatibleModel with Groq URL."""
         from unittest.mock import patch, MagicMock
 
         with patch("bioeval.models.base.OpenAICompatibleModel") as mock_compat:
@@ -1598,9 +1598,9 @@ class TestTemperaturePropagation:
                 def score_response(self, task, response):
                     return {}
 
-            _TestEval("llama-3.1-70b-versatile", temperature=0.3)
+            _TestEval("groq-mixtral-8x7b", temperature=0.3)
             mock_compat.assert_called_once_with(
-                "llama-3.1-70b-versatile",
+                "groq-mixtral-8x7b",
                 base_url="https://api.groq.com/openai/v1",
                 api_key_env="GROQ_API_KEY",
                 temperature=0.3,
@@ -1661,6 +1661,138 @@ class TestTemperaturePropagation:
         e = DebateEvaluator(temperature=0.3)
         assert e.temperature == 0.3
         assert e.model_pool.temperature == 0.3
+
+    def test_model_routing_together(self):
+        """Llama models should route to Together API (not Groq)."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.OpenAICompatibleModel") as mock_compat:
+            mock_compat.return_value = MagicMock()
+            from bioeval.models.base import init_model
+
+            init_model("meta-llama/Llama-3.3-70B-Instruct-Turbo", temperature=0.0)
+            mock_compat.assert_called_once_with(
+                "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                base_url="https://api.together.xyz/v1",
+                api_key_env="TOGETHER_API_KEY",
+                temperature=0.0,
+            )
+
+    def test_init_model_standalone(self):
+        """init_model() should work as a standalone function."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.ClaudeModel") as mock_claude:
+            mock_claude.return_value = MagicMock()
+            from bioeval.models.base import init_model
+
+            model = init_model("claude-sonnet-4-20250514", temperature=0.5)
+            mock_claude.assert_called_once_with("claude-sonnet-4-20250514", temperature=0.5)
+            assert model is not None
+
+    def test_retry_on_connection_error(self):
+        """Model wrappers should retry on BrokenPipeError/ConnectionError/OSError."""
+        from unittest.mock import patch, MagicMock, call
+        from bioeval.models.base import ClaudeModel
+
+        with patch("bioeval.models.base._time") as mock_time:
+            with patch("anthropic.Anthropic") as mock_anthropic:
+                mock_client = MagicMock()
+                mock_anthropic.return_value = mock_client
+
+                # First two calls raise BrokenPipeError, third succeeds
+                mock_response = MagicMock()
+                mock_response.content = [MagicMock(text="success")]
+                mock_client.messages.create.side_effect = [
+                    BrokenPipeError("pipe broken"),
+                    BrokenPipeError("pipe broken"),
+                    mock_response,
+                ]
+
+                model = ClaudeModel("claude-sonnet-4-20250514", temperature=0.0)
+                result = model.generate("test prompt")
+
+                assert result == "success"
+                assert mock_client.messages.create.call_count == 3
+                # Should have slept twice (2^0=1, 2^1=2)
+                assert mock_time.sleep.call_count == 2
+
+    def test_retry_exhausted_raises(self):
+        """Model wrappers should raise after 3 failed attempts."""
+        from unittest.mock import patch, MagicMock
+        from bioeval.models.base import ClaudeModel
+
+        with patch("bioeval.models.base._time"):
+            with patch("anthropic.Anthropic") as mock_anthropic:
+                mock_client = MagicMock()
+                mock_anthropic.return_value = mock_client
+                mock_client.messages.create.side_effect = ConnectionError("refused")
+
+                model = ClaudeModel("claude-sonnet-4-20250514")
+                with pytest.raises(ConnectionError, match="refused"):
+                    model.generate("test prompt")
+
+                assert mock_client.messages.create.call_count == 3
+
+    def test_generate_chat_claude(self):
+        """ClaudeModel.generate_chat() should pass messages list to API."""
+        from unittest.mock import patch, MagicMock
+        from bioeval.models.base import ClaudeModel
+
+        with patch("anthropic.Anthropic") as mock_anthropic:
+            mock_client = MagicMock()
+            mock_anthropic.return_value = mock_client
+            mock_response = MagicMock()
+            mock_response.content = [MagicMock(text="response text")]
+            mock_client.messages.create.return_value = mock_response
+
+            model = ClaudeModel("claude-sonnet-4-20250514", temperature=0.0)
+            messages = [
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": "Hi"},
+                {"role": "user", "content": "Follow up"},
+            ]
+            result = model.generate_chat(messages, system="Be helpful")
+
+            assert result == "response text"
+            call_kwargs = mock_client.messages.create.call_args[1]
+            assert call_kwargs["messages"] == messages
+            assert call_kwargs["system"] == "Be helpful"
+
+    def test_generate_chat_openai(self):
+        """OpenAIModel.generate_chat() should prepend system message."""
+        from unittest.mock import patch, MagicMock
+        from bioeval.models.base import OpenAIModel
+
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            mock_response = MagicMock()
+            mock_response.choices = [MagicMock(message=MagicMock(content="reply"))]
+            mock_client.chat.completions.create.return_value = mock_response
+
+            model = OpenAIModel("gpt-4o", temperature=0.0)
+            messages = [{"role": "user", "content": "Hi"}]
+            result = model.generate_chat(messages, system="System msg")
+
+            assert result == "reply"
+            call_kwargs = mock_client.chat.completions.create.call_args[1]
+            assert call_kwargs["messages"][0] == {"role": "system", "content": "System msg"}
+            assert call_kwargs["messages"][1] == {"role": "user", "content": "Hi"}
+
+    def test_standalone_evaluator_model_client_property(self):
+        """Standalone evaluators should use model_client property with init_model."""
+        from unittest.mock import patch, MagicMock
+        from bioeval.biosafety.tasks import BiosafetyEvaluator
+
+        evaluator = BiosafetyEvaluator("gpt-4o", temperature=0.2)
+        assert evaluator._model_client is None  # Lazy init
+
+        with patch("bioeval.models.base.OpenAIModel") as mock_openai:
+            mock_openai.return_value = MagicMock()
+            client = evaluator.model_client
+            assert client is not None
+            mock_openai.assert_called_once_with("gpt-4o", temperature=0.2)
 
 
 if __name__ == "__main__":

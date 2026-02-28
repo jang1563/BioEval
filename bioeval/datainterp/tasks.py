@@ -1313,15 +1313,15 @@ class DataInterpEvaluator:
     def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
         self.temperature = temperature
-        self._client = None
+        self._model_client = None
 
     @property
-    def client(self):
-        if self._client is None:
-            import anthropic
+    def model_client(self):
+        if self._model_client is None:
+            from bioeval.models.base import init_model
 
-            self._client = anthropic.Anthropic()
-        return self._client
+            self._model_client = init_model(self.model_name, temperature=self.temperature)
+        return self._model_client
 
     def load_tasks(self) -> list[DataInterpTask]:
         """Load all data interpretation tasks."""
@@ -1338,14 +1338,7 @@ class DataInterpEvaluator:
 
         user_content = f"{task.scenario}\n\nData:\n{task.data_table}"
 
-        response = self.client.messages.create(
-            model=self.model_name,
-            max_tokens=2000,
-            temperature=self.temperature,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_content}],
-        )
-        response_text = response.content[0].text
+        response_text = self.model_client.generate(user_content, max_tokens=2000, system=system_prompt)
 
         scores = score_datainterp_response(task, response_text)
         scores["response"] = response_text

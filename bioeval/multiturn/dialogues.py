@@ -535,15 +535,15 @@ class MultiTurnEvaluator:
     def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
         self.temperature = temperature
-        self._client = None
+        self._model_client = None
 
     @property
-    def client(self):
-        if self._client is None:
-            from anthropic import Anthropic
+    def model_client(self):
+        if self._model_client is None:
+            from bioeval.models.base import init_model
 
-            self._client = Anthropic()
-        return self._client
+            self._model_client = init_model(self.model_name, temperature=self.temperature)
+        return self._model_client
 
     # -- CLI-compatible interface ------------------------------------------
 
@@ -589,30 +589,12 @@ class MultiTurnEvaluator:
             # Add user message
             messages.append({"role": "user", "content": turn.user_message})
 
-            # Get assistant response (with retry on transient errors)
-            import time as _time
-
-            last_err = None
-            for _attempt in range(3):
-                try:
-                    response = self.client.messages.create(
-                        model=self.model_name,
-                        max_tokens=1500,
-                        temperature=self.temperature,
-                        system=f"You are a helpful scientific assistant discussing {dialogue.domain}. "
-                        f"Engage in a multi-turn conversation, building on previous exchanges.",
-                        messages=messages,
-                    )
-                    break
-                except (BrokenPipeError, ConnectionError, OSError) as exc:
-                    last_err = exc
-                    if _attempt < 2:
-                        _time.sleep(2**_attempt)
-                        self._client = None
-            else:
-                raise last_err  # type: ignore[misc]
-
-            assistant_message = response.content[0].text
+            # Get assistant response
+            system_prompt = (
+                f"You are a helpful scientific assistant discussing {dialogue.domain}. "
+                f"Engage in a multi-turn conversation, building on previous exchanges."
+            )
+            assistant_message = self.model_client.generate_chat(messages, max_tokens=1500, system=system_prompt)
             messages.append({"role": "assistant", "content": assistant_message})
 
             # Score this turn

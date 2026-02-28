@@ -4,11 +4,13 @@ Base evaluator interface and model wrappers for BioEval.
 Supports:
 - Anthropic Claude models (API)
 - OpenAI models (API)
+- OpenAI-compatible providers (DeepSeek, Groq, Gemini, Together)
 - HuggingFace models (local, including LoRA fine-tuned)
 """
 
 from __future__ import annotations
 
+import time as _time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
@@ -48,6 +50,57 @@ class EvalResult:
             self.timestamp = datetime.now().isoformat()
 
 
+def init_model(
+    model_name: str,
+    temperature: float = 0.0,
+    adapter_path: Optional[str] = None,
+    use_4bit: bool = True,
+):
+    """Initialize model client based on name routing.
+
+    This is the single source of truth for model name → backend mapping.
+    Used by BaseEvaluator and standalone evaluators alike.
+    """
+    name_lower = model_name.lower()
+    if "claude" in name_lower:
+        return ClaudeModel(model_name, temperature=temperature)
+    elif "gpt" in name_lower or "o1" in name_lower or "o3" in name_lower:
+        return OpenAIModel(model_name, temperature=temperature)
+    elif "deepseek" in name_lower:
+        return OpenAICompatibleModel(
+            model_name,
+            base_url="https://api.deepseek.com",
+            api_key_env="DEEPSEEK_API_KEY",
+            temperature=temperature,
+        )
+    elif "groq" in name_lower or "mixtral" in name_lower:
+        return OpenAICompatibleModel(
+            model_name,
+            base_url="https://api.groq.com/openai/v1",
+            api_key_env="GROQ_API_KEY",
+            temperature=temperature,
+        )
+    elif "gemini" in name_lower:
+        return OpenAICompatibleModel(
+            model_name,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            api_key_env="GEMINI_API_KEY",
+            temperature=temperature,
+        )
+    elif "llama" in name_lower or "together" in name_lower:
+        return OpenAICompatibleModel(
+            model_name,
+            base_url="https://api.together.xyz/v1",
+            api_key_env="TOGETHER_API_KEY",
+            temperature=temperature,
+        )
+    elif "/" in model_name or adapter_path:
+        # HuggingFace model (local)
+        return HuggingFaceModel(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
+    else:
+        raise ValueError(f"Unknown model: {model_name}")
+
+
 class BaseEvaluator(ABC):
     """Abstract base class for component evaluators."""
 
@@ -71,37 +124,12 @@ class BaseEvaluator(ABC):
     ):
         """Initialize the appropriate model client."""
         temperature = getattr(self, "temperature", 0.0)
-        name_lower = model_name.lower()
-        if "claude" in name_lower:
-            return ClaudeModel(model_name, temperature=temperature)
-        elif "gpt" in name_lower or "o1" in name_lower or "o3" in name_lower:
-            return OpenAIModel(model_name, temperature=temperature)
-        elif "deepseek" in name_lower:
-            return OpenAICompatibleModel(
-                model_name,
-                base_url="https://api.deepseek.com",
-                api_key_env="DEEPSEEK_API_KEY",
-                temperature=temperature,
-            )
-        elif "groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower:
-            return OpenAICompatibleModel(
-                model_name,
-                base_url="https://api.groq.com/openai/v1",
-                api_key_env="GROQ_API_KEY",
-                temperature=temperature,
-            )
-        elif "gemini" in name_lower:
-            return OpenAICompatibleModel(
-                model_name,
-                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-                api_key_env="GEMINI_API_KEY",
-                temperature=temperature,
-            )
-        elif "/" in model_name or adapter_path:
-            # HuggingFace model (local)
-            return HuggingFaceModel(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
-        else:
-            raise ValueError(f"Unknown model: {model_name}")
+        return init_model(
+            model_name,
+            temperature=temperature,
+            adapter_path=adapter_path,
+            use_4bit=use_4bit,
+        )
 
     @abstractmethod
     def load_tasks(self) -> list[EvalTask]:
@@ -143,6 +171,25 @@ class ClaudeModel:
         self.model = model_name
         self.temperature = temperature
 
+    def _reset_client(self):
+        """Recreate HTTP client after connection errors."""
+        from anthropic import Anthropic
+
+        self.client = Anthropic()
+
+    def _retry_call(self, fn, **kwargs):
+        """Retry API call with exponential backoff (3 attempts)."""
+        last_err = None
+        for attempt in range(3):
+            try:
+                return fn(**kwargs)
+            except (BrokenPipeError, ConnectionError, OSError) as exc:
+                last_err = exc
+                if attempt < 2:
+                    _time.sleep(2**attempt)
+                    self._reset_client()
+        raise last_err  # type: ignore[misc]
+
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from Claude."""
         kwargs = {
@@ -154,7 +201,21 @@ class ClaudeModel:
         if system:
             kwargs["system"] = system
 
-        response = self.client.messages.create(**kwargs)
+        response = self._retry_call(self.client.messages.create, **kwargs)
+        return response.content[0].text
+
+    def generate_chat(self, messages: list, max_tokens: int = 2048, system: Optional[str] = None) -> str:
+        """Generate response from Claude with multi-turn message history."""
+        kwargs = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": self.temperature,
+            "messages": messages,
+        }
+        if system:
+            kwargs["system"] = system
+
+        response = self._retry_call(self.client.messages.create, **kwargs)
         return response.content[0].text
 
 
@@ -168,6 +229,25 @@ class OpenAIModel:
         self.model = model_name
         self.temperature = temperature
 
+    def _reset_client(self):
+        """Recreate HTTP client after connection errors."""
+        from openai import OpenAI
+
+        self.client = OpenAI()
+
+    def _retry_call(self, fn, **kwargs):
+        """Retry API call with exponential backoff (3 attempts)."""
+        last_err = None
+        for attempt in range(3):
+            try:
+                return fn(**kwargs)
+            except (BrokenPipeError, ConnectionError, OSError) as exc:
+                last_err = exc
+                if attempt < 2:
+                    _time.sleep(2**attempt)
+                    self._reset_client()
+        raise last_err  # type: ignore[misc]
+
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from OpenAI model."""
         messages = []
@@ -175,7 +255,8 @@ class OpenAIModel:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(
+        response = self._retry_call(
+            self.client.chat.completions.create,
             model=self.model,
             max_tokens=max_tokens,
             temperature=self.temperature,
@@ -183,9 +264,25 @@ class OpenAIModel:
         )
         return response.choices[0].message.content
 
+    def generate_chat(self, messages: list, max_tokens: int = 2048, system: Optional[str] = None) -> str:
+        """Generate response from OpenAI model with multi-turn message history."""
+        msgs = []
+        if system:
+            msgs.append({"role": "system", "content": system})
+        msgs.extend(messages)
+
+        response = self._retry_call(
+            self.client.chat.completions.create,
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            messages=msgs,
+        )
+        return response.choices[0].message.content
+
 
 class OpenAICompatibleModel:
-    """Wrapper for OpenAI-compatible API providers (DeepSeek, Groq, Gemini, etc.)."""
+    """Wrapper for OpenAI-compatible API providers (DeepSeek, Groq, Gemini, Together, etc.)."""
 
     def __init__(
         self,
@@ -202,6 +299,28 @@ class OpenAICompatibleModel:
         self.client = OpenAI(base_url=base_url, api_key=api_key)
         self.model = model_name
         self.temperature = temperature
+        self._base_url = base_url
+        self._api_key_env = api_key_env
+
+    def _reset_client(self):
+        """Recreate HTTP client after connection errors."""
+        from openai import OpenAI
+
+        api_key = os.environ.get(self._api_key_env)
+        self.client = OpenAI(base_url=self._base_url, api_key=api_key)
+
+    def _retry_call(self, fn, **kwargs):
+        """Retry API call with exponential backoff (3 attempts)."""
+        last_err = None
+        for attempt in range(3):
+            try:
+                return fn(**kwargs)
+            except (BrokenPipeError, ConnectionError, OSError) as exc:
+                last_err = exc
+                if attempt < 2:
+                    _time.sleep(2**attempt)
+                    self._reset_client()
+        raise last_err  # type: ignore[misc]
 
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from OpenAI-compatible API."""
@@ -210,11 +329,28 @@ class OpenAICompatibleModel:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(
+        response = self._retry_call(
+            self.client.chat.completions.create,
             model=self.model,
             max_tokens=max_tokens,
             temperature=self.temperature,
             messages=messages,
+        )
+        return response.choices[0].message.content
+
+    def generate_chat(self, messages: list, max_tokens: int = 2048, system: Optional[str] = None) -> str:
+        """Generate response from OpenAI-compatible API with multi-turn message history."""
+        msgs = []
+        if system:
+            msgs.append({"role": "system", "content": system})
+        msgs.extend(messages)
+
+        response = self._retry_call(
+            self.client.chat.completions.create,
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            messages=msgs,
         )
         return response.choices[0].message.content
 

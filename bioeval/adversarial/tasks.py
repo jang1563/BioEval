@@ -1072,7 +1072,7 @@ class AdversarialEvaluator:
     ):
         self.model_name = model_name
         self.temperature = temperature
-        self._client = None
+        self._model_client = None
         self.use_enhanced_prompts = use_enhanced_prompts and config.PROMPT_ENHANCEMENTS_ENABLED
         self.enhancement_config = PromptEnhancementConfig(
             calibration=config.ENHANCEMENT_CALIBRATION,
@@ -1084,12 +1084,12 @@ class AdversarialEvaluator:
         self.system_prompt = SCIENTIFIC_REASONING_SYSTEM_PROMPT if self.use_enhanced_prompts else None
 
     @property
-    def client(self):
-        if self._client is None:
-            from anthropic import Anthropic
+    def model_client(self):
+        if self._model_client is None:
+            from bioeval.models.base import init_model
 
-            self._client = Anthropic()
-        return self._client
+            self._model_client = init_model(self.model_name, temperature=self.temperature)
+        return self._model_client
 
     def load_tasks(self) -> list[AdversarialTask]:
         return ADVERSARIAL_TASKS
@@ -1105,34 +1105,9 @@ class AdversarialEvaluator:
 
     def evaluate_task(self, task: AdversarialTask) -> dict:
         """Evaluate a single adversarial task."""
-        import time as _time
-
         enhanced_question = self._enhance_question(task)
 
-        kwargs = {
-            "model": self.model_name,
-            "max_tokens": 1500,
-            "temperature": self.temperature,
-            "messages": [{"role": "user", "content": enhanced_question}],
-        }
-        if self.system_prompt:
-            kwargs["system"] = self.system_prompt
-
-        # Retry on transient errors (BrokenPipeError, ConnectionError, etc.)
-        last_err = None
-        for attempt in range(3):
-            try:
-                response = self.client.messages.create(**kwargs)
-                break
-            except (BrokenPipeError, ConnectionError, OSError) as exc:
-                last_err = exc
-                if attempt < 2:
-                    _time.sleep(2**attempt)
-                    self._client = None  # force reconnect
-        else:
-            raise last_err  # type: ignore[misc]
-
-        response_text = response.content[0].text
+        response_text = self.model_client.generate(enhanced_question, max_tokens=1500, system=self.system_prompt)
         raw_scores = score_adversarial_response(task, response_text)
 
         return {

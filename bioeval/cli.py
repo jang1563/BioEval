@@ -157,9 +157,15 @@ def cmd_run(args):
             sys.exit(1)
 
     name_lower = model.lower()
-    if ("groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower) and not os.environ.get("GROQ_API_KEY"):
+    if ("groq" in name_lower or "mixtral" in name_lower) and not os.environ.get("GROQ_API_KEY"):
         print("Error: GROQ_API_KEY not set.")
         print("  export GROQ_API_KEY='your-key-here'")
+        if not args.dry_run:
+            sys.exit(1)
+
+    if ("llama" in name_lower or "together" in name_lower) and not os.environ.get("TOGETHER_API_KEY"):
+        print("Error: TOGETHER_API_KEY not set.")
+        print("  export TOGETHER_API_KEY='your-key-here'")
         if not args.dry_run:
             sys.exit(1)
 

@@ -142,7 +142,7 @@ class AgentModelPool:
                     api_key_env="DEEPSEEK_API_KEY",
                     temperature=self.temperature,
                 )
-            elif "groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower:
+            elif "groq" in name_lower or "mixtral" in name_lower:
                 from bioeval.models.base import OpenAICompatibleModel
 
                 self._models[model_name] = OpenAICompatibleModel(
@@ -158,6 +158,15 @@ class AgentModelPool:
                     model_name,
                     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
                     api_key_env="GEMINI_API_KEY",
+                    temperature=self.temperature,
+                )
+            elif "llama" in name_lower or "together" in name_lower:
+                from bioeval.models.base import OpenAICompatibleModel
+
+                self._models[model_name] = OpenAICompatibleModel(
+                    model_name,
+                    base_url="https://api.together.xyz/v1",
+                    api_key_env="TOGETHER_API_KEY",
                     temperature=self.temperature,
                 )
             elif "/" in model_name:
