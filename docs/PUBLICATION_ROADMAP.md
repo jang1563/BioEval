@@ -1,8 +1,8 @@
 # BioEval Publication Roadmap
 
-> Last updated: 2026-02-27 | Version: 0.3.0
-> Phase 1: COMPLETE | Phase 2: NEXT
-> Current readiness: ~70% (Phase 1 done, scoring bugs fixed, awaiting re-evaluation)
+> Last updated: 2026-02-28 | Version: 0.3.1
+> Phase 1: COMPLETE (incl. expert review hardening) | Phase 2: NEXT
+> Current readiness: ~75% (expert review done, scoring hardened, awaiting multi-model eval)
 
 ## Current System State (Verified 2026-02-27)
 
@@ -53,12 +53,15 @@
 
 | Item | Status |
 |------|--------|
-| Version | 0.3.0 |
-| Tests | 299 passing |
+| Version | 0.3.1 |
+| Tests | 365 passing |
 | CLI | `bioeval run / inventory / compare / judge-pack / adapt / validate-adapter / demo` |
-| Seed support | `--seed 42` |
-| Caching | SQLite-based |
+| Seed support | `--seed 42 --temperature 0.0 --judge-temperature 0.0` |
+| Caching | SQLite-based (timeout=10s, write-resilient) |
 | Adapters | LAB-Bench, BioProBench, BioLP-Bench |
+| Statistical | Bootstrap CI, Wilcoxon, permutation test, Bonferroni/BH correction |
+| Contamination | 80/20 public/private split + 3 canary tasks |
+| Provenance | EvalTask.source / .validator fields |
 
 ---
 
@@ -116,21 +119,40 @@
 - `check_release_consistency.py` rewritten to use `load_tasks()` counts instead of raw data arithmetic.
 - All existing results (`sonnet_all_9components.json`) use old scoring. Must re-run in Phase 2.
 
+### Phase 1.5: Expert Review Hardening (2026-02-28) — COMPLETE
+
+**Goal:** Address issues from 4-perspective expert review (statistical, biological, SW, benchmark design).
+
+| # | Task | Status | Result |
+|---|------|:------:|--------|
+| 1.5.1 | Python 3.9 compat | DONE | `from __future__ import annotations` in 32 files |
+| 1.5.2 | LLM Judge error handling | DONE | score=None on parse failure, timeout, XML delimiters |
+| 1.5.3 | CLI temperature flags | DONE | `--temperature`, `--judge-temperature` with metadata recording |
+| 1.5.4 | SQLite resilience | DONE | timeout=10s, cache write try-except |
+| 1.5.5 | Statistical corrections | DONE | permutation zero-diff guard, Bonferroni/BH correction |
+| 1.5.6 | Per-component weighting | DONE | `overall_per_component` equal-weighted aggregation |
+| 1.5.7 | Calibration hallucination | DONE | Fabricated entity detection, partial_knowledge hardening |
+| 1.5.8 | Canary contamination | DONE | 3 fingerprint tasks + `check_canary_contamination()` |
+| 1.5.9 | EvalTask provenance | DONE | `source`, `validator` fields |
+| 1.5.10 | Sensitivity analysis | DONE | `scripts/sensitivity_analysis.py` |
+| 1.5.11 | Reproduction manifest | DONE | `docs/REPRODUCTION_MANIFEST.md` |
+| 1.5.12 | Test coverage | DONE | 299→365 tests (+66) |
+
 ### Phase 2: Credibility (3–4 weeks)
 
 **Goal:** Multi-model comparison, statistical rigor, judge validation.
 
-**Prerequisite:** Phase 1 changed DesignCheck and Debate scoring logic. All Claude results must be re-run with fixed scoring before comparison.
+**Prerequisite:** Phase 1 + 1.5 hardening complete. Claude re-run with fixed scoring done. New scoring includes calibration hallucination defense, per-component weighting, and multiple comparison correction.
 
 | # | Task | Detail | Deliverable |
 |---|------|--------|-------------|
-| 2.0 | Claude re-run (seed 42) | **DONE.** Re-ran with fixed scoring. Results: `results/phase2_claude_sonnet4_seed42.json`. 172/178 scored (6 connection errors). DesignCheck: 0.318→0.535, Debate: 0.453→0.377, Overall: 0.705→0.727. | Updated baseline result JSON ✓ |
-| 2.1 | GPT-4o evaluation | Run `bioeval run --all -m gpt-4o --seed 42 --runs 3` (seeds: 42, 123, 456). Model backend: `OpenAIModel` (already implemented) | 3 result JSON files |
-| 2.2 | Open-source model | Run Llama 3 70B or Mistral Large via API. `HuggingFaceModel` backend available. 3 seeds. | 3 result JSON files |
-| 2.3 | Claude 3× repeat | Run Claude Sonnet 4 with seeds 123, 456 (seed 42 done in 2.0). CLI supports `--runs` flag for aggregation. | 2 additional result JSON files |
-| 2.4 | Statistical analysis | Module built: `bioeval/reporting/statistical_tests.py` with bootstrap_ci, wilcoxon_signed_rank, permutation_test, cohens_d, hedges_g, compare_models. Needs testing + integration with CLI compare command. | Statistics table + significance |
-| 2.5 | Judge validation | `bioeval judge-pack results.json --sample-size 50 --seed 42` (CLI confirmed working). 2+ domain experts score independently. Report Cohen's κ (target ≥ 0.5). Start expert recruitment now. | Judge validation report |
-| 2.6 | 3-model comparison table | Table: Component × Model with CIs. Radar chart. Per-component analysis. Update README/HTML with new scores after re-runs. | Main results table for paper |
+| 2.0 | Claude re-run (seed 42) | **DONE.** Results: `results/phase2_claude_sonnet4_seed42.json`. 172/178 scored. Overall: 0.727. | Updated baseline JSON ✓ |
+| 2.1 | GPT-4o evaluation | Run seeds 42, 123, 456. OpenAI API key available (`~/.api_keys`). | 3 result JSON files |
+| 2.2 | Open-source model | DeepSeek or Llama 3 70B via API. Keys available (`~/.api_keys`). 3 seeds. | 3 result JSON files |
+| 2.3 | Claude 3× repeat | Seeds 123, 456 (seed 42 done in 2.0). | 2 additional result JSON files |
+| 2.4 | Statistical analysis | Module **DONE** (bootstrap CI, Wilcoxon, permutation, Cohen's d, Hedges' g, Bonferroni/BH). Integrate with CLI `compare` command. | Statistics table + significance |
+| 2.5 | Judge validation | `bioeval judge-pack` CLI working. 2+ domain experts. Cohen's κ ≥ 0.5 target. | Judge validation report |
+| 2.6 | 3-model comparison table | Component × Model with CIs + per-component weighting. Radar chart. | Main results table for paper |
 
 **Post-2.0 note:** After re-run, expect DesignCheck F1 to improve (alias matching); Debate composite to drop to ~0.380 (honest score). README and HTML Preliminary Results table should be updated with 2.0 results, but final update deferred to 3.7.
 
@@ -207,18 +229,20 @@ Phase 3 (Weeks 6–8)                                     ▼
 | Requirement | Standard | BioEval Status |
 |-------------|----------|:--------------:|
 | Multi-model (3+ families) | Claude + GPT + open-source | Planned (Phase 2) |
-| Statistical significance | Bootstrap CI + Wilcoxon | Planned (Phase 2) |
+| Statistical significance | Bootstrap CI + Wilcoxon + Bonferroni/BH | **Module done** (Phase 1.5), apply in Phase 2 |
 | Judge validation | Cohen's κ ≥ 0.5 | Planned (Phase 2) |
 | Multiple runs | ≥ 3 seeds per model | Planned (Phase 2) |
 | Persistent hosting | HuggingFace | Planned (Phase 3) |
 | Croissant metadata | Required for NeurIPS | Planned (Phase 3) |
 | Datasheet | Gebru et al. | Planned (Phase 3) |
 | Ethics statement | Dual-use, limitations | Planned (Phase 3) |
-| Data contamination | Novelty analysis | Planned (Phase 3) |
-| Reproducibility | Seed, model pins, CLI | Done |
+| Data contamination | Canary tasks + novelty analysis | **Canary done** (Phase 1.5), analysis in Phase 3 |
+| Reproducibility | Seed, model pins, CLI, temperature | **Done** (Phase 1.5, `REPRODUCTION_MANIFEST.md`) |
+| Sensitivity analysis | Weight perturbation, threshold sweep | **Done** (Phase 1.5, `scripts/sensitivity_analysis.py`) |
 | Cost transparency | Per-run estimates | Done |
 | Score field documentation | Per-component metric mapping | Done (Phase 1) |
 | Release consistency | Automated count verification | Done (Phase 1) |
+| Python 3.9-3.12 compat | CI green across versions | **Done** (Phase 1.5, 32 files) |
 
 ---
 
