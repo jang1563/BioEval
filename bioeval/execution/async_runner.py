@@ -8,6 +8,8 @@ Provides:
 4. Progress tracking and resumable evaluation
 """
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import json
@@ -54,7 +56,7 @@ class ResponseCache:
 
     def _init_db(self):
         """Initialize SQLite database."""
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS responses (
@@ -79,16 +81,16 @@ class ResponseCache:
             """
             )
 
-    def _compute_key(self, model: str, prompt: str, system: Optional[str] = None) -> str:
-        """Compute cache key from model and prompt."""
-        content = f"{model}::{system or ''}::{prompt}"
+    def _compute_key(self, model: str, prompt: str, system: Optional[str] = None, max_tokens: Optional[int] = None) -> str:
+        """Compute cache key from model, prompt, and generation parameters."""
+        content = f"{model}::{system or ''}::{max_tokens or ''}::{prompt}"
         return hashlib.sha256(content.encode()).hexdigest()[:32]
 
-    def get(self, model: str, prompt: str, system: Optional[str] = None) -> Optional[dict]:
+    def get(self, model: str, prompt: str, system: Optional[str] = None, max_tokens: Optional[int] = None) -> Optional[dict]:
         """Retrieve cached response if exists."""
-        cache_key = self._compute_key(model, prompt, system)
+        cache_key = self._compute_key(model, prompt, system, max_tokens)
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
             cursor = conn.execute("SELECT response, usage_json FROM responses WHERE cache_key = ?", (cache_key,))
             row = cursor.fetchone()
 
@@ -104,12 +106,13 @@ class ResponseCache:
         usage: Optional[dict] = None,
         system: Optional[str] = None,
         task_id: Optional[str] = None,
+        max_tokens: Optional[int] = None,
     ):
         """Store response in cache."""
-        cache_key = self._compute_key(model, prompt, system)
+        cache_key = self._compute_key(model, prompt, system, max_tokens)
         prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()[:16]
 
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO responses 
@@ -129,7 +132,7 @@ class ResponseCache:
 
     def get_stats(self) -> dict:
         """Get cache statistics."""
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
             cursor = conn.execute("SELECT COUNT(*) FROM responses")
             total = cursor.fetchone()[0]
 
@@ -140,7 +143,7 @@ class ResponseCache:
 
     def clear(self, model: Optional[str] = None):
         """Clear cache, optionally for specific model only."""
-        with sqlite3.connect(self.db_path) as conn:
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
             if model:
                 conn.execute("DELETE FROM responses WHERE model = ?", (model,))
             else:
@@ -166,6 +169,9 @@ class RateLimiter:
         """Wait until rate limit allows another request."""
         async with self._lock:
             now = time.time()
+            # A single request can exceed configured TPM estimates.
+            # Cap the estimate so we do not wait forever or index empty history.
+            estimated_tokens = max(1, min(int(estimated_tokens), self.tpm))
 
             # Clean old entries (older than 60 seconds)
             self.request_times = [t for t in self.request_times if now - t < 60]
@@ -181,7 +187,10 @@ class RateLimiter:
 
             # Check token rate
             current_tokens = sum(tokens for _, tokens in self.token_usage)
-            while current_tokens + estimated_tokens > self.tpm:
+            while current_tokens + estimated_tokens > self.tpm and self.token_usage:
+                # Defensive: re-check after cleanup may have emptied the list
+                if not self.token_usage:
+                    break
                 wait_time = 60 - (now - self.token_usage[0][0])
                 if wait_time > 0:
                     await asyncio.sleep(wait_time)
@@ -233,7 +242,7 @@ class AsyncBioEvalClient:
 
         # Check cache first
         if self.cache:
-            cached = self.cache.get(self.model, prompt, system)
+            cached = self.cache.get(self.model, prompt, system, max_tokens)
             if cached:
                 self.stats["cache_hits"] += 1
                 return cached
@@ -262,16 +271,22 @@ class AsyncBioEvalClient:
 
                     result = {"response": response.content[0].text, "usage": usage, "cached": False}
 
-                    # Cache the response
+                    # Cache the response (graceful degradation on DB errors)
                     if self.cache:
-                        self.cache.set(
-                            model=self.model,
-                            prompt=prompt,
-                            response=result["response"],
-                            usage=usage,
-                            system=system,
-                            task_id=task_id,
-                        )
+                        try:
+                            self.cache.set(
+                                model=self.model,
+                                prompt=prompt,
+                                response=result["response"],
+                                usage=usage,
+                                system=system,
+                                task_id=task_id,
+                                max_tokens=max_tokens,
+                            )
+                        except (sqlite3.OperationalError, OSError) as cache_err:
+                            import logging
+
+                            logging.getLogger(__name__).warning("Cache write failed: %s", cache_err)
 
                     return result
 

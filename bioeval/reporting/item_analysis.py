@@ -11,6 +11,8 @@ These metrics are standard in psychometrics (cf. Classical Test Theory)
 and help identify uninformative tasks.
 """
 
+from __future__ import annotations
+
 import math
 from collections import defaultdict
 from pathlib import Path

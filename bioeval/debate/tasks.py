@@ -9,6 +9,8 @@ Debate-specific biomedical tasks for multi-agent evaluation.
 - Mechanism Dispute (5): competing biological mechanism debate
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 

@@ -5,6 +5,8 @@ Tests whether LLMs can identify flaws in experimental designs—a key skill
 for scientific reasoning and peer review.
 """
 
+from __future__ import annotations
+
 import json
 from typing import Optional
 from dataclasses import dataclass

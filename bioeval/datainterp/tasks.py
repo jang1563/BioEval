@@ -17,6 +17,8 @@ CausalBio (mechanism prediction) by focusing on interpreting structured
 numerical datasets and applying statistical reasoning.
 """
 
+from __future__ import annotations
+
 import re
 import math
 from dataclasses import dataclass, field

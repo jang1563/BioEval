@@ -5,6 +5,8 @@ Generates comprehensive statistics about task distribution, difficulty,
 inter-component balance, and scoring properties.
 """
 
+from __future__ import annotations
+
 import json
 from collections import Counter
 
@@ -15,14 +17,12 @@ def _count_protoreason(data_tier: str) -> dict:
 
     n_ordering = len(SAMPLE_PROTOCOLS)
     n_missing = len(SAMPLE_PROTOCOLS)
-    n_reagent = len(SAMPLE_PROTOCOLS)
     n_calc = len(CALCULATION_TASKS)
     n_troubleshoot = len(TROUBLESHOOTING_TASKS)
 
     counts = {
         "step_ordering": n_ordering,
         "missing_step": n_missing,
-        "reagent_calculation": n_reagent,
         "calculation": n_calc,
         "troubleshooting": n_troubleshoot,
     }
@@ -38,7 +38,6 @@ def _count_protoreason(data_tier: str) -> dict:
 
             counts["step_ordering"] += len(EXT_PR)
             counts["missing_step"] += len(EXT_PR)
-            counts["reagent_calculation"] += len(EXT_PR)
             counts["calculation"] += len(EXT_CALC)
             counts["troubleshooting"] += len(EXT_TS)
             counts["safety"] = len(EXT_SAFETY)
@@ -110,6 +109,43 @@ def _count_multiturn(data_tier: str) -> dict:
     return {"n_tasks": n}
 
 
+def _count_biosafety() -> dict:
+    """Count BioSafety tasks."""
+    from bioeval.biosafety.tasks import BIOSAFETY_TASKS
+
+    counts = Counter(t.safety_type.value for t in BIOSAFETY_TASKS)
+    difficulty = Counter(t.difficulty for t in BIOSAFETY_TASKS)
+    return {
+        "n_tasks": len(BIOSAFETY_TASKS),
+        "by_type": dict(counts),
+        "by_difficulty": dict(difficulty),
+    }
+
+
+def _count_datainterp() -> dict:
+    """Count DataInterp tasks."""
+    from bioeval.datainterp.tasks import DATA_INTERP_TASKS
+
+    counts = Counter(t.interp_type.value for t in DATA_INTERP_TASKS)
+    difficulty = Counter(t.difficulty for t in DATA_INTERP_TASKS)
+    return {
+        "n_tasks": len(DATA_INTERP_TASKS),
+        "by_type": dict(counts),
+        "by_difficulty": dict(difficulty),
+    }
+
+
+def _count_debate() -> dict:
+    """Count Debate tasks."""
+    from bioeval.debate.tasks import DEBATE_TASKS
+
+    counts = Counter(t.task_type.value if hasattr(t.task_type, "value") else str(t.task_type) for t in DEBATE_TASKS)
+    return {
+        "n_tasks": len(DEBATE_TASKS),
+        "by_type": dict(counts),
+    }
+
+
 def _collect_task_ids(data_tier: str) -> list[str]:
     """Collect all task IDs for split statistics."""
     ids = []
@@ -118,8 +154,8 @@ def _collect_task_ids(data_tier: str) -> list[str]:
     from bioeval.protoreason.evaluator import SAMPLE_PROTOCOLS, CALCULATION_TASKS, TROUBLESHOOTING_TASKS
 
     for name in SAMPLE_PROTOCOLS:
-        for suffix in ["ordering", "missing", "reagent"]:
-            ids.append(f"proto_{name}_{suffix}")
+        ids.append(f"ordering_{name}")
+        ids.append(f"missing_{name}")
     for t in CALCULATION_TASKS:
         ids.append(t.get("id", f"calc_{len(ids)}"))
     for t in TROUBLESHOOTING_TASKS:
@@ -155,8 +191,57 @@ def _collect_task_ids(data_tier: str) -> list[str]:
     for t in CALIBRATION_TEST_TASKS:
         ids.append(t["id"])
 
+    # BioSafety
+    from bioeval.biosafety.tasks import BIOSAFETY_TASKS
+
+    for t in BIOSAFETY_TASKS:
+        ids.append(t.id)
+
+    # DataInterp
+    from bioeval.datainterp.tasks import DATA_INTERP_TASKS
+
+    for t in DATA_INTERP_TASKS:
+        ids.append(t.id)
+
+    # Debate
+    from bioeval.debate.tasks import DEBATE_TASKS
+
+    for t in DEBATE_TASKS:
+        ids.append(t.id)
+
     # Extended data
     if data_tier in ("extended", "all"):
+        try:
+            from bioeval.protoreason.extended_data import (
+                PROTOCOLS as EXT_PROTOCOLS,
+                CALCULATION_TASKS as EXT_CALC,
+                TROUBLESHOOTING_TASKS as EXT_TS,
+                SAFETY_TASKS as EXT_SAFETY,
+            )
+
+            for name in EXT_PROTOCOLS:
+                ids.append(f"ordering_{name}")
+                ids.append(f"missing_{name}")
+            for t in EXT_CALC:
+                ids.append(t.get("id", f"calc_ext_{len(ids)}"))
+            for t in EXT_TS:
+                ids.append(t.get("id", f"ts_ext_{len(ids)}"))
+            for t in EXT_SAFETY:
+                ids.append(t.get("id", f"safety_ext_{len(ids)}"))
+        except ImportError:
+            pass
+        try:
+            from bioeval.causalbio.extended_data import (
+                KNOCKOUT_TASKS as EXT_KO,
+                PATHWAY_TASKS as EXT_PATH,
+                DRUG_RESPONSE_TASKS as EXT_DRUG,
+                EPISTASIS_TASKS as EXT_EPI,
+            )
+
+            for t in EXT_KO + EXT_PATH + EXT_DRUG + EXT_EPI:
+                ids.append(t.get("id", f"cb_ext_{len(ids)}"))
+        except ImportError:
+            pass
         try:
             from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS
 
@@ -211,6 +296,9 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
         "n_tasks": len(CALIBRATION_TEST_TASKS),
         "by_behavior": dict(cal_types),
     }
+    stats["components"]["biosafety"] = _count_biosafety()
+    stats["components"]["datainterp"] = _count_datainterp()
+    stats["components"]["debate"] = _count_debate()
 
     # Split stats
     from bioeval.scoring.splits import get_split
@@ -221,7 +309,7 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
 
     stats["totals"] = {
         "total_tasks": total,
-        "n_components": 6,
+        "n_components": len(stats["components"]),
         "n_task_ids": len(all_ids),
         "split_public": split_counts.get("public", 0),
         "split_private": split_counts.get("private", 0),

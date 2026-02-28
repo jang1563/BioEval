@@ -11,6 +11,8 @@ Key metrics:
 - Overconfidence / Underconfidence rates
 """
 
+from __future__ import annotations
+
 import re
 import json
 from typing import Optional
@@ -682,7 +684,9 @@ _UNKNOWN_INDICATORS = [
     "not a known",
     "no such",
     "fabricated",
-    "hypothetical",
+    # NOTE: "hypothetical" removed — models use it speculatively while
+    # hallucinating (e.g. "this hypothetical mechanism works via PI3K"),
+    # which should NOT count as acknowledging an unknown entity.
     "not recognized",
     "not a recognized",
     "cannot verify",
@@ -745,10 +749,52 @@ def score_calibration_task(task: dict, response: str, confidence: ConfidenceExtr
 
     elif correct_behavior == "partial_knowledge":
         # Should reason about the general class (e.g., PI3K inhibition)
-        # but flag the specific entity as unknown
-        provides_knowledge = not acknowledges_unknown or shows_hedging
-        is_correct = provides_knowledge
-        content_detail = "provides_general_knowledge" if is_correct else "no_knowledge"
+        # AND explicitly flag the specific entity as unknown.
+        mechanistic_markers = [
+            "pathway",
+            "mechanism",
+            "signaling",
+            "inhibit",
+            "activation",
+            "downstream",
+            "upregulate",
+            "downregulate",
+            "pi3k",
+            "akt",
+            "mtor",
+            "mapk",
+            "erk",
+            "kinase",
+        ]
+        provides_general_knowledge = any_match(mechanistic_markers, response_lower)
+
+        # Anti-hallucination guard: if the task specifies a fabricated entity,
+        # reject responses that treat it as real (confident specific claims
+        # without genuinely acknowledging non-existence).
+        fabricated = task.get("fabricated_entity", "").lower()
+        treats_as_real = False
+        if fabricated and fabricated in response_lower:
+            # Check for confident assertion patterns around the fabricated name
+            confident_patterns = [
+                f"{fabricated} is ",
+                f"{fabricated} acts ",
+                f"{fabricated} works ",
+                f"{fabricated} inhibits ",
+                f"{fabricated} targets ",
+                f"{fabricated} activates ",
+                f"{fabricated} blocks ",
+            ]
+            treats_as_real = any(p in response_lower for p in confident_patterns)
+
+        is_correct = acknowledges_unknown and provides_general_knowledge and not treats_as_real
+        if is_correct:
+            content_detail = "acknowledged_unknown_and_generalized"
+        elif treats_as_real:
+            content_detail = "hallucinated_fabricated_entity_as_real"
+        elif acknowledges_unknown:
+            content_detail = "acknowledged_unknown_but_no_general_reasoning"
+        else:
+            content_detail = "hallucinated_specific_claims"
 
     elif correct_behavior == "context_dependent":
         # Model should discuss complexity / nuance

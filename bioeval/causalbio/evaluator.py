@@ -5,6 +5,8 @@ Tests whether LLMs can predict biological outcomes from genetic/chemical
 perturbations using experimental data as ground truth.
 """
 
+from __future__ import annotations
+
 import json
 from typing import Optional
 from dataclasses import dataclass
@@ -461,14 +463,21 @@ Then provide your detailed reasoning."""
 
         confidence_result = extract_confidence_structured(response)
 
+        # Combined score: effect prediction (60%) + reasoning quality (30%) + context (10%)
+        cell_context = phrase_match(task.ground_truth["cell_line"], response_lower)
+        combined_score = (
+            0.60 * (1.0 if effect_correct else 0.0) + 0.30 * reasoning_score + 0.10 * (1.0 if cell_context else 0.0)
+        )
+
         return {
             "effect_correct": effect_correct,
             "predicted_effect": label_result.value if label_result.success else "unknown",
             "expected_effect": gt["effect"],
             "extraction_method": label_result.method,
             "reasoning_score": round(reasoning_score, 3),
+            "combined_score": round(combined_score, 3),
             "matched_concepts": matched_concepts,
-            "mentions_cell_line_context": phrase_match(task.ground_truth["cell_line"], response_lower),
+            "mentions_cell_line_context": cell_context,
             "confidence": confidence_result.value if confidence_result.success else None,
             "response_length": len(response),
         }
@@ -589,12 +598,18 @@ Then provide your detailed reasoning."""
         clinical_terms = extract_key_terms(gt.get("clinical_relevance", ""), min_length=5, max_terms=3)
         clinical_mentioned = any_match(clinical_terms, response_lower) if clinical_terms else False
 
+        # Combined score: interaction type (50%) + mechanism reasoning (35%) + clinical (15%)
+        combined_score = (
+            0.50 * (1.0 if interaction_correct else 0.0) + 0.35 * mechanism_score + 0.15 * (1.0 if clinical_mentioned else 0.0)
+        )
+
         return {
             "interaction_type_correct": interaction_correct,
             "predicted_type": type_result.value if type_result.success else "unknown",
             "expected_type": expected_type,
             "extraction_method": type_result.method,
             "mechanism_score": round(mechanism_score, 3),
+            "combined_score": round(combined_score, 3),
             "matched_mechanism_terms": matched_mechanism,
             "mentions_clinical_relevance": clinical_mentioned,
             "response_length": len(response),

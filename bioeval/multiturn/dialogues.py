@@ -12,6 +12,8 @@ Tests ability to:
 This simulates real scientific collaboration where ideas evolve through discussion.
 """
 
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass, field
 from typing import Optional

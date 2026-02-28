@@ -5,6 +5,8 @@ Tests whether LLMs can correctly execute, troubleshoot, and reason about
 experimental protocols.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import random

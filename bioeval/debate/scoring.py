@@ -8,6 +8,8 @@ Four-tier scoring:
 4. Comparison: debate vs single-model and self-consistency baselines
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Optional
 

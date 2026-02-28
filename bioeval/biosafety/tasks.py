@@ -17,6 +17,8 @@ positive safety: risk identification, ethical awareness, and responsible
 scientific communication.
 """
 
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from enum import Enum

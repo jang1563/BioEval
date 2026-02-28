@@ -5,6 +5,8 @@ Uses a separate LLM call to evaluate response quality with structured rubrics.
 This provides semantic evaluation rather than simple string matching.
 """
 
+from __future__ import annotations
+
 import json
 from typing import Optional
 from dataclasses import dataclass, field
@@ -43,13 +45,14 @@ class JudgeResult:
     """Result from LLM judge evaluation."""
 
     task_id: str
-    overall_score: float  # 1-5 scale
+    overall_score: Optional[float]  # 1-5 scale, None on parse/API error
     dimension_scores: dict[str, float]
     reasoning: str
     strengths: list[str] = field(default_factory=list)
     weaknesses: list[str] = field(default_factory=list)
     critical_errors: list[str] = field(default_factory=list)
     raw_judge_response: str = ""
+    parse_error: bool = False
 
 
 # =============================================================================
@@ -338,13 +341,19 @@ Description: {c.description}
 {task_type}
 
 ## Original Task Prompt
+<task_prompt>
 {task_prompt}
+</task_prompt>
 
 ## Model Response to Evaluate
+<model_response>
 {model_response}
+</model_response>
 
 ## Reference Information (Ground Truth)
+<ground_truth>
 {gt_summary}
+</ground_truth>
 
 ## Evaluation Rubric
 {rubric_text}
@@ -386,19 +395,64 @@ Then provide:
 class LLMJudge:
     """LLM-based evaluation judge."""
 
-    def __init__(self, judge_model: str = "claude-sonnet-4-20250514"):
+    def __init__(
+        self,
+        judge_model: str = "claude-sonnet-4-20250514",
+        timeout: float = 120.0,
+        temperature: float = 0.0,
+    ):
         """Initialize judge with specified model."""
         self.judge_model = judge_model
+        self.timeout = timeout
+        self.temperature = temperature
         self._client = None
+        self._provider = self._detect_provider(judge_model)
+
+    @staticmethod
+    def _detect_provider(model: str) -> str:
+        """Detect API provider from model name."""
+        if any(k in model for k in ("gpt", "o1", "o3")):
+            return "openai"
+        return "anthropic"
 
     @property
     def client(self):
-        """Lazy load Anthropic client."""
+        """Lazy load the appropriate API client."""
         if self._client is None:
-            from anthropic import Anthropic
+            if self._provider == "openai":
+                from openai import OpenAI
 
-            self._client = Anthropic()
+                self._client = OpenAI()
+            else:
+                from anthropic import Anthropic
+
+                self._client = Anthropic()
         return self._client
+
+    def _call_model(self, judge_prompt: str) -> str:
+        """Call the judge model via the appropriate API."""
+        if self._provider == "openai":
+            response = self.client.chat.completions.create(
+                model=self.judge_model,
+                max_tokens=2000,
+                temperature=self.temperature,
+                timeout=self.timeout,
+                messages=[
+                    {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+                    {"role": "user", "content": judge_prompt},
+                ],
+            )
+            return response.choices[0].message.content
+        else:
+            response = self.client.messages.create(
+                model=self.judge_model,
+                max_tokens=2000,
+                temperature=self.temperature,
+                timeout=self.timeout,
+                system=JUDGE_SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": judge_prompt}],
+            )
+            return response.content[0].text
 
     def evaluate(self, task_id: str, task_type: str, task_prompt: str, model_response: str, ground_truth: dict) -> JudgeResult:
         """Evaluate a single model response."""
@@ -407,15 +461,18 @@ class LLMJudge:
             task_type=task_type, task_prompt=task_prompt, model_response=model_response, ground_truth=ground_truth
         )
 
-        response = self.client.messages.create(
-            model=self.judge_model,
-            max_tokens=2000,
-            temperature=0.0,
-            system=JUDGE_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": judge_prompt}],
-        )
-
-        raw_response = response.content[0].text
+        # Call judge model with API error handling
+        try:
+            raw_response = self._call_model(judge_prompt)
+        except Exception as e:
+            return JudgeResult(
+                task_id=task_id,
+                overall_score=None,
+                dimension_scores={},
+                reasoning=f"Judge API error: {type(e).__name__}: {e}",
+                raw_judge_response="",
+                parse_error=True,
+            )
 
         # Parse JSON response
         try:
@@ -442,14 +499,15 @@ class LLMJudge:
                 raw_judge_response=raw_response,
             )
 
-        except json.JSONDecodeError as e:
-            # Return error result if parsing fails
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            # Return error result if parsing fails — score=None to distinguish from real 0
             return JudgeResult(
                 task_id=task_id,
-                overall_score=0,
+                overall_score=None,
                 dimension_scores={},
                 reasoning=f"Failed to parse judge response: {e}",
                 raw_judge_response=raw_response,
+                parse_error=True,
             )
 
     def batch_evaluate(self, evaluations: list[dict]) -> list[JudgeResult]:

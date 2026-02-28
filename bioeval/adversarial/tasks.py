@@ -12,6 +12,8 @@ Tests model robustness against:
 The correct answer is often "I don't know" or "This premise is incorrect"
 """
 
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass
 from typing import Optional

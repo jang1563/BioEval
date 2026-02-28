@@ -5,6 +5,8 @@ Standalone evaluator (does not extend BaseEvaluator) because debate
 requires multiple model instances via AgentModelPool.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 
 from bioeval.debate.agents import (

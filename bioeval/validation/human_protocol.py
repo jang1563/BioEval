@@ -12,6 +12,8 @@ Usage:
     python -m bioeval.validation.human_protocol agree worksheets/annotator_a.json worksheets/annotator_b.json
 """
 
+from __future__ import annotations
+
 import json
 import math
 import os

@@ -5,6 +5,8 @@ Systematic categorization of how LLMs fail in biological reasoning.
 Used for annotating errors and analyzing failure modes.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Optional
 from enum import Enum

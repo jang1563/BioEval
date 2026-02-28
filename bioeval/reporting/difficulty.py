@@ -14,6 +14,8 @@ For NeurIPS, reviewers expect evidence that the benchmark
 differentiates between models (not all-easy or all-hard).
 """
 
+from __future__ import annotations
+
 import json
 import math
 from collections import defaultdict

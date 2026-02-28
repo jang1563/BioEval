@@ -21,6 +21,8 @@ Usage:
     register_component("my_component", ComponentInfo(...))
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 

@@ -12,6 +12,8 @@ Every task gets:
   - subscores: dict of named sub-metrics (all 0-1, higher = better)
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 

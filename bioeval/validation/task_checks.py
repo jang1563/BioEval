@@ -12,6 +12,8 @@ Automatically checks all task data for quality issues:
 Run: bioeval validate [--data-tier base]
 """
 
+from __future__ import annotations
+
 import re
 from collections import Counter
 from dataclasses import dataclass

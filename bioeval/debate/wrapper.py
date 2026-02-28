@@ -7,6 +7,8 @@ Supports wrapping tasks from components with discrete answer options:
 - biosafety (BSL levels, refusal/accept)
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Optional
 

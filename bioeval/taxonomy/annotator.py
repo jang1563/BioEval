@@ -5,6 +5,8 @@ Automatically annotates model responses with error taxonomy categories.
 Integrates the taxonomy schema into the evaluation pipeline.
 """
 
+from __future__ import annotations
+
 import re
 from typing import Optional
 from dataclasses import dataclass

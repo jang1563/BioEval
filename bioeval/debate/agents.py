@@ -5,6 +5,8 @@ Defines agent roles, configurations, and model management for debate protocols.
 Reuses existing model wrappers from bioeval.models.base.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional

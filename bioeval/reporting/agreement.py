@@ -10,6 +10,8 @@ Required for NeurIPS: demonstrates scoring reliability beyond
 a single automated metric.
 """
 
+from __future__ import annotations
+
 import json
 import math
 from collections import defaultdict

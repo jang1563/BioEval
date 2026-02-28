@@ -8,6 +8,8 @@ Fallback strategy: LLM-based extraction via Haiku (slower, costs money).
 Target: >= 85% extraction success rate across all task types.
 """
 
+from __future__ import annotations
+
 import re
 import json
 import logging
