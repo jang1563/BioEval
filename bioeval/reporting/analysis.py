@@ -8,6 +8,8 @@ Analyzes evaluation result JSON files to produce:
 - Score distribution statistics
 """
 
+from __future__ import annotations
+
 import json
 import math
 from collections import defaultdict
@@ -139,6 +141,13 @@ def analyze_results(result_path: str) -> dict:
     """Full analysis of a result file.
 
     Returns structured analysis with per-component and overall statistics.
+
+    Two overall aggregations are provided:
+    - ``overall``: per-task uniform weighting (each task contributes equally).
+      This means components with more tasks dominate the aggregate.
+    - ``overall_per_component``: per-component equal weighting.  Each component's
+      mean is computed first, then averaged across components so that every
+      component has equal influence regardless of task count.
     """
     loaded = load_and_normalize(result_path)
     metadata = loaded["metadata"]
@@ -167,6 +176,26 @@ def analyze_results(result_path: str) -> dict:
 
         comp_agg["by_task_type"] = type_aggs
         analysis["by_component"][comp] = comp_agg
+
+    # Per-component equal weighting: each component mean weighted 1/N
+    comp_means = [agg["mean"] for agg in analysis["by_component"].values() if agg.get("n", 0) > 0]
+    if comp_means:
+        pc_mean = sum(comp_means) / len(comp_means)
+        pc_std = (
+            math.sqrt(sum((m - pc_mean) ** 2 for m in comp_means) / max(1, len(comp_means) - 1))
+            if len(comp_means) > 1
+            else 0.0
+        )
+    else:
+        pc_mean = 0.0
+        pc_std = 0.0
+    analysis["overall_per_component"] = {
+        "mean": round(pc_mean, 4),
+        "std": round(pc_std, 4),
+        "n_components": len(comp_means),
+        "weighting": "equal_per_component",
+        "component_means": {comp: agg["mean"] for comp, agg in analysis["by_component"].items() if agg.get("n", 0) > 0},
+    }
 
     # Global by-task-type
     all_by_type: dict[str, list[NormalizedScore]] = defaultdict(list)
@@ -367,9 +396,14 @@ def print_analysis(result_path: str):
 
     overall = analysis["overall"]
     print(
-        f"\nOverall: mean={overall['mean']:.3f} (std={overall['std']:.3f}), "
-        f"pass_rate={overall['pass_rate']:.1%} ({overall['n_passed']}/{overall['n']})"
+        f"\nOverall (per-task): mean={overall['mean']:.3f} "
+        f"(std={overall['std']:.3f}), "
+        f"pass_rate={overall['pass_rate']:.1%} "
+        f"({overall['n_passed']}/{overall['n']})"
     )
+    opc = analysis.get("overall_per_component", {})
+    if opc.get("n_components", 0) > 0:
+        print(f"Overall (per-component): mean={opc['mean']:.3f} " f"(std={opc['std']:.3f}, {opc['n_components']} components)")
 
     print(f"\n{'─' * 65}")
     print(f"{'Component':<15} {'N':>4} {'Mean':>7} {'Std':>7} {'Pass%':>7} {'Med':>7}")

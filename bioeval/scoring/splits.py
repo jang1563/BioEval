@@ -6,9 +6,14 @@ Provides:
 - Multi-run aggregation with Bayesian Beta-Binomial confidence intervals
 """
 
+from __future__ import annotations
+
 import hashlib
+import logging
 import math
-from typing import Any
+from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # DETERMINISTIC TEST SPLIT
@@ -58,6 +63,60 @@ def get_split_summary(tasks: list[Any], id_attr: str = "id") -> dict:
         "public": len(splits["public"]),
         "private": len(splits["private"]),
         "private_fraction": len(splits["private"]) / len(tasks) if tasks else 0,
+    }
+
+
+# =============================================================================
+# CANARY TASK CONTAMINATION DETECTION
+# =============================================================================
+
+# Canary tasks contain deliberate "fingerprint" answers that should only be
+# known to someone who has seen the private task set.  If a model produces
+# the exact fingerprint answer, it is strong evidence of contamination.
+#
+# Each canary is a (task_id, fingerprint_answer) pair.  The fingerprint is a
+# short string that is NOT a plausible answer from first principles but IS
+# present in the ground-truth JSON.
+
+CANARY_TASKS: dict[str, str] = {
+    # Format: task_id → fingerprint substring (case-insensitive match)
+    "canary_proto_001": "zigzag-helicase-9",
+    "canary_causal_001": "reverse-phospho-cascade-7",
+    "canary_design_001": "inverted-blinding-matrix-3",
+}
+
+
+def check_canary_contamination(
+    responses: dict[str, str],
+) -> dict:
+    """Check model responses for canary fingerprints.
+
+    Args:
+        responses: Mapping of task_id → model response text.
+
+    Returns:
+        {
+            "n_canaries_tested": int,
+            "n_contaminated": int,
+            "contaminated_ids": [str, ...],
+            "verdict": "CLEAN" | "CONTAMINATED",
+        }
+    """
+    contaminated = []
+    tested = 0
+    for task_id, fingerprint in CANARY_TASKS.items():
+        if task_id not in responses:
+            continue
+        tested += 1
+        if fingerprint.lower() in responses[task_id].lower():
+            contaminated.append(task_id)
+
+    verdict = "CONTAMINATED" if contaminated else "CLEAN"
+    return {
+        "n_canaries_tested": tested,
+        "n_contaminated": len(contaminated),
+        "contaminated_ids": contaminated,
+        "verdict": verdict,
     }
 
 
@@ -147,33 +206,33 @@ def aggregate_multi_run(run_results: list[dict]) -> dict:
             results = cr.get("results", [])
             if not results:
                 continue
-            # Count pass/total for binary metrics
-            n_tasks = cr.get("num_tasks", len(results))
             n_passed = 0
-            score_sum = 0.0
-            score_count = 0
+            score_values: list[float] = []
             for r in results:
-                if isinstance(r, dict):
-                    # Try common score fields
-                    score = r.get("score", r.get("scores", {}).get("score") if isinstance(r.get("scores"), dict) else None)
-                    if isinstance(score, (int, float)):
-                        score_sum += score
-                        score_count += 1
-                        if score >= 0.5:
-                            n_passed += 1
-                    elif r.get("effect_correct") or r.get("is_correct"):
-                        n_passed += 1
-                        score_sum += 1.0
-                        score_count += 1
-                    else:
-                        score_count += 1
+                if not isinstance(r, dict) or ("error" in r and "score" not in r):
+                    continue
+                score = _extract_primary_score(comp, r)
+                if score is None:
+                    task_id = r.get("task_id", "unknown")
+                    logger.warning(
+                        "Could not extract score for %s task %s; " "available keys: scores=%s, top=%s",
+                        comp,
+                        task_id,
+                        list(r.get("scores", {}).keys()) if isinstance(r.get("scores"), dict) else "N/A",
+                        [k for k in r if k not in ("response", "prompt", "scores")],
+                    )
+                    continue
+                score_values.append(score)
+                if score >= 0.5:
+                    n_passed += 1
 
-            if score_count > 0:
+            n_scored = len(score_values)
+            if n_scored > 0:
                 run_scores.append(
                     {
-                        "mean_score": score_sum / score_count,
-                        "pass_rate": n_passed / n_tasks if n_tasks > 0 else 0,
-                        "n_tasks": n_tasks,
+                        "mean_score": sum(score_values) / n_scored,
+                        "pass_rate": n_passed / n_scored,
+                        "n_tasks": n_scored,
                         "n_passed": n_passed,
                     }
                 )
@@ -207,3 +266,103 @@ def aggregate_multi_run(run_results: list[dict]) -> dict:
         }
 
     return aggregated
+
+
+def _extract_primary_score(component: str, task_result: dict) -> Optional[float]:
+    """Extract a canonical per-task score in [0, 1] when available."""
+    scores_obj = task_result.get("scores", {})
+    s = scores_obj if isinstance(scores_obj, dict) else {}
+
+    def _get_num(d: dict, key: str) -> Optional[float]:
+        v = d.get(key)
+        return float(v) if isinstance(v, (int, float)) else None
+
+    if component == "protoreason":
+        for key in ("adjacent_pair_accuracy", "recall", "numerical_accuracy", "cause_coverage"):
+            v = _get_num(s, key)
+            if v is not None:
+                return v
+            v = _get_num(task_result, key)
+            if v is not None:
+                return v
+        return None
+
+    if component == "causalbio":
+        # Prefer combined_score (available for all 4 task types: knockout, pathway,
+        # epistasis, drug_response) as it captures effect + reasoning + context.
+        for key in ("combined_score",):
+            v = _get_num(s, key)
+            if v is not None:
+                return v
+            v = _get_num(task_result, key)
+            if v is not None:
+                return v
+        # Fallback: binary effect correctness or mechanism score
+        effect = s.get("effect_correct", task_result.get("effect_correct"))
+        if isinstance(effect, bool):
+            return 1.0 if effect else 0.0
+        for key in ("mechanism_score",):
+            v = _get_num(s, key)
+            if v is not None:
+                return v
+            v = _get_num(task_result, key)
+            if v is not None:
+                return v
+        return None
+
+    if component == "designcheck":
+        # Keep backward compatibility with existing reporting pipeline.
+        for key in ("f1", "composite_score"):
+            v = _get_num(s, key)
+            if v is not None:
+                return v
+            v = _get_num(task_result, key)
+            if v is not None:
+                return v
+        return None
+
+    if component == "adversarial":
+        v = _get_num(s, "score")
+        if v is not None:
+            return v
+        return _get_num(task_result, "score")
+
+    if component == "multiturn":
+        v = _get_num(s, "overall_score")
+        if v is not None:
+            return v
+        return _get_num(task_result, "overall_score")
+
+    if component == "calibration":
+        cal_err = _get_num(s, "calibration_error")
+        if cal_err is None:
+            cal_err = _get_num(task_result, "calibration_error")
+        if cal_err is None:
+            return None
+        return 1.0 - abs(cal_err)
+
+    if component in ("biosafety", "datainterp"):
+        for key in ("score",):
+            v = _get_num(task_result, key)
+            if v is not None:
+                return v
+            v = _get_num(s, key)
+            if v is not None:
+                return v
+        return None
+
+    if component == "debate":
+        v = _get_num(s, "composite_score")
+        if v is not None:
+            return v
+        return _get_num(task_result, "composite_score")
+
+    # Generic fallback
+    for key in ("score", "f1", "accuracy"):
+        v = _get_num(s, key)
+        if v is not None:
+            return v
+        v = _get_num(task_result, key)
+        if v is not None:
+            return v
+    return None

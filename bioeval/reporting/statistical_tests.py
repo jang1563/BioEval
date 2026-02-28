@@ -152,6 +152,11 @@ def permutation_test(
         return {"observed_statistic": 0.0, "p_value": 1.0, "n_permutations": 0}
 
     diffs = [a - b for a, b in zip(group_a, group_b)]
+
+    # All differences zero → no effect (avoid wasted permutation cycles)
+    if all(d == 0 for d in diffs):
+        return {"observed_statistic": 0.0, "p_value": 1.0, "n_permutations": 0, "n": n}
+
     observed = sum(diffs) / n
 
     rng = random.Random(seed)
@@ -247,10 +252,47 @@ def rank_biserial_r(test_statistic: float, n: int) -> float:
     return 1 - (2 * test_statistic / max_w)
 
 
+def apply_correction(
+    p_values: list[float],
+    method: str = "bonferroni",
+) -> list[float]:
+    """Apply multiple comparison correction to p-values.
+
+    Args:
+        p_values: List of raw p-values.
+        method: 'bonferroni' or 'benjamini-hochberg' (aliases: 'bh', 'fdr').
+
+    Returns:
+        List of corrected p-values (same order as input).
+    """
+    n = len(p_values)
+    if n == 0:
+        return []
+
+    if method == "bonferroni":
+        return [min(1.0, p * n) for p in p_values]
+    elif method in ("benjamini-hochberg", "bh", "fdr"):
+        # BH procedure: sort by p-value, adjust, enforce monotonicity
+        indexed = sorted(enumerate(p_values), key=lambda x: x[1])
+        corrected = [0.0] * n
+        for rank, (orig_idx, p) in enumerate(indexed, 1):
+            corrected[orig_idx] = min(1.0, p * n / rank)
+        # Enforce monotonicity (from largest rank downward)
+        running_min = 1.0
+        for rank_desc in range(n - 1, -1, -1):
+            orig_idx = indexed[rank_desc][0]
+            corrected[orig_idx] = min(running_min, corrected[orig_idx])
+            running_min = corrected[orig_idx]
+        return corrected
+    else:
+        raise ValueError(f"Unknown correction method: {method}")
+
+
 def compare_models(
     results_a: dict,
     results_b: dict,
     extract_score_fn=None,
+    correction: Optional[str] = None,
 ) -> dict:
     """Full statistical comparison of two model result files.
 
@@ -315,6 +357,18 @@ def compare_models(
                 "hedges_g": round(hedges_g(paired_a, paired_b), 4) if shared_ids else None,
             },
         }
+
+    # Apply multiple comparison correction if requested
+    if correction:
+        comps_with_p = [
+            (comp, data) for comp, data in comparison["by_component"].items() if data["test_result"].get("p_value") is not None
+        ]
+        if comps_with_p:
+            raw_ps = [data["test_result"]["p_value"] for _, data in comps_with_p]
+            corrected_ps = apply_correction(raw_ps, method=correction)
+            for (comp, data), corrected_p in zip(comps_with_p, corrected_ps):
+                data["test_result"]["p_value_corrected"] = round(corrected_p, 6)
+                data["test_result"]["correction_method"] = correction
 
     return comparison
 

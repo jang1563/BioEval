@@ -10,6 +10,8 @@ Usage:
     bioeval demo                         Show pre-cached results (no API key needed)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -154,7 +156,10 @@ def cmd_run(args):
         from bioeval.scoring.llm_judge import LLMJudge
 
         judge_model = args.judge_model or "claude-sonnet-4-20250514"
-        judge = LLMJudge(judge_model=judge_model)
+        judge = LLMJudge(
+            judge_model=judge_model,
+            temperature=args.judge_temperature,
+        )
         print(f"  LLM Judge enabled (model: {judge_model})")
 
     print(f"\n{'#' * 60}")
@@ -165,6 +170,7 @@ def cmd_run(args):
     print(f"# Data tier: {args.data_tier}")
     print(f"# Split: {args.split}")
     print(f"# Seed: {args.seed}")
+    print(f"# Temperature: {args.temperature}")
     if args.runs > 1:
         print(f"# Runs: {args.runs}")
     if args.use_judge:
@@ -232,8 +238,10 @@ def cmd_run(args):
                 "run_index": run_idx,
                 "n_runs": n_runs,
                 "seed": args.seed,
+                "temperature": args.temperature,
                 "use_judge": args.use_judge,
                 "judge_model": args.judge_model if args.use_judge else None,
+                "judge_temperature": args.judge_temperature if args.use_judge else None,
                 "timestamp": datetime.now().isoformat(),
                 "elapsed_seconds": round(total_elapsed, 1),
                 "bioeval_version": __version__,
@@ -273,11 +281,18 @@ def cmd_run(args):
     if n_runs > 1 and "multi_run_aggregation" in output_data:
         print(f"\nMulti-run aggregation:")
         for comp, agg in output_data["multi_run_aggregation"].get("by_component", {}).items():
+            if agg.get("n_runs", 0) == 0:
+                print(f"  {comp}: no scoreable runs")
+                continue
             ci = agg.get("pass_rate_ci", {})
+            mean_score = float(agg.get("mean_score", 0.0))
+            std_score = float(agg.get("std_score", 0.0))
+            ci_lower = float(ci.get("lower", 0.0))
+            ci_upper = float(ci.get("upper", 0.0))
             print(
-                f"  {comp}: mean={agg.get('mean_score', '?'):.4f} "
-                f"(std={agg.get('std_score', '?'):.4f}), "
-                f"pass_rate 95% CI: [{ci.get('lower', '?'):.3f}, {ci.get('upper', '?'):.3f}]"
+                f"  {comp}: mean={mean_score:.4f} "
+                f"(std={std_score:.4f}), "
+                f"pass_rate 95% CI: [{ci_lower:.3f}, {ci_upper:.3f}]"
             )
     print(f"\nResults saved to: {output_path}")
 
@@ -529,6 +544,18 @@ def main():
     )
     run_parser.add_argument("--runs", type=int, default=1, help="Number of evaluation runs for multi-run aggregation")
     run_parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility (default: 42)")
+    run_parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.0,
+        help="Sampling temperature for evaluated model (default: 0.0 for reproducibility)",
+    )
+    run_parser.add_argument(
+        "--judge-temperature",
+        type=float,
+        default=0.0,
+        help="Sampling temperature for LLM judge (default: 0.0)",
+    )
     run_parser.add_argument(
         "--debate-protocol",
         choices=["round_robin", "simultaneous", "judge_mediated"],

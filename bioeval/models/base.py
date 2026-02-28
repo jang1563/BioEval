@@ -7,6 +7,8 @@ Supports:
 - HuggingFace models (local, including LoRA fine-tuned)
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
@@ -26,6 +28,8 @@ class EvalTask:
     ground_truth: dict
     metadata: Optional[dict] = None
     system_prompt: Optional[str] = None  # Optional system prompt for enhanced reasoning
+    source: Optional[str] = None  # Provenance: origin of the task (e.g. "DepMap_24Q4", "CLSI_M100")
+    validator: Optional[str] = None  # Provenance: who validated the task (e.g. "domain_expert_1")
 
 
 @dataclass
