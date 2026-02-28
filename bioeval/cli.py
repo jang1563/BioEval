@@ -150,6 +150,25 @@ def cmd_run(args):
         if not args.dry_run:
             sys.exit(1)
 
+    if "deepseek" in model.lower() and not os.environ.get("DEEPSEEK_API_KEY"):
+        print("Error: DEEPSEEK_API_KEY not set.")
+        print("  export DEEPSEEK_API_KEY='your-key-here'")
+        if not args.dry_run:
+            sys.exit(1)
+
+    name_lower = model.lower()
+    if ("groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower) and not os.environ.get("GROQ_API_KEY"):
+        print("Error: GROQ_API_KEY not set.")
+        print("  export GROQ_API_KEY='your-key-here'")
+        if not args.dry_run:
+            sys.exit(1)
+
+    if "gemini" in model.lower() and not os.environ.get("GEMINI_API_KEY"):
+        print("Error: GEMINI_API_KEY not set.")
+        print("  export GEMINI_API_KEY='your-key-here'")
+        if not args.dry_run:
+            sys.exit(1)
+
     # Initialize LLM judge if requested
     judge = None
     if args.use_judge:
@@ -211,6 +230,7 @@ def cmd_run(args):
                     data_tier=args.data_tier,
                     judge=judge,
                     split=args.split,
+                    temperature=args.temperature,
                     debate_protocol=getattr(args, "debate_protocol", "simultaneous"),
                     debate_agents=getattr(args, "debate_agents", 3),
                     debate_rounds=getattr(args, "debate_rounds", 3),
@@ -303,6 +323,7 @@ def _run_component(
     data_tier: str = "base",
     judge=None,
     split: str = "all",
+    temperature: float = 0.0,
     debate_protocol: str = "simultaneous",
     debate_agents: int = 3,
     debate_rounds: int = 3,
@@ -316,6 +337,7 @@ def _run_component(
         data_tier: Which data tier to use ("base", "extended", "advanced", "all")
         judge: Optional LLMJudge instance for semantic evaluation
         split: Which test split to run ("all", "public", "private")
+        temperature: Sampling temperature for the evaluated model
         debate_protocol: Debate protocol type (debate component only)
         debate_agents: Number of debate agents (debate component only)
         debate_rounds: Max debate rounds (debate component only)
@@ -324,42 +346,42 @@ def _run_component(
     if component == "protoreason":
         from bioeval.protoreason.evaluator import ProtoReasonEvaluator
 
-        evaluator = ProtoReasonEvaluator(model)
+        evaluator = ProtoReasonEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "causalbio":
         from bioeval.causalbio.evaluator import CausalBioEvaluator
 
-        evaluator = CausalBioEvaluator(model)
+        evaluator = CausalBioEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "designcheck":
         from bioeval.designcheck.evaluator import DesignCheckEvaluator
 
-        evaluator = DesignCheckEvaluator(model)
+        evaluator = DesignCheckEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "adversarial":
         from bioeval.adversarial.tasks import AdversarialEvaluator
 
-        evaluator = AdversarialEvaluator(model)
+        evaluator = AdversarialEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks()
     elif component == "multiturn":
         from bioeval.multiturn.dialogues import MultiTurnEvaluator
 
-        evaluator = MultiTurnEvaluator(model)
+        evaluator = MultiTurnEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks(data_tier=data_tier)
     elif component == "calibration":
         from bioeval.scoring.calibration import CalibrationEvaluator
 
-        evaluator = CalibrationEvaluator(model)
+        evaluator = CalibrationEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks()
     elif component == "biosafety":
         from bioeval.biosafety.tasks import BiosafetyEvaluator
 
-        evaluator = BiosafetyEvaluator(model)
+        evaluator = BiosafetyEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks()
     elif component == "datainterp":
         from bioeval.datainterp.tasks import DataInterpEvaluator
 
-        evaluator = DataInterpEvaluator(model)
+        evaluator = DataInterpEvaluator(model, temperature=temperature)
         tasks = evaluator.load_tasks()
     elif component == "debate":
         from bioeval.debate.evaluator import DebateEvaluator
@@ -370,6 +392,7 @@ def _run_component(
             num_agents=debate_agents,
             max_rounds=debate_rounds,
             agent_models=agent_models,
+            temperature=temperature,
         )
         tasks = evaluator.load_tasks()
     else:

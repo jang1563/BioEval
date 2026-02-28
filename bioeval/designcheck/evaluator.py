@@ -531,8 +531,8 @@ CORRECT_DESIGNS = [
 class DesignCheckEvaluator(BaseEvaluator):
     """Evaluator for Experimental Design Critique tasks."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
-        super().__init__(model_name)
+    def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
+        super().__init__(model_name, temperature=temperature)
         self.flaw_categories = FLAW_CATEGORIES
 
     def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:

@@ -188,8 +188,9 @@ class ProtoReasonEvaluator(BaseEvaluator):
         model_name: str = "claude-sonnet-4-20250514",
         adapter_path: Optional[str] = None,
         use_4bit: bool = True,
+        temperature: float = 0.0,
     ):
-        super().__init__(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
+        super().__init__(model_name, adapter_path=adapter_path, use_4bit=use_4bit, temperature=temperature)
         self.protocols = SAMPLE_PROTOCOLS
 
     def load_tasks(self, data_tier: str = "base") -> list[EvalTask]:

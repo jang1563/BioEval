@@ -56,9 +56,11 @@ class BaseEvaluator(ABC):
         model_name: str = "claude-sonnet-4-20250514",
         adapter_path: Optional[str] = None,
         use_4bit: bool = True,
+        temperature: float = 0.0,
     ):
         self.model_name = model_name
         self.adapter_path = adapter_path
+        self.temperature = temperature
         self.model = self._init_model(model_name, adapter_path, use_4bit)
 
     def _init_model(
@@ -68,10 +70,33 @@ class BaseEvaluator(ABC):
         use_4bit: bool = True,
     ):
         """Initialize the appropriate model client."""
-        if "claude" in model_name.lower():
-            return ClaudeModel(model_name)
-        elif "gpt" in model_name.lower():
-            return OpenAIModel(model_name)
+        temperature = getattr(self, "temperature", 0.0)
+        name_lower = model_name.lower()
+        if "claude" in name_lower:
+            return ClaudeModel(model_name, temperature=temperature)
+        elif "gpt" in name_lower or "o1" in name_lower or "o3" in name_lower:
+            return OpenAIModel(model_name, temperature=temperature)
+        elif "deepseek" in name_lower:
+            return OpenAICompatibleModel(
+                model_name,
+                base_url="https://api.deepseek.com",
+                api_key_env="DEEPSEEK_API_KEY",
+                temperature=temperature,
+            )
+        elif "groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower:
+            return OpenAICompatibleModel(
+                model_name,
+                base_url="https://api.groq.com/openai/v1",
+                api_key_env="GROQ_API_KEY",
+                temperature=temperature,
+            )
+        elif "gemini" in name_lower:
+            return OpenAICompatibleModel(
+                model_name,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                api_key_env="GEMINI_API_KEY",
+                temperature=temperature,
+            )
         elif "/" in model_name or adapter_path:
             # HuggingFace model (local)
             return HuggingFaceModel(model_name, adapter_path=adapter_path, use_4bit=use_4bit)
@@ -111,15 +136,21 @@ class BaseEvaluator(ABC):
 class ClaudeModel:
     """Wrapper for Anthropic Claude models."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
+    def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         from anthropic import Anthropic
 
         self.client = Anthropic()
         self.model = model_name
+        self.temperature = temperature
 
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from Claude."""
-        kwargs = {"model": self.model, "max_tokens": max_tokens, "messages": [{"role": "user", "content": prompt}]}
+        kwargs = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": self.temperature,
+            "messages": [{"role": "user", "content": prompt}],
+        }
         if system:
             kwargs["system"] = system
 
@@ -130,11 +161,12 @@ class ClaudeModel:
 class OpenAIModel:
     """Wrapper for OpenAI models."""
 
-    def __init__(self, model_name: str = "gpt-4"):
+    def __init__(self, model_name: str = "gpt-4", temperature: float = 0.0):
         from openai import OpenAI
 
         self.client = OpenAI()
         self.model = model_name
+        self.temperature = temperature
 
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from OpenAI model."""
@@ -143,7 +175,47 @@ class OpenAIModel:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
 
-        response = self.client.chat.completions.create(model=self.model, max_tokens=max_tokens, messages=messages)
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            messages=messages,
+        )
+        return response.choices[0].message.content
+
+
+class OpenAICompatibleModel:
+    """Wrapper for OpenAI-compatible API providers (DeepSeek, Groq, Gemini, etc.)."""
+
+    def __init__(
+        self,
+        model_name: str,
+        base_url: str,
+        api_key_env: str,
+        temperature: float = 0.0,
+    ):
+        from openai import OpenAI
+
+        api_key = os.environ.get(api_key_env)
+        if not api_key:
+            raise ValueError(f"{api_key_env} environment variable not set")
+        self.client = OpenAI(base_url=base_url, api_key=api_key)
+        self.model = model_name
+        self.temperature = temperature
+
+    def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
+        """Generate response from OpenAI-compatible API."""
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
+        response = self.client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            messages=messages,
+        )
         return response.choices[0].message.content
 
 

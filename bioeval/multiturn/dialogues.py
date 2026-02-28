@@ -532,8 +532,9 @@ class _DialogueTaskWrapper:
 class MultiTurnEvaluator:
     """Evaluator for multi-turn dialogues."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
+    def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
+        self.temperature = temperature
         self._client = None
 
     @property
@@ -597,6 +598,7 @@ class MultiTurnEvaluator:
                     response = self.client.messages.create(
                         model=self.model_name,
                         max_tokens=1500,
+                        temperature=self.temperature,
                         system=f"You are a helpful scientific assistant discussing {dialogue.domain}. "
                         f"Engage in a multi-turn conversation, building on previous exchanges.",
                         messages=messages,

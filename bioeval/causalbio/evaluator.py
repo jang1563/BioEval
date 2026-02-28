@@ -242,8 +242,10 @@ def ensure_task_provenance(task: dict, source_module: str) -> dict:
 class CausalBioEvaluator(BaseEvaluator):
     """Evaluator for Causal Perturbation Prediction tasks."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514", use_enhanced_prompts: bool = True):
-        super().__init__(model_name)
+    def __init__(
+        self, model_name: str = "claude-sonnet-4-20250514", use_enhanced_prompts: bool = True, temperature: float = 0.0
+    ):
+        super().__init__(model_name, temperature=temperature)
         self.use_enhanced_prompts = use_enhanced_prompts and config.PROMPT_ENHANCEMENTS_ENABLED
         self.enhancement_config = PromptEnhancementConfig(
             calibration=config.ENHANCEMENT_CALIBRATION,

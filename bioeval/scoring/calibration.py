@@ -1064,8 +1064,9 @@ class _CalibrationTaskWrapper:
 class CalibrationEvaluator:
     """Evaluates model confidence calibration."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
+    def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
+        self.temperature = temperature
         self._client = None
 
     @property
@@ -1113,7 +1114,10 @@ class CalibrationEvaluator:
         for _attempt in range(3):
             try:
                 response = self.client.messages.create(
-                    model=self.model_name, max_tokens=2000, messages=[{"role": "user", "content": full_prompt}]
+                    model=self.model_name,
+                    max_tokens=2000,
+                    temperature=self.temperature,
+                    messages=[{"role": "user", "content": full_prompt}],
                 )
                 break
             except (BrokenPipeError, ConnectionError, OSError) as exc:

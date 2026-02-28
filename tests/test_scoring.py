@@ -1537,5 +1537,131 @@ class TestSensitivityAnalysis:
         assert result["cv"] > 0
 
 
+class TestTemperaturePropagation:
+    """Test that temperature is properly threaded through all model backends."""
+
+    def test_base_evaluator_stores_temperature(self):
+        """BaseEvaluator should store temperature and pass to _init_model."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.ClaudeModel") as mock_claude:
+            mock_claude.return_value = MagicMock()
+            from bioeval.models.base import BaseEvaluator
+
+            # Create a concrete subclass for testing
+            class _TestEval(BaseEvaluator):
+                def load_tasks(self):
+                    return []
+
+                def score_response(self, task, response):
+                    return {}
+
+            e = _TestEval("claude-sonnet-4-20250514", temperature=0.7)
+            assert e.temperature == 0.7
+            mock_claude.assert_called_once_with("claude-sonnet-4-20250514", temperature=0.7)
+
+    def test_model_routing_deepseek(self):
+        """DeepSeek models should route to OpenAICompatibleModel."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.OpenAICompatibleModel") as mock_compat:
+            mock_compat.return_value = MagicMock()
+            from bioeval.models.base import BaseEvaluator
+
+            class _TestEval(BaseEvaluator):
+                def load_tasks(self):
+                    return []
+
+                def score_response(self, task, response):
+                    return {}
+
+            _TestEval("deepseek-chat", temperature=0.5)
+            mock_compat.assert_called_once_with(
+                "deepseek-chat",
+                base_url="https://api.deepseek.com",
+                api_key_env="DEEPSEEK_API_KEY",
+                temperature=0.5,
+            )
+
+    def test_model_routing_groq(self):
+        """Groq/llama models should route to OpenAICompatibleModel with Groq URL."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.OpenAICompatibleModel") as mock_compat:
+            mock_compat.return_value = MagicMock()
+            from bioeval.models.base import BaseEvaluator
+
+            class _TestEval(BaseEvaluator):
+                def load_tasks(self):
+                    return []
+
+                def score_response(self, task, response):
+                    return {}
+
+            _TestEval("llama-3.1-70b-versatile", temperature=0.3)
+            mock_compat.assert_called_once_with(
+                "llama-3.1-70b-versatile",
+                base_url="https://api.groq.com/openai/v1",
+                api_key_env="GROQ_API_KEY",
+                temperature=0.3,
+            )
+
+    def test_model_routing_gemini(self):
+        """Gemini models should route to OpenAICompatibleModel with Gemini URL."""
+        from unittest.mock import patch, MagicMock
+
+        with patch("bioeval.models.base.OpenAICompatibleModel") as mock_compat:
+            mock_compat.return_value = MagicMock()
+            from bioeval.models.base import BaseEvaluator
+
+            class _TestEval(BaseEvaluator):
+                def load_tasks(self):
+                    return []
+
+                def score_response(self, task, response):
+                    return {}
+
+            _TestEval("gemini-2.0-flash", temperature=0.1)
+            mock_compat.assert_called_once_with(
+                "gemini-2.0-flash",
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                api_key_env="GEMINI_API_KEY",
+                temperature=0.1,
+            )
+
+    def test_standalone_evaluator_temperature(self):
+        """Standalone evaluators (not BaseEvaluator) should accept temperature."""
+        from bioeval.biosafety.tasks import BiosafetyEvaluator
+        from bioeval.datainterp.tasks import DataInterpEvaluator
+        from bioeval.multiturn.dialogues import MultiTurnEvaluator
+        from bioeval.scoring.calibration import CalibrationEvaluator
+
+        for cls in [BiosafetyEvaluator, DataInterpEvaluator, MultiTurnEvaluator, CalibrationEvaluator]:
+            e = cls("claude-sonnet-4-20250514", temperature=0.5)
+            assert e.temperature == 0.5, f"{cls.__name__} did not store temperature"
+
+    def test_openai_compatible_model_missing_key(self):
+        """OpenAICompatibleModel should raise ValueError for missing API key."""
+        from unittest.mock import patch
+
+        with patch.dict("os.environ", {}, clear=True):
+            from bioeval.models.base import OpenAICompatibleModel
+
+            with pytest.raises(ValueError, match="DEEPSEEK_API_KEY"):
+                OpenAICompatibleModel(
+                    "deepseek-chat",
+                    base_url="https://api.deepseek.com",
+                    api_key_env="DEEPSEEK_API_KEY",
+                )
+
+    def test_debate_evaluator_temperature(self):
+        """DebateEvaluator should pass temperature to AgentModelPool."""
+        from bioeval.debate.evaluator import DebateEvaluator
+
+        e = DebateEvaluator(temperature=0.3)
+        assert e.temperature == 0.3
+        assert e.model_pool.temperature == 0.3
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

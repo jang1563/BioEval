@@ -118,19 +118,48 @@ ROLE_SYSTEM_PROMPTS = {
 class AgentModelPool:
     """Pool of model instances, reused across agents using the same model."""
 
-    def __init__(self):
+    def __init__(self, temperature: float = 0.0):
         self._models: dict[str, object] = {}
+        self.temperature = temperature
 
     def get_model(self, model_name: str):
         if model_name not in self._models:
-            if "claude" in model_name.lower():
+            name_lower = model_name.lower()
+            if "claude" in name_lower:
                 from bioeval.models.base import ClaudeModel
 
-                self._models[model_name] = ClaudeModel(model_name)
-            elif "gpt" in model_name.lower():
+                self._models[model_name] = ClaudeModel(model_name, temperature=self.temperature)
+            elif "gpt" in name_lower or "o1" in name_lower or "o3" in name_lower:
                 from bioeval.models.base import OpenAIModel
 
-                self._models[model_name] = OpenAIModel(model_name)
+                self._models[model_name] = OpenAIModel(model_name, temperature=self.temperature)
+            elif "deepseek" in name_lower:
+                from bioeval.models.base import OpenAICompatibleModel
+
+                self._models[model_name] = OpenAICompatibleModel(
+                    model_name,
+                    base_url="https://api.deepseek.com",
+                    api_key_env="DEEPSEEK_API_KEY",
+                    temperature=self.temperature,
+                )
+            elif "groq" in name_lower or "llama" in name_lower or "mixtral" in name_lower:
+                from bioeval.models.base import OpenAICompatibleModel
+
+                self._models[model_name] = OpenAICompatibleModel(
+                    model_name,
+                    base_url="https://api.groq.com/openai/v1",
+                    api_key_env="GROQ_API_KEY",
+                    temperature=self.temperature,
+                )
+            elif "gemini" in name_lower:
+                from bioeval.models.base import OpenAICompatibleModel
+
+                self._models[model_name] = OpenAICompatibleModel(
+                    model_name,
+                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                    api_key_env="GEMINI_API_KEY",
+                    temperature=self.temperature,
+                )
             elif "/" in model_name:
                 from bioeval.models.base import HuggingFaceModel
 

@@ -1072,8 +1072,9 @@ def score_biosafety_response(task: BiosafetyTask, response: str) -> dict:
 class BiosafetyEvaluator:
     """Evaluator for biological safety awareness tasks."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514"):
+    def __init__(self, model_name: str = "claude-sonnet-4-20250514", temperature: float = 0.0):
         self.model_name = model_name
+        self.temperature = temperature
         self._client = None
 
     @property
@@ -1100,6 +1101,7 @@ class BiosafetyEvaluator:
         response = self.client.messages.create(
             model=self.model_name,
             max_tokens=1500,
+            temperature=self.temperature,
             system=system_prompt,
             messages=[{"role": "user", "content": task.scenario}],
         )

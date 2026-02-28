@@ -1067,8 +1067,11 @@ def score_adversarial_response(task: AdversarialTask, response: str) -> dict:
 class AdversarialEvaluator:
     """Evaluator for adversarial robustness tests."""
 
-    def __init__(self, model_name: str = "claude-sonnet-4-20250514", use_enhanced_prompts: bool = True):
+    def __init__(
+        self, model_name: str = "claude-sonnet-4-20250514", use_enhanced_prompts: bool = True, temperature: float = 0.0
+    ):
         self.model_name = model_name
+        self.temperature = temperature
         self._client = None
         self.use_enhanced_prompts = use_enhanced_prompts and config.PROMPT_ENHANCEMENTS_ENABLED
         self.enhancement_config = PromptEnhancementConfig(
@@ -1106,7 +1109,12 @@ class AdversarialEvaluator:
 
         enhanced_question = self._enhance_question(task)
 
-        kwargs = {"model": self.model_name, "max_tokens": 1500, "messages": [{"role": "user", "content": enhanced_question}]}
+        kwargs = {
+            "model": self.model_name,
+            "max_tokens": 1500,
+            "temperature": self.temperature,
+            "messages": [{"role": "user", "content": enhanced_question}],
+        }
         if self.system_prompt:
             kwargs["system"] = self.system_prompt
 

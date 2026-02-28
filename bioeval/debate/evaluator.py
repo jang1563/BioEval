@@ -49,8 +49,10 @@ class DebateEvaluator:
         max_rounds: int = 3,
         agent_models: Optional[list[str]] = None,
         include_baseline: bool = True,
+        temperature: float = 0.0,
     ):
         self.model_name = model_name
+        self.temperature = temperature
         self.protocol_type = ProtocolType(protocol)
         self.num_agents = num_agents
         self.max_rounds = max_rounds
@@ -80,7 +82,7 @@ class DebateEvaluator:
         )
 
         # Model pool (lazy — models created on first generate())
-        self.model_pool = AgentModelPool()
+        self.model_pool = AgentModelPool(temperature=temperature)
 
     def load_tasks(self) -> list[_DebateTaskAdapter]:
         return [_DebateTaskAdapter(t) for t in DEBATE_TASKS]
