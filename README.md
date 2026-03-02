@@ -128,32 +128,28 @@ evaluator = AdversarialEvaluator(use_enhanced_prompts=True)
 results = evaluator.run_evaluation()
 ```
 
-## Preliminary Results
+## Benchmark Results
 
-### 9-Component Evaluation (Claude Sonnet 4, seed=42)
+### 5-Model Comparison (seed=42, temperature=0)
 
-| Component | Tasks | Mean Score | Primary Metric |
-|-----------|:-----:|:----------:|----------------|
-| ProtoReason | 14 | **0.978** | Step ordering / calculation / troubleshooting accuracy |
-| Adversarial | 30 | **0.923** | Robustness against hallucination traps |
-| BioSafety | 25 | **0.829** | Safety judgment & dual-use risk identification |
-| CausalBio | 13 | **0.798** | Perturbation prediction accuracy |
-| MultiTurn | 6 | **0.772** | Dialogue coherence & context retention |
-| DataInterp | 25 | **0.720** | Quantitative data interpretation |
-| Calibration | 30 | **0.690** | 1 − calibration error |
-| DesignCheck | 10 | **0.535** | Flaw detection F1 |
-| Debate | 25 | **0.377** | Multi-agent debate composite score |
-| **Overall** | **178** | **0.727** | Weighted mean across all components |
+| Component | Claude Sonnet 4 | GPT-4o | DeepSeek V3 | Gemini 2.5 Flash | Llama 3.3 70B |
+|-----------|:---:|:---:|:---:|:---:|:---:|
+| ProtoReason | 0.972 | **0.980** | 0.909 | **1.000** | 0.865 |
+| CausalBio | 0.846 | 0.775 | **0.903** | 0.918 | 0.427 |
+| DesignCheck | 0.521 | 0.237 | 0.516 | **0.564** | 0.100 |
+| Adversarial | 0.881 | 0.856 | **0.922** | 0.893 | 0.892 |
+| MultiTurn | **0.889** | 0.806 | 0.903 | 0.869 | 0.661 |
+| Calibration | 0.700 | 0.777 | 0.657 | 0.637 | **0.790** |
+| BioSafety | 0.865 | 0.847 | **0.939** | 0.964 | 0.799 |
+| DataInterp | 0.749 | 0.745 | 0.746 | **0.793** | 0.755 |
+| Debate | **0.561** | 0.538 | 0.573 | 0.557 | 0.500 |
+| **Overall** | 0.770 | 0.749 | 0.780 | **0.789** | 0.699 |
 
-### Enhanced vs Baseline Prompt Comparison (Adversarial subset)
-
-| Test Type | Baseline | Enhanced | Improvement |
-|-----------|:--------:|:--------:|:-----------:|
-| False Premise | 60% | 100% | +40% |
-| Plausible Nonsense | 67% | 100% | +33% |
-| Edge Case | 75% | 100% | +25% |
-| Hallucination Trap | 80% | 100% | +20% |
-| **Overall Pass Rate** | **62.5%** | **83.3%** | **+20.8%** |
+**Key findings:**
+- **No single model dominates** — each leads in different components, validating multi-dimensional evaluation
+- **DesignCheck is universally hard** — all models score 0.10–0.56 on experimental flaw detection
+- **Calibration and accuracy are orthogonal** — Llama 3.3 has the best calibration (0.790) but lowest overall score
+- Gemini 2.5 Flash receives 4x output tokens for thinking; see [docs/FAIRNESS.md](docs/FAIRNESS.md)
 
 ## Features
 
