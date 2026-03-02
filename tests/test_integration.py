@@ -430,7 +430,7 @@ class TestSplits:
 
         stats = compute_benchmark_statistics("base")
         assert stats["totals"]["n_components"] == 9
-        assert stats["totals"]["total_tasks"] == 178
+        assert stats["totals"]["total_tasks"] == 197
         for comp in [
             "protoreason",
             "causalbio",

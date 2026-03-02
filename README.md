@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.3.2-green.svg)](https://github.com/jang1563/BioEval)
+[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://github.com/jang1563/BioEval)
 [![Tests](https://img.shields.io/badge/tests-407%2F407%20passing-brightgreen.svg)](#testing)
 
 Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
@@ -33,9 +33,9 @@ BioEval fills this gap with **procedural reasoning**, **causal perturbation reas
 |-----------|--------------|:----------:|--------------|
 | **ProtoReason** | Protocol execution, calculation, troubleshooting | 14 | Expert annotation |
 | **CausalBio** | Perturbation outcome prediction | 13 | Curated benchmark ground truth (optional external loader) |
-| **DesignCheck** | Experimental design critique | 10 | Annotated flaws |
+| **DesignCheck** | Experimental design critique | 20 | Annotated flaws |
 | **Adversarial** | Robustness to trick questions | 30 | Trap detection |
-| **MultiTurn** | Scientific dialogue coherence | 6 | Conversation flow |
+| **MultiTurn** | Scientific dialogue coherence | 15 | Conversation flow |
 | **Calibration** | Confidence calibration | 30 | Confidence-behavior alignment tasks |
 | **BioSafety** | Biosafety and dual-use risk judgment | 25 | Safety rubric |
 | **DataInterp** | Biological data interpretation | 25 | Quant/interpretation rubric |
@@ -45,8 +45,8 @@ BioEval fills this gap with **procedural reasoning**, **causal perturbation reas
 
 | Tier | Tasks | Description |
 |------|:-----:|-------------|
-| **Base** | 178 | Base tasks across 9 components |
-| **Extended** | 123 | Additional ProtoReason (+45), CausalBio (+34), DesignCheck (+20), MultiTurn (+24) |
+| **Base** | 197 | Base tasks across 9 components |
+| **Extended** | 104 | Additional ProtoReason (+45), CausalBio (+34), DesignCheck (+10), MultiTurn (+15) |
 | **Total Unique** | **301** | Full benchmark suite |
 
 ## Quick Start
@@ -213,11 +213,11 @@ BioEval/
 │   │   ├── extended_data.py     # Extended tasks (+34)
 │   │   └── advanced_data.py     # Advanced tier
 │   ├── designcheck/             # Experimental design critique
-│   │   ├── evaluator.py         # Base tasks (10)
-│   │   ├── extended_data.py     # Extended tasks (+20)
+│   │   ├── evaluator.py         # Base tasks (20)
+│   │   ├── extended_data.py     # Extended tasks (+10)
 │   │   └── advanced_data.py     # Advanced tier
 │   ├── adversarial/             # Adversarial robustness (30 tasks)
-│   ├── multiturn/               # Multi-turn dialogues (6 scenarios)
+│   ├── multiturn/               # Multi-turn dialogues (15 scenarios)
 │   ├── biosafety/               # Biosafety evaluation (25 tasks)
 │   ├── datainterp/              # Data interpretation (25 tasks)
 │   ├── debate/                  # Multi-agent debate (25 tasks)
@@ -245,10 +245,10 @@ BioEval/
 | Phase | Goal | Status |
 |-------|------|--------|
 | **Phase 0** | Make It Run — imports, tests, CLI, baseline | **COMPLETE** |
-| **Phase 1** | Make It Score — real metrics (Kendall's tau, directional accuracy, detection rate) | Planned |
-| **Phase 2** | Make It Credible — 3-model comparison, statistical tests, judge validation | Planned |
+| **Phase 1** | Make It Score — real metrics (Kendall's tau, directional accuracy, detection rate) | **COMPLETE** |
+| **Phase 2** | Make It Credible — 5-model comparison, statistical tests, judge validation | **COMPLETE** |
 | **Phase 2b** | BioAmbiguity — novel component for context-dependent biological reasoning (45 tasks) | Planned |
-| **Phase 3** | Make It Impressive — dashboard, publication prep, HuggingFace distribution | Planned |
+| **Phase 3** | Make It Impressive — dashboard, publication prep, HuggingFace distribution | In Progress |
 
 Publication target: **NeurIPS Datasets & Benchmarks** / **Nature Methods**
 
@@ -259,9 +259,9 @@ Publication target: **NeurIPS Datasets & Benchmarks** / **Nature Methods**
 BioEval includes expert-curated evaluation tasks that work out of the box:
 - 14 ProtoReason tasks: step ordering, missing step detection, calculation, troubleshooting
 - 13 CausalBio tasks (+ 34 extended): knockout, pathway, epistasis, drug response
-- 10 DesignCheck tasks (+ 20 extended) with annotated flaw taxonomy (30 flaw types)
+- 20 DesignCheck tasks (+ 10 extended) with annotated flaw taxonomy (30 flaw types)
 - 30 adversarial robustness tests across 8 categories
-- 6 multi-turn dialogue scenarios (+ 24 extended)
+- 15 multi-turn dialogue scenarios (+ 15 extended)
 - 30 calibration tasks including overconfidence traps
 - 25 biosafety dual-use risk judgment tasks
 - 25 data interpretation tasks
@@ -336,8 +336,8 @@ Companion JSON Schema references are provided in:
 
 | Tier | Tasks | Cost per Run (Claude) |
 |------|:-----:|-----------------:|
-| Base (all components) | 178 | Environment/model-dependent |
-| Base + Judge | 178 | Environment/model-dependent |
+| Base (all components) | 197 | Environment/model-dependent |
+| Base + Judge | 197 | Environment/model-dependent |
 | Extended + Judge | 301 | Environment/model-dependent |
 
 ## Limitations
@@ -347,7 +347,7 @@ Key limitations (see [docs/LIMITATIONS.md](docs/LIMITATIONS.md) for full details
 - **Token budget asymmetry**: Gemini thinking models receive 4x output tokens; use `--equalize-tokens` for strict fairness
 - **Keyword-based scoring**: Vulnerable to paraphrasing despite word-boundary and stemming support
 - **LLM-as-Judge**: Single judge model (Claude Sonnet), not yet validated against human experts
-- **Task scale**: Some components have only 6-10 base tasks, yielding wider confidence intervals
+- **Task scale**: Some components have only 13-14 base tasks, yielding wider confidence intervals
 
 ## Documentation
 

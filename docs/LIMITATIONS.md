@@ -37,21 +37,21 @@ Composite scores use expert-chosen weights (e.g., CausalBio knockout: 60% effect
 
 ## 5. Task Scale
 
-BioEval contains 178 base tasks (301 with extended tier) across 9 components:
+BioEval contains 197 base tasks (301 with extended tier) across 9 components:
 
 | Component | Base Tasks |
 |-----------|:---------:|
 | ProtoReason | 14 |
 | CausalBio | 13 |
-| DesignCheck | 10 |
+| DesignCheck | 20 |
 | Adversarial | 30 |
 | Calibration | 30 |
 | BioSafety | 25 |
 | DataInterp | 25 |
-| MultiTurn | 6 |
+| MultiTurn | 15 |
 | Debate | 25 |
 
-Smaller components (MultiTurn, DesignCheck) have wider confidence intervals.
+Smaller components (ProtoReason, CausalBio) have wider confidence intervals.
 
 ## 6. Language
 

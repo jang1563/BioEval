@@ -483,6 +483,478 @@ FLAWED_DESIGNS = [
             },
         ],
     },
+    # -------------------------------------------------------------------------
+    # FLOW CYTOMETRY / SORTING
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_011",
+        "title": "Apoptosis Measurement by Annexin V/PI",
+        "description": """
+        We measured Drug A-induced apoptosis in Jurkat T cells.
+
+        Methods:
+        - Jurkat cells treated with Drug A (10 μM) or DMSO for 24 hours
+        - Stained with Annexin V-FITC and propidium iodide (PI)
+        - Analysed on FACSCalibur (10,000 events per sample)
+        - Gating: used unstained cells to set quadrant gates
+
+        Results:
+        - DMSO: 5% apoptotic (Annexin V+/PI-)
+        - Drug A: 45% apoptotic
+        - p < 0.01 (Student's t-test, n=3 biological replicates)
+
+        Conclusion: Drug A potently induces apoptosis in T cells.
+        """,
+        "flaws": [
+            {
+                "category": "controls",
+                "type": "missing_positive_control",
+                "severity": "major",
+                "explanation": "No positive control for apoptosis (e.g. staurosporine, camptothecin) to validate staining",
+                "fix": "Include a known apoptosis inducer as a positive control",
+            },
+            {
+                "category": "technical",
+                "type": "inadequate_gating",
+                "severity": "critical",
+                "explanation": "Quadrant gates set on unstained cells — compensation controls (single-stain) are required for FITC/PI overlap",
+                "fix": "Include single-colour Annexin V-FITC only and PI-only controls for compensation",
+            },
+            {
+                "category": "technical",
+                "type": "insufficient_events",
+                "severity": "minor",
+                "explanation": "10,000 events may be low if rare populations are of interest and debris is not excluded",
+                "fix": "Collect at least 20,000-50,000 events with forward/side scatter gating to exclude debris",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # RNA-seq EXPERIMENT
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_012",
+        "title": "RNA-seq of Drug-Treated Tumour Cells",
+        "description": """
+        We profiled transcriptional changes induced by CDK4/6 inhibitor palbociclib.
+
+        Methods:
+        - MCF7 breast cancer cells treated with 1 μM palbociclib or DMSO for 48 hours
+        - RNA extracted with TRIzol, poly-A enriched
+        - Library prep: Illumina TruSeq stranded mRNA kit
+        - Sequenced on NovaSeq 6000, 2×150 bp, ~30M read pairs per sample
+        - Biological replicates: 2 per condition
+        - Reads aligned with STAR, counts with featureCounts
+        - DEGs identified with DESeq2 (padj < 0.05, |log2FC| > 1)
+
+        Results:
+        - 1,200 upregulated and 800 downregulated genes
+        - Top pathway: E2F targets (strongly downregulated)
+
+        Conclusion: Palbociclib profoundly reshapes the transcriptome via E2F.
+        """,
+        "flaws": [
+            {
+                "category": "technical",
+                "type": "insufficient_replicates",
+                "severity": "critical",
+                "explanation": "n=2 biological replicates provides very low statistical power for DESeq2; FDR correction is unreliable with only 2 replicates",
+                "fix": "Use at least n=3 biological replicates per condition (n=4 recommended)",
+            },
+            {
+                "category": "interpretation",
+                "type": "overstatement",
+                "severity": "major",
+                "explanation": "'Profoundly reshapes the transcriptome' overstates findings — 48h treatment will include many secondary/indirect effects",
+                "fix": "Include earlier time points (4h, 12h) to separate direct vs indirect effects",
+            },
+            {
+                "category": "confounders",
+                "type": "cell_cycle_confound",
+                "severity": "major",
+                "explanation": "CDK4/6 inhibition causes G1 arrest — observed DEGs may reflect cell cycle state rather than direct drug targets",
+                "fix": "Account for cell cycle changes; compare to serum-starved G1-arrested cells as additional control",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # IMMUNOHISTOCHEMISTRY
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_013",
+        "title": "PD-L1 Expression as Immunotherapy Predictor",
+        "description": """
+        We assessed PD-L1 as a biomarker for anti-PD-1 response.
+
+        Methods:
+        - FFPE tumour sections from 50 patients (25 responders, 25 non-responders)
+        - IHC with anti-PD-L1 antibody (clone 22C3)
+        - Scored by one pathologist: TPS (tumour proportion score)
+        - PD-L1-positive defined as TPS ≥ 1%
+        - Chi-squared test: PD-L1-positive vs response
+
+        Results:
+        - 80% of responders were PD-L1-positive
+        - 50% of non-responders were PD-L1-positive
+        - p = 0.03
+
+        Conclusion: PD-L1 IHC reliably predicts immunotherapy response.
+        """,
+        "flaws": [
+            {
+                "category": "technical",
+                "type": "scorer_bias",
+                "severity": "critical",
+                "explanation": "Single pathologist scorer with no blinding to outcome — scorer bias may inflate association",
+                "fix": "Use at least two independent blinded pathologists and report inter-rater agreement (kappa)",
+            },
+            {
+                "category": "interpretation",
+                "type": "overstatement",
+                "severity": "major",
+                "explanation": "'Reliably predicts' is too strong — 50% of non-responders are also PD-L1-positive (low specificity)",
+                "fix": "Report sensitivity, specificity, PPV, and NPV; acknowledge limited predictive power",
+            },
+            {
+                "category": "confounders",
+                "type": "selection_bias",
+                "severity": "major",
+                "explanation": "Retrospective case-control design — sampling 25/25 does not reflect real prevalence or response rates",
+                "fix": "Use consecutive unselected cohort to avoid sampling bias",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # XENOGRAFT / IN VIVO
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_014",
+        "title": "Patient-Derived Xenograft Drug Study",
+        "description": """
+        We tested new PI3K inhibitor in patient-derived xenograft (PDX) models.
+
+        Methods:
+        - Implanted PDX fragments from one patient into 20 NSG mice
+        - When tumours reached 100 mm³, assigned first 10 mice to treatment, last 10 to vehicle
+        - Treatment: PI3K inhibitor 50 mg/kg orally, daily × 21 days
+        - Tumour volume measured twice weekly with callipers
+        - Primary endpoint: tumour growth inhibition at day 21
+
+        Results:
+        - Vehicle: average 1200 mm³; Treatment: average 400 mm³
+        - TGI = 67%, p < 0.001
+
+        Conclusion: PI3K inhibitor is highly effective in this PDX model.
+        """,
+        "flaws": [
+            {
+                "category": "confounders",
+                "type": "non_random_allocation",
+                "severity": "critical",
+                "explanation": "Mice allocated sequentially (first 10 vs last 10) rather than randomised — cage/position effects and growth rate bias",
+                "fix": "Randomise mice to groups when tumours reach target volume using stratified randomisation",
+            },
+            {
+                "category": "technical",
+                "type": "single_pdx_model",
+                "severity": "major",
+                "explanation": "One PDX from one patient cannot represent population-level response",
+                "fix": "Test in 3-5 independent PDX models from different patients",
+            },
+            {
+                "category": "confounders",
+                "type": "operator_effect",
+                "severity": "major",
+                "explanation": "No blinding during tumour measurement or group allocation",
+                "fix": "Blind tumour measurements; have different personnel handle dosing and measurement",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # PROTEOMICS
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_015",
+        "title": "Phosphoproteomics of Signalling Pathway",
+        "description": """
+        We mapped signalling changes downstream of receptor activation.
+
+        Methods:
+        - HeLa cells stimulated with EGF (100 ng/mL) for 0, 5, 15, 30 min
+        - Lysed in 8M urea, digested with trypsin
+        - Phosphopeptides enriched by TiO₂
+        - LC-MS/MS on Orbitrap Exploris 480
+        - Searched with MaxQuant, LFQ normalisation
+        - Two biological replicates per time point
+        - All eight samples run in a single MS batch on one day
+
+        Results:
+        - 5,000 phosphosites quantified
+        - 800 significantly changed (ANOVA, p < 0.05)
+
+        Conclusion: Comprehensive map of EGFR signalling dynamics.
+        """,
+        "flaws": [
+            {
+                "category": "statistics",
+                "type": "multiple_testing",
+                "severity": "critical",
+                "explanation": "5,000 phosphosites tested by ANOVA with p<0.05 cutoff expects ~250 false positives — no FDR correction mentioned",
+                "fix": "Apply Benjamini-Hochberg FDR correction; report q-values",
+            },
+            {
+                "category": "technical",
+                "type": "insufficient_replicates",
+                "severity": "critical",
+                "explanation": "n=2 per time point provides very limited statistical power for 5,000 comparisons",
+                "fix": "Use at least n=3 biological replicates per time point",
+            },
+            {
+                "category": "technical",
+                "type": "run_order_effect",
+                "severity": "major",
+                "explanation": "If samples are run sequentially, LC-MS sensitivity can drift over the batch; no randomisation of run order mentioned",
+                "fix": "Randomise sample run order and include QC standard injections between samples",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # ChIP-seq
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_016",
+        "title": "ChIP-seq for Transcription Factor Binding",
+        "description": """
+        We mapped genome-wide binding sites of transcription factor TF-X.
+
+        Methods:
+        - K562 cells crosslinked with 1% formaldehyde
+        - Chromatin sonicated to 200-500 bp fragments
+        - ChIP with anti-TF-X antibody (10 μg) overnight
+        - Library prep: NEBNext Ultra II DNA, single-end 75 bp
+        - Sequenced to 15 million reads
+        - Peak calling: MACS2 with q-value < 0.01
+        - No input DNA control sequenced
+
+        Results:
+        - 12,000 binding sites identified
+        - 60% at promoters, 30% at enhancers
+
+        Conclusion: TF-X is a major transcriptional regulator.
+        """,
+        "flaws": [
+            {
+                "category": "controls",
+                "type": "missing_negative_control",
+                "severity": "critical",
+                "explanation": "No input DNA control — essential for MACS2 peak calling to distinguish true signal from open chromatin / sonication bias",
+                "fix": "Sequence input DNA control at comparable or greater depth",
+            },
+            {
+                "category": "technical",
+                "type": "low_sequencing_depth",
+                "severity": "major",
+                "explanation": "15 million reads is below ENCODE guidelines (20M+ for point-source TFs); may miss lower-affinity binding sites",
+                "fix": "Sequence to at least 20-30 million uniquely mapped reads",
+            },
+            {
+                "category": "technical",
+                "type": "insufficient_replicates",
+                "severity": "major",
+                "explanation": "Single replicate — ENCODE requires at least 2 biological replicates with IDR analysis",
+                "fix": "Perform in at least 2 biological replicates; use IDR for reproducibility",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # ORGANOID MODEL
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_017",
+        "title": "Patient-Derived Organoid Drug Screening",
+        "description": """
+        We screened 50 FDA-approved drugs against patient-derived colorectal
+        cancer organoids to identify repurposing candidates.
+
+        Methods:
+        - Organoids established from one patient's tumour biopsy
+        - Embedded in Matrigel, cultured in defined medium
+        - Seeded 1,000 cells per well in 384-well plates
+        - Treated at 1 μM single dose for 72 hours
+        - Viability by CellTiter-Glo 3D, triplicate wells
+        - Hit threshold: < 50% viability vs DMSO control
+
+        Results:
+        - 8 compounds reduced viability below 50%
+        - Top hit: an mTOR inhibitor (25% viability)
+
+        Conclusion: mTOR inhibitor is a promising repurposing candidate for this patient.
+        """,
+        "flaws": [
+            {
+                "category": "technical",
+                "type": "single_dose",
+                "severity": "critical",
+                "explanation": "Single 1 μM dose ignores potency differences — some drugs have IC50 > 1 μM and would be missed; others may appear active only due to toxicity",
+                "fix": "Use dose-response curves (6-8 concentrations) to determine IC50 for each drug",
+            },
+            {
+                "category": "controls",
+                "type": "missing_positive_control",
+                "severity": "major",
+                "explanation": "No positive control drug with known activity to benchmark assay sensitivity",
+                "fix": "Include a known cytotoxic agent and a drug matching the patient's actual treatment regimen",
+            },
+            {
+                "category": "statistics",
+                "type": "pseudoreplication",
+                "severity": "major",
+                "explanation": "Triplicate wells are technical replicates from one organoid line from one patient — no biological replication",
+                "fix": "Test across multiple independent organoid cultures or multiple passages for biological variability",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # CRISPR BASE EDITING
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_018",
+        "title": "CRISPR Base Editing Functional Study",
+        "description": """
+        We used cytosine base editing to introduce TP53 R248W mutation
+        and study its gain-of-function effects.
+
+        Methods:
+        - Transfected HCT116 (TP53 wild-type) with CBE4max and sgRNA
+        - Selected GFP+ cells by FACS 48 hours post-transfection
+        - Sanger sequencing confirmed C>T conversion in TP53 codon 248
+        - Compared base-edited cells to parental HCT116
+        - Assayed: proliferation, migration, colony formation
+
+        Results:
+        - R248W cells showed 2x more migration and 1.5x more colonies
+
+        Conclusion: TP53 R248W gain-of-function drives invasion.
+        """,
+        "flaws": [
+            {
+                "category": "controls",
+                "type": "inappropriate_control",
+                "severity": "critical",
+                "explanation": "Parental cells are wrong control — they didn't undergo transfection, sorting, or selection stress; differences may reflect these procedures",
+                "fix": "Use non-targeting sgRNA + CBE4max control processed identically (transfected, sorted, sequenced)",
+            },
+            {
+                "category": "technical",
+                "type": "bystander_edits",
+                "severity": "major",
+                "explanation": "Cytosine base editors can edit other C residues in the editing window (positions 4-8) — bystander edits in TP53 could confound",
+                "fix": "Check Sanger trace for bystander edits in the editing window; sequence full TP53 exon",
+            },
+            {
+                "category": "technical",
+                "type": "off_target_editing",
+                "severity": "major",
+                "explanation": "No assessment of off-target C>T edits at predicted genomic sites",
+                "fix": "Check top 5-10 predicted off-target sites by amplicon sequencing",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # CELL LINE AUTHENTICATION
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_019",
+        "title": "Comparative Drug Sensitivity Across Cell Lines",
+        "description": """
+        We compared drug sensitivity across 5 breast cancer cell lines to find
+        biomarkers of response.
+
+        Methods:
+        - Cell lines: MCF7, MDA-MB-231, T47D, BT549, SKBR3
+        - Obtained from lab freezer stocks (frozen 3-7 years ago)
+        - Treated with 8 concentrations of PARP inhibitor olaparib
+        - IC50 determined by MTT assay after 5 days
+        - Each cell line tested once with triplicate wells
+
+        Results:
+        - IC50 ranged from 0.5 μM (MCF7) to 50 μM (MDA-MB-231)
+        - HER2+ cell lines most sensitive
+
+        Conclusion: HER2 expression predicts PARP inhibitor sensitivity.
+        """,
+        "flaws": [
+            {
+                "category": "technical",
+                "type": "cell_line_authentication",
+                "severity": "critical",
+                "explanation": "Old freezer stocks (3-7 years) with no authentication — cell lines may be misidentified or cross-contaminated (estimated 15-20% misidentification rate in literature)",
+                "fix": "Perform STR profiling on all cell lines before experiments; compare to ATCC reference profiles",
+            },
+            {
+                "category": "technical",
+                "type": "insufficient_replicates",
+                "severity": "major",
+                "explanation": "Each cell line tested once — single experiment IC50 values have substantial variability",
+                "fix": "Repeat entire experiment on at least 3 independent occasions",
+            },
+            {
+                "category": "interpretation",
+                "type": "overstatement",
+                "severity": "major",
+                "explanation": "Claiming HER2 predicts PARPi sensitivity from 5 cell lines (2 HER2+) is severe overfitting — biological correlation requires larger panel",
+                "fix": "Test in ≥20 cell lines or use public datasets (GDSC, CCLE) for biomarker-response correlation",
+            },
+        ],
+    },
+    # -------------------------------------------------------------------------
+    # SPATIAL TRANSCRIPTOMICS
+    # -------------------------------------------------------------------------
+    {
+        "id": "design_020",
+        "title": "Spatial Transcriptomics of Tumour Microenvironment",
+        "description": """
+        We used Visium spatial transcriptomics to map the tumour immune
+        microenvironment in colorectal cancer.
+
+        Methods:
+        - Fresh-frozen sections from 2 CRC patients (1 microsatellite-stable,
+          1 microsatellite-instable)
+        - Visium 10X spatial capture, sequenced on NovaSeq
+        - Spots deconvolved using RCTD for cell type proportions
+        - Compared immune cell composition between MSI and MSS tumours
+
+        Results:
+        - MSI tumour had 3x more CD8+ T cell-enriched spots
+        - Clear spatial separation of T cells and tumour cells in MSS
+
+        Conclusion: MSI tumours have higher immune infiltration, explaining
+        immunotherapy responsiveness.
+        """,
+        "flaws": [
+            {
+                "category": "statistics",
+                "type": "underpowered",
+                "severity": "critical",
+                "explanation": "n=1 per group — any difference could reflect individual patient variation rather than MSI/MSS biology",
+                "fix": "Include ≥5 patients per group to account for inter-patient variability",
+            },
+            {
+                "category": "technical",
+                "type": "single_section_bias",
+                "severity": "major",
+                "explanation": "One tissue section per patient may not represent tumour heterogeneity — immune infiltrate varies by region",
+                "fix": "Profile multiple sections from different tumour regions per patient",
+            },
+            {
+                "category": "interpretation",
+                "type": "correlation_causation",
+                "severity": "major",
+                "explanation": "'Explaining immunotherapy responsiveness' is causal language from observational spatial data with n=2",
+                "fix": "State as hypothesis; validate with clinical immunotherapy outcome data",
+            },
+        ],
+    },
 ]
 
 
@@ -539,7 +1011,7 @@ class DesignCheckEvaluator(BaseEvaluator):
         """Load DesignCheck evaluation tasks.
 
         Args:
-            data_tier: 'base' (10 designs), 'extended' or 'all' (20 designs).
+            data_tier: 'base' (20 designs), 'extended' or 'all' (30 designs).
         """
         if data_tier in ("extended", "all"):
             from bioeval.designcheck.extended_data import EXTENDED_FLAWED_DESIGNS

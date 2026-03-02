@@ -489,6 +489,640 @@ DIALOGUES = [
             ),
         ],
     ),
+    MultiTurnDialogue(
+        id="mt_omics_001",
+        title="Integrating RNA-seq and Proteomics Discordance",
+        dialogue_type=DialogueType.DATA_INTERPRETATION,
+        domain="multi_omics",
+        description="Discussing why RNA and protein levels disagree",
+        overall_objective="Develop coherent interpretation of discordant multi-omic data",
+        difficulty="hard",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""We did RNA-seq and proteomics on the same samples (drug-treated
+                vs control cancer cells). The RNA-seq shows 300 upregulated genes, but
+                fewer than half of those show increased protein. Some proteins even go
+                DOWN while their mRNA goes UP. Is our data wrong?""",
+                expected_behaviors=[
+                    "Reassure this is common and expected",
+                    "Explain mRNA-protein correlation is often ~0.4-0.6",
+                    "List biological reasons: translation rates, protein stability, post-translational regulation",
+                    "Suggest not all mRNA changes translate to protein changes",
+                ],
+                failure_modes=[
+                    "Assuming data is wrong",
+                    "Not knowing about mRNA-protein discordance",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"reassures": True, "explains_biology": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""That makes sense. But we found one gene, CDKN1A (p21), where
+                mRNA is 5-fold up but protein is 3-fold DOWN after drug treatment.
+                How is that even possible?""",
+                expected_behaviors=[
+                    "This is a specific and interesting case",
+                    "p21 protein is regulated by ubiquitin-proteasome degradation",
+                    "Drug may activate proteolytic pathways (MDM2, SCF-Skp2)",
+                    "Suggest checking if proteasome is involved (MG132 test)",
+                ],
+                failure_modes=[
+                    "Giving generic mRNA/protein discordance answer without specifics",
+                    "Not knowing p21 post-translational regulation",
+                ],
+                context_dependency="Must connect to general discordance discussion",
+                scoring_criteria={"specific_mechanism": True, "suggests_experiment": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""We added MG132 (proteasome inhibitor) and p21 protein is now
+                strongly accumulated. So the drug IS increasing p21 transcription but
+                simultaneously activating proteasomal degradation. How should we
+                report this finding?""",
+                expected_behaviors=[
+                    "Confirm dual regulation interpretation",
+                    "Suggest reporting as coordinated transcriptional and post-translational regulation",
+                    "This is mechanistically interesting and worth highlighting",
+                    "Recommend western blot time course to show kinetics",
+                ],
+                failure_modes=[
+                    "Not integrating RNA-seq, proteomics, and MG132 data",
+                ],
+                context_dependency="Must synthesise all three data sources",
+                scoring_criteria={"integrates_all_data": True, "constructive_framing": True},
+            ),
+            DialogueTurn(
+                turn_number=4,
+                turn_type=TurnType.CHALLENGE,
+                user_message="""A colleague says our proteasome result might be an artefact
+                because MG132 blocks ALL proteasomal degradation, not specifically
+                p21. How should we address this?""",
+                expected_behaviors=[
+                    "Acknowledge the critique is valid",
+                    "Suggest cycloheximide chase to measure p21 half-life ± drug",
+                    "Could use specific E3 ligase knockdown (MDM2, Skp2)",
+                    "Ubiquitination assay for p21 ± drug treatment",
+                ],
+                failure_modes=[
+                    "Dismissing the valid critique",
+                    "Not suggesting more specific experiments",
+                ],
+                context_dependency="Must address the specificity concern for p21",
+                scoring_criteria={"acknowledges_limitation": True, "offers_specific_tests": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_stat_001",
+        title="Choosing Analysis for Complex Experimental Design",
+        dialogue_type=DialogueType.EXPERIMENTAL_DESIGN,
+        domain="statistics",
+        description="Helping researcher choose appropriate statistical approach",
+        overall_objective="Guide selection of correct statistical method through iterative discussion",
+        difficulty="medium",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""I have tumour growth data from a mouse experiment. 4 treatment
+                groups, 10 mice each, measured every 3 days for 3 weeks. I want to
+                compare growth curves. A collaborator said 'just use t-tests at each
+                time point'. Is that right?""",
+                expected_behaviors=[
+                    "Clearly say this is NOT appropriate",
+                    "Explain multiple testing problem across time points",
+                    "Recommend repeated measures / mixed-effects model",
+                    "Ask about the experimental structure (cages, batches)",
+                ],
+                failure_modes=[
+                    "Agreeing with t-tests at each time point",
+                    "Not explaining why it's wrong",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"correct_advice": True, "explains_why": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""OK, you're right. So should I use two-way ANOVA (group × time)?
+                My data isn't normally distributed though — tumour volumes are right-skewed.""",
+                expected_behaviors=[
+                    "Two-way ANOVA is closer but still not ideal for longitudinal data",
+                    "Recommend linear mixed-effects model (lme4 / nlme in R)",
+                    "For skewed data: log-transform or use generalised linear mixed model",
+                    "Random effect: mouse (repeated measures on same animal)",
+                ],
+                failure_modes=[
+                    "Not addressing the distributional assumption",
+                    "Not mentioning random effects for repeated measures",
+                ],
+                context_dependency="Must build on rejection of t-tests",
+                scoring_criteria={"correct_method": True, "handles_skewness": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""Some mice died during the study (3 in vehicle group, 1 in
+                treatment group). Should I just remove them from analysis?""",
+                expected_behaviors=[
+                    "Differential dropout is informative — don't just remove",
+                    "This is informative censoring (dying = worst outcome)",
+                    "Suggest tumour growth + survival as joint analysis",
+                    "Mixed models can handle unbalanced data (missing time points)",
+                ],
+                failure_modes=[
+                    "Advising simple removal without considering bias",
+                ],
+                context_dependency="Must connect to mixed model discussion",
+                scoring_criteria={"handles_dropout": True, "considers_bias": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_opt_001",
+        title="Optimising Single-Cell RNA-seq Protocol",
+        dialogue_type=DialogueType.TROUBLESHOOTING,
+        domain="protocol",
+        description="Iteratively optimising a single-cell sequencing experiment",
+        overall_objective="Diagnose and fix low-quality scRNA-seq data",
+        difficulty="hard",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""Our 10X Chromium scRNA-seq run gave terrible results.
+                We loaded 10,000 cells but only recovered 2,000 cell barcodes.
+                Of those, median genes per cell is only 500. What went wrong?""",
+                expected_behaviors=[
+                    "Low recovery (20%) suggests cell death during processing",
+                    "Low genes/cell suggests poor capture or RNA degradation",
+                    "Ask about cell viability before loading",
+                    "Ask about tissue type and dissociation method",
+                ],
+                failure_modes=[
+                    "Not asking about sample preparation",
+                    "Jumping to sequencing issues without checking upstream steps",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"systematic_approach": True, "asks_about_viability": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""Viability was only 60% by trypan blue. We dissociated a mouse
+                brain with enzymatic digestion (collagenase + DNase I) for 45 minutes
+                at 37°C. We didn't filter or remove dead cells before loading.""",
+                expected_behaviors=[
+                    "60% viability is below 10X's recommended >90%",
+                    "Dead cells release ambient RNA that contaminates barcodes",
+                    "45 min digestion may be too harsh for brain tissue",
+                    "Recommend: shorter digestion, cold-active protease, dead cell removal",
+                ],
+                failure_modes=[
+                    "Not identifying viability as the primary issue",
+                    "Not suggesting dead cell removal (MACS, FACS)",
+                ],
+                context_dependency="Must connect low viability to low recovery",
+                scoring_criteria={"identifies_cause": True, "actionable_fixes": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""We optimised: shorter digestion (20 min), added dead cell removal
+                kit, viability now 92%. But now we're worried about losing certain
+                cell types during dead cell removal. How do we check?""",
+                expected_behaviors=[
+                    "Valid concern — some fragile cell types may be lost",
+                    "Suggest running FACS panel before/after dead cell removal to check",
+                    "Compare cell type proportions to published brain scRNA-seq atlases",
+                    "Could try Papain instead of collagenase (gentler on neurons)",
+                ],
+                failure_modes=[
+                    "Dismissing the concern about cell type loss",
+                ],
+                context_dependency="Must acknowledge improvement from optimization",
+                scoring_criteria={"validates_concern": True, "practical_advice": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_repro_001",
+        title="Failure to Reproduce Published Result",
+        dialogue_type=DialogueType.HYPOTHESIS_REFINEMENT,
+        domain="reproducibility",
+        description="Discussing failure to replicate a published finding",
+        overall_objective="Systematically explore why a replication failed",
+        difficulty="medium",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""A 2020 paper in Nature reported that drug Y kills 90% of
+                pancreatic cancer cells via ferroptosis. We repeated the experiment
+                exactly as described but only see 20% cell death. We've tried three
+                times. Should we contact the authors?""",
+                expected_behaviors=[
+                    "Don't immediately blame the authors",
+                    "Systematic differences are common even with 'identical' protocols",
+                    "Ask about key variables: cell line passage, drug batch, serum lot, media composition",
+                    "Check if their cell line source matches yours",
+                ],
+                failure_modes=[
+                    "Immediately suggesting fraud",
+                    "Not considering technical differences",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"systematic_approach": True, "balanced_view": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""We're using the same cell line (PANC-1) from ATCC. Same drug
+                concentration. But we noticed their paper used RPMI with 1% FBS while
+                we use 10% FBS. Could that matter for ferroptosis?""",
+                expected_behaviors=[
+                    "YES — serum concentration is critical for ferroptosis",
+                    "FBS contains lipid peroxidation inhibitors (selenium, vitamin E, albumin)",
+                    "Low serum sensitises cells to ferroptosis",
+                    "This alone could explain the discrepancy",
+                ],
+                failure_modes=[
+                    "Dismissing serum as irrelevant",
+                    "Not knowing about serum and ferroptosis",
+                ],
+                context_dependency="Must connect serum to ferroptosis mechanism",
+                scoring_criteria={"identifies_key_variable": True, "mechanistic_explanation": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""We repeated with 1% FBS and now we see 85% cell death —
+                matches the paper! But our PI says 1% FBS is 'artificial' and not
+                physiological. Should we even publish our replication?""",
+                expected_behaviors=[
+                    "PI has a valid scientific point about physiological relevance",
+                    "But the finding is still important — documents a key experimental variable",
+                    "Suggest publishing as a 'matters arising' or technical note",
+                    "Highlight that ferroptosis sensitivity is context-dependent",
+                ],
+                failure_modes=[
+                    "Not engaging with the physiological relevance question",
+                    "Either fully agreeing or fully disagreeing without nuance",
+                ],
+                context_dependency="Must integrate replication success with biological criticism",
+                scoring_criteria={"nuanced_view": True, "constructive_suggestion": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_lit_001",
+        title="Building Hypothesis from Contradictory Papers",
+        dialogue_type=DialogueType.HYPOTHESIS_REFINEMENT,
+        domain="pathway_reasoning",
+        description="Reconciling contradictory published findings",
+        overall_objective="Develop unifying hypothesis from conflicting data",
+        difficulty="hard",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""Paper A says autophagy promotes tumour growth in pancreatic cancer.
+                Paper B says autophagy INHIBITS tumour growth in pancreatic cancer.
+                They're both in good journals. How can both be right?""",
+                expected_behaviors=[
+                    "Autophagy has dual roles in cancer (well-known paradox)",
+                    "Context matters: stage, genetic background, microenvironment",
+                    "Early tumourigenesis vs established tumours may differ",
+                    "Ask about specific experimental systems used in each paper",
+                ],
+                failure_modes=[
+                    "Saying one paper must be wrong",
+                    "Not recognising the autophagy paradox in cancer",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"recognises_paradox": True, "context_aware": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""Paper A used KRAS-mutant mouse models where autophagy was
+                deleted specifically in pancreas. Paper B used cell lines with
+                pharmacological autophagy inhibitors. Could the model system
+                explain the difference?""",
+                expected_behaviors=[
+                    "Genetic vs pharmacological is a key distinction",
+                    "In vivo: autophagy deletion affects tumour AND stroma/immune cells",
+                    "In vitro: only tumour-cell-intrinsic effects captured",
+                    "KRAS-mutant context has specific autophagy dependency",
+                ],
+                failure_modes=[
+                    "Not distinguishing in vivo vs in vitro contexts",
+                    "Ignoring the KRAS-mutant genetic background",
+                ],
+                context_dependency="Must reconcile with dual-role framework from turn 1",
+                scoring_criteria={"distinguishes_models": True, "mechanistic_insight": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.SYNTHESIS,
+                user_message="""So in KRAS-mutant pancreatic cancer, tumour cells depend on
+                autophagy for survival, but the immune system also uses autophagy
+                to fight cancer. Is there a way to exploit this therapeutically?""",
+                expected_behaviors=[
+                    "Recognise the therapeutic dilemma",
+                    "Combining autophagy inhibition with immunotherapy has been tried",
+                    "Chloroquine/hydroxychloroquine trials in PDAC + gemcitabine",
+                    "Suggest timing or cell-type-specific targeting strategies",
+                ],
+                failure_modes=[
+                    "Not engaging with the therapeutic complexity",
+                    "Oversimplifying to just 'inhibit autophagy'",
+                ],
+                context_dependency="Must integrate all previous discussion for therapeutic angle",
+                scoring_criteria={"therapeutic_insight": True, "acknowledges_complexity": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_immuno_001",
+        title="T Cell Exhaustion in Chronic Infection",
+        dialogue_type=DialogueType.HYPOTHESIS_REFINEMENT,
+        domain="immunology",
+        description="Interpreting T cell phenotyping data in chronic viral infection model",
+        overall_objective="Distinguish T cell exhaustion from activation using multi-parameter data",
+        difficulty="hard",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""We're studying CD8+ T cells in a chronic LCMV infection mouse model.
+                Flow cytometry shows high PD-1 expression on virus-specific T cells at
+                day 30. Does this mean the cells are exhausted?""",
+                expected_behaviors=[
+                    "PD-1 alone is not sufficient to define exhaustion",
+                    "PD-1 is also expressed on recently activated T cells",
+                    "Need co-expression of multiple inhibitory receptors (LAG-3, TIM-3, TIGIT)",
+                    "Ask about functional readouts (cytokine production, killing capacity)",
+                ],
+                failure_modes=[
+                    "Equating PD-1 expression alone with exhaustion",
+                    "Not distinguishing activation from exhaustion",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"nuanced_pd1": True, "suggests_additional_markers": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""We checked: the cells co-express PD-1, LAG-3, and TIM-3. But
+                intracellular staining shows they still produce IFN-gamma (lower than
+                acute phase but detectable). Are they truly exhausted if they still
+                make cytokine?""",
+                expected_behaviors=[
+                    "Exhaustion is a spectrum, not binary",
+                    "Progenitor exhausted (TCF1+) vs terminally exhausted (TCF1-)",
+                    "Retained IFN-gamma but lost IL-2 and TNF-alpha is typical of partial exhaustion",
+                    "Check TCF1/TOX expression to define exhaustion subset",
+                ],
+                failure_modes=[
+                    "Saying cells are not exhausted because they make IFN-gamma",
+                    "Not mentioning the exhaustion spectrum concept",
+                ],
+                context_dependency="Must integrate PD-1 discussion from turn 1",
+                scoring_criteria={"exhaustion_spectrum": True, "tcf1_tox": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.CHALLENGE,
+                user_message="""We treated mice with anti-PD-1. The virus-specific T cells expanded
+                but viral titers didn't change. A reviewer says checkpoint blockade
+                should reduce viral load. What's going on?""",
+                expected_behaviors=[
+                    "Terminally exhausted cells can expand but remain dysfunctional",
+                    "Progenitor exhausted cells respond better to anti-PD-1",
+                    "Expansion without functional improvement is documented",
+                    "Suggest evaluating which subset expanded (TCF1+ vs TCF1-)",
+                ],
+                failure_modes=[
+                    "Not distinguishing responder subsets",
+                    "Assuming expansion always means functional restoration",
+                ],
+                context_dependency="Must build on exhaustion subset discussion",
+                scoring_criteria={"explains_disconnect": True, "suggests_subset_analysis": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_neuro_001",
+        title="Interpreting Electrophysiology Data",
+        dialogue_type=DialogueType.DATA_INTERPRETATION,
+        domain="neuroscience",
+        description="Troubleshooting unexpected patch clamp results",
+        overall_objective="Diagnose why miniature EPSCs show paradoxical changes",
+        difficulty="medium",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""Our patch clamp experiments show that our drug increases mEPSC
+                frequency but DECREASES mEPSC amplitude in hippocampal neurons.
+                That seems contradictory. More events but smaller? How is that possible?""",
+                expected_behaviors=[
+                    "Not contradictory — frequency and amplitude reflect different mechanisms",
+                    "Frequency = presynaptic (vesicle release probability)",
+                    "Amplitude = postsynaptic (receptor number/conductance)",
+                    "Drug may enhance presynaptic release while downregulating postsynaptic receptors",
+                ],
+                failure_modes=[
+                    "Agreeing this is contradictory",
+                    "Not distinguishing pre- vs postsynaptic mechanisms",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"pre_post_distinction": True, "mechanistic_explanation": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""That's helpful. But could the decreased amplitude just be a
+                technical artefact? Like series resistance changing during recording?""",
+                expected_behaviors=[
+                    "Valid concern — series resistance increase would reduce all currents",
+                    "Check if series resistance was monitored throughout recording",
+                    "Rs increase affects evoked and miniature events equally",
+                    "Could also be rundown of postsynaptic receptors (common in whole-cell)",
+                ],
+                failure_modes=[
+                    "Dismissing the technical concern",
+                    "Not mentioning series resistance monitoring",
+                ],
+                context_dependency="Must connect to amplitude discussion from turn 1",
+                scoring_criteria={"validates_concern": True, "practical_checks": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""Rs was stable. We also applied TTX to confirm these are truly
+                miniature events. Is there anything else we should control for?""",
+                expected_behaviors=[
+                    "TTX for minis is correct",
+                    "Check access resistance and holding current stability",
+                    "Temperature control (mEPSC properties are temperature-sensitive)",
+                    "Time-matched vehicle controls (to rule out recording-time effects)",
+                ],
+                failure_modes=[
+                    "Not mentioning time-matched controls",
+                ],
+                context_dependency="Must acknowledge Rs stability and TTX as good controls",
+                scoring_criteria={"additional_controls": True, "systematic": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_genomics_001",
+        title="Clinical Variant Interpretation",
+        dialogue_type=DialogueType.TROUBLESHOOTING,
+        domain="genomics",
+        description="Classifying a variant of uncertain significance",
+        overall_objective="Systematically evaluate evidence for a VUS in a cancer gene",
+        difficulty="hard",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""A patient with breast cancer has a germline variant in BRCA2:
+                c.7397T>C (p.Val2466Ala). It's classified as VUS in ClinVar.
+                The patient wants to know if she should tell her family to get tested.
+                How should we approach this?""",
+                expected_behaviors=[
+                    "VUS means insufficient evidence — cannot make clinical decisions yet",
+                    "Outline systematic evidence review: population frequency, in silico, functional, segregation",
+                    "Check if variant is in a known functional domain of BRCA2",
+                    "Cannot recommend family testing based on VUS alone",
+                ],
+                failure_modes=[
+                    "Treating VUS as pathogenic",
+                    "Treating VUS as benign",
+                    "Not mentioning the ACMG classification framework",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"correct_vus_handling": True, "systematic_evaluation": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""We checked: gnomAD frequency is 0.0001 (rare). SIFT says 'tolerated',
+                PolyPhen says 'possibly damaging'. The variant is in the DNA-binding
+                domain. What do we make of conflicting in silico predictions?""",
+                expected_behaviors=[
+                    "Conflicting in silico predictions are common for missense variants",
+                    "In silico alone is not sufficient for classification per ACMG",
+                    "Low population frequency is consistent with either pathogenic or rare benign",
+                    "DNA-binding domain location adds moderate concern",
+                    "Need functional data or family segregation studies",
+                ],
+                failure_modes=[
+                    "Relying solely on in silico to classify",
+                    "Not recognizing limitations of computational predictors",
+                ],
+                context_dependency="Must build on VUS framework from turn 1",
+                scoring_criteria={"acknowledges_limitations": True, "suggests_next_steps": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.SYNTHESIS,
+                user_message="""The patient says three other family members also have breast cancer.
+                If we could test them for this variant, how would segregation data
+                help classify it?""",
+                expected_behaviors=[
+                    "If variant co-segregates with cancer in family = evidence for pathogenicity",
+                    "Need affected AND unaffected family members for informative analysis",
+                    "ACMG BS4/PP1 criteria for segregation evidence",
+                    "Phenocopies can confound (breast cancer is common)",
+                ],
+                failure_modes=[
+                    "Not mentioning the need for unaffected family members",
+                    "Ignoring phenocopy rate for breast cancer",
+                ],
+                context_dependency="Must integrate all evidence from previous turns",
+                scoring_criteria={"correct_segregation": True, "acknowledges_limitations": True},
+            ),
+        ],
+    ),
+    MultiTurnDialogue(
+        id="mt_ext_023",
+        title="Peer Reviewing a Clinical Trial Paper",
+        dialogue_type=DialogueType.PEER_REVIEW,
+        domain="clinical_trial",
+        description="Reviewing a randomised controlled trial manuscript for methodological issues",
+        overall_objective="Identify key methodological concerns in an RCT report",
+        difficulty="medium",
+        turns=[
+            DialogueTurn(
+                turn_number=1,
+                turn_type=TurnType.INITIAL_QUESTION,
+                user_message="""I'm reviewing a paper for a journal. It's a phase III trial of
+                a new targeted therapy for NSCLC. The trial enrolled 500 patients
+                randomised 1:1. The abstract claims 'significant improvement in OS'.
+                What should I look for first?""",
+                expected_behaviors=[
+                    "Check primary endpoint: was OS the pre-specified primary or changed?",
+                    "Look at the CONSORT flow diagram for dropout/crossover rates",
+                    "Check if analysis is intention-to-treat",
+                    "Look at the hazard ratio confidence interval and maturity of data",
+                ],
+                failure_modes=[
+                    "Only checking the p-value",
+                    "Not asking about pre-specified primary endpoint",
+                ],
+                context_dependency="None - initial question",
+                scoring_criteria={"systematic_review": True, "primary_endpoint": True},
+            ),
+            DialogueTurn(
+                turn_number=2,
+                turn_type=TurnType.NEW_INFORMATION,
+                user_message="""The original protocol (registered on clinicaltrials.gov) had PFS
+                as the primary endpoint, not OS. PFS was not significant (HR=0.85,
+                p=0.12). But OS was significant (HR=0.70, p=0.01). The paper presents
+                OS as the 'key finding'. Is this a problem?""",
+                expected_behaviors=[
+                    "Major problem: endpoint switching (post-hoc promotion of secondary to primary)",
+                    "If PFS was primary and failed, OS should be interpreted as exploratory/supportive",
+                    "This is a common form of selective reporting bias",
+                    "Should be flagged prominently in the review",
+                ],
+                failure_modes=[
+                    "Accepting the endpoint switch without comment",
+                    "Not checking the trial registry",
+                ],
+                context_dependency="Must flag the discrepancy with registered protocol",
+                scoring_criteria={"identifies_switching": True, "registry_check": True},
+            ),
+            DialogueTurn(
+                turn_number=3,
+                turn_type=TurnType.FOLLOW_UP,
+                user_message="""I also notice that 30% of control arm patients crossed over to
+                the experimental drug after progression. Could this affect the OS
+                analysis?""",
+                expected_behaviors=[
+                    "Yes — crossover dilutes the OS difference between arms",
+                    "Paradoxically, OS is significant despite crossover, which could mean the true effect is larger",
+                    "But crossover also complicates interpretation (IPCW or RPSFT methods exist)",
+                    "Should request sensitivity analysis adjusting for crossover",
+                ],
+                failure_modes=[
+                    "Saying crossover invalidates the OS result",
+                    "Ignoring crossover impact on interpretation",
+                ],
+                context_dependency="Must integrate crossover with endpoint switching concern",
+                scoring_criteria={"crossover_impact": True, "suggests_sensitivity": True},
+            ),
+        ],
+    ),
 ]
 
 
@@ -555,7 +1189,7 @@ class MultiTurnEvaluator:
         """Return dialogues wrapped as task objects for the CLI runner.
 
         Args:
-            data_tier: 'base' (6 dialogues), 'extended' or 'all' (12 dialogues).
+            data_tier: 'base' (15 dialogues), 'extended' or 'all' (30 dialogues).
         """
         if data_tier in ("extended", "all"):
             from bioeval.multiturn.extended_data import EXTENDED_DIALOGUES

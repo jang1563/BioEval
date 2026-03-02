@@ -5,6 +5,16 @@ All notable changes to BioEval will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-02
+
+### Changed
+
+- DesignCheck base tier: 10 → 20 tasks (promoted design_011–design_020 from extended)
+- MultiTurn base tier: 6 → 15 dialogues (promoted 9 domain-diverse dialogues from extended)
+- Total base tasks: 178 → 197 (total unique remains 301)
+- Fixed load_tasks() docstrings with correct extended counts
+- README roadmap: Phase 1-2 marked COMPLETE
+
 ## [0.3.2] - 2026-03-01
 
 ### Added
@@ -109,5 +119,4 @@ Initial evaluation with Claude Sonnet 4 shows:
 - Additional protocol tasks from protocols.io
 - Extended DepMap integration
 - Multi-language support
-- Additional model integrations (Gemini, Llama)
 - Web interface for running evaluations

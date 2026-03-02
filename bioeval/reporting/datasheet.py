@@ -37,7 +37,7 @@ def generate_datasheet() -> dict:
                 "correct answers, flaws to detect, etc.), scoring rubric metadata, "
                 "and difficulty tier information."
             ),
-            "total_instances": "178 base tasks, 301 total (with extended tier).",
+            "total_instances": "197 base tasks, 301 total (with extended tier).",
             "components": {
                 "ProtoReason": "Protocol comprehension: step ordering, gap identification, calculations, troubleshooting.",
                 "CausalBio": "Causal biological reasoning: gene knockout prediction, pathway analysis, drug response, epistasis.",
@@ -123,7 +123,7 @@ def generate_datasheet() -> dict:
                 "2) Keyword-based scoring vulnerable to paraphrasing; "
                 "3) LLM-as-Judge not validated against human experts; "
                 "4) Expert-chosen scoring weights; "
-                "5) Small task counts in some components (6-10 tasks); "
+                "5) Variable task counts across components (13-30 tasks); "
                 "6) English-only; "
                 "7) Temporal scope limited to 2024-2026 biology knowledge; "
                 "8) Prompt template sensitivity across model architectures."
