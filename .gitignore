@@ -192,3 +192,5 @@ docs/SYSTEM_REVIEW_2026-02-28.md
 # Generated HTML reports
 *.html
 !examples/**/*.html
+data/
+HF_README.md
