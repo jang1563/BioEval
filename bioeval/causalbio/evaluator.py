@@ -265,12 +265,21 @@ class CausalBioEvaluator(BaseEvaluator):
         """
         if data_tier in ("extended", "all"):
             from bioeval.causalbio.extended_data import (
-                KNOCKOUT_TASKS as ko_list,
-                PATHWAY_TASKS as pw_list,
-                DRUG_RESPONSE_TASKS as dr_list,
-                EPISTASIS_TASKS as ep_list,
+                KNOCKOUT_TASKS as EXT_KO,
+                PATHWAY_TASKS as EXT_PW,
+                DRUG_RESPONSE_TASKS as EXT_DR,
+                EPISTASIS_TASKS as EXT_EP,
             )
 
+            def _merge_by_id(base, ext):
+                seen = {item["id"]: item for item in base}
+                seen.update({item["id"]: item for item in ext})
+                return list(seen.values())
+
+            ko_list = _merge_by_id(KNOCKOUT_TASKS, EXT_KO)
+            pw_list = _merge_by_id(PATHWAY_TASKS, EXT_PW)
+            dr_list = _merge_by_id(DRUG_RESPONSE_TASKS, EXT_DR)
+            ep_list = _merge_by_id(EPISTASIS_TASKS, EXT_EP)
             source_module = "bioeval.causalbio.extended_data"
         else:
             ko_list = KNOCKOUT_TASKS

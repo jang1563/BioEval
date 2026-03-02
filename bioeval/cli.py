@@ -515,6 +515,100 @@ def _aggregate(all_results: list[dict]) -> dict:
     return summary
 
 
+def _serialize_task(task, component_name: str) -> dict:
+    """Serialize any evaluator task type to a JSONL-compatible dict."""
+    # prompt: try .prompt, .question, .scenario
+    prompt = getattr(task, "prompt", None)
+    if prompt is None:
+        prompt = getattr(task, "question", None)
+    if prompt is None:
+        prompt = getattr(task, "scenario", "")
+
+    # ground_truth: use .ground_truth if present, else build from attrs
+    gt = getattr(task, "ground_truth", None)
+    if gt is None:
+        gt = {}
+        for attr in [
+            "adversarial_type",
+            "trap_description",
+            "correct_behavior",
+            "incorrect_behaviors",
+            "difficulty",
+            "domain",
+            "safety_type",
+            "expected_elements",
+            "red_flags",
+            "interp_type",
+            "data_table",
+            "expected_answer",
+            "interpretation_points",
+            "common_mistakes",
+        ]:
+            val = getattr(task, attr, None)
+            if val is not None:
+                gt[attr] = val.value if hasattr(val, "value") else val
+
+    return {
+        "component": getattr(task, "component", component_name),
+        "task_id": task.id,
+        "task_type": getattr(task, "task_type", "unknown"),
+        "prompt": prompt,
+        "ground_truth": json.dumps(gt, default=str),
+    }
+
+
+def cmd_export(args):
+    """Export evaluation tasks as JSONL."""
+    from bioeval.protoreason.evaluator import ProtoReasonEvaluator
+    from bioeval.causalbio.evaluator import CausalBioEvaluator
+    from bioeval.designcheck.evaluator import DesignCheckEvaluator
+    from bioeval.multiturn.dialogues import MultiTurnEvaluator
+    from bioeval.adversarial.tasks import AdversarialEvaluator
+    from bioeval.scoring.calibration import CalibrationEvaluator
+    from bioeval.biosafety.tasks import BiosafetyEvaluator
+    from bioeval.datainterp.tasks import DataInterpEvaluator
+    from bioeval.debate.evaluator import DebateEvaluator
+
+    tier = args.data_tier
+    output_path = args.output or f"data/{tier}.jsonl"
+
+    tiered = [
+        ("protoreason", ProtoReasonEvaluator),
+        ("causalbio", CausalBioEvaluator),
+        ("designcheck", DesignCheckEvaluator),
+        ("multiturn", MultiTurnEvaluator),
+    ]
+    no_tier = [
+        ("adversarial", AdversarialEvaluator),
+        ("calibration", CalibrationEvaluator),
+        ("biosafety", BiosafetyEvaluator),
+        ("datainterp", DataInterpEvaluator),
+        ("debate", DebateEvaluator),
+    ]
+
+    records = []
+    seen_ids = set()
+    for comp_name, cls in tiered:
+        for t in cls().load_tasks(data_tier=tier):
+            if t.id not in seen_ids:
+                records.append(_serialize_task(t, comp_name))
+                seen_ids.add(t.id)
+    for comp_name, cls in no_tier:
+        for t in cls().load_tasks():
+            if t.id not in seen_ids:
+                records.append(_serialize_task(t, comp_name))
+                seen_ids.add(t.id)
+
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    print(f"Exported {len(records)} tasks to {output_path}")
+    print(f"  Data tier: {tier}")
+    print(f"  Format: JSONL")
+
+
 def cmd_rescore(args):
     """Re-score results with updated scoring logic (no API calls needed)."""
     from bioeval.biosafety.tasks import rescore_biosafety
@@ -866,6 +960,16 @@ def main():
     sim_parser.add_argument("--output", "-o", help="Output file path")
     sim_parser.add_argument("--json", action="store_true", help="Output summary as JSON")
 
+    # --- export ---
+    export_parser = subparsers.add_parser("export", help="Export task data as JSONL (e.g. for HuggingFace)")
+    export_parser.add_argument(
+        "--data-tier",
+        choices=["base", "extended"],
+        default="base",
+        help="Data tier to export (default: base)",
+    )
+    export_parser.add_argument("--output", "-o", help="Output file path (default: data/<tier>.jsonl)")
+
     args = parser.parse_args()
 
     if args.command is None:
@@ -1109,6 +1213,8 @@ def main():
         else:
             print_simulation_summary(result)
             print(f"\nResults saved to: {output_path}")
+    elif args.command == "export":
+        cmd_export(args)
 
 
 if __name__ == "__main__":

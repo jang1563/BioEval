@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://github.com/jang1563/BioEval)
-[![Tests](https://img.shields.io/badge/tests-407%2F407%20passing-brightgreen.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-0.4.1-green.svg)](https://github.com/jang1563/BioEval)
+[![Tests](https://img.shields.io/badge/tests-427%2F427%20passing-brightgreen.svg)](#testing)
 
 Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
 

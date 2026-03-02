@@ -5,6 +5,17 @@ All notable changes to BioEval will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-03-02
+
+### Fixed
+
+- `load_tasks("extended")` in ProtoReason and CausalBio now correctly merges base + extended tasks (previously replaced base, dropping 5 tasks)
+
+### Added
+
+- `bioeval export` CLI command for JSONL data generation (HuggingFace-compatible)
+- 20 new tests: data tier consistency (base⊆extended), baselines, datasheet, export validation
+
 ## [0.4.0] - 2026-03-02
 
 ### Changed

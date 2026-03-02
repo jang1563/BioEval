@@ -208,9 +208,14 @@ class ProtoReasonEvaluator(BaseEvaluator):
                 SAFETY_TASKS as EXT_SAFETY,
             )
 
-            protocols = EXT_PROTOCOLS
-            calc_tasks = EXT_CALC
-            trouble_tasks = EXT_TROUBLE
+            # Merge base + extended; extended wins on key/ID conflicts
+            protocols = {**self.protocols, **EXT_PROTOCOLS}
+            seen_calc = {c["id"]: c for c in CALCULATION_TASKS}
+            seen_calc.update({c["id"]: c for c in EXT_CALC})
+            calc_tasks = list(seen_calc.values())
+            seen_trouble = {t["id"]: t for t in TROUBLESHOOTING_TASKS}
+            seen_trouble.update({t["id"]: t for t in EXT_TROUBLE})
+            trouble_tasks = list(seen_trouble.values())
             safety_tasks = EXT_SAFETY
         else:
             protocols = self.protocols

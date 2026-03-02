@@ -122,7 +122,7 @@ def check_inventory_counts():
 
 
 def check_no_hardcoded_legacy_versions():
-    bad_patterns = ("0.1.0", "0.2.0", "0.3.2")
+    bad_patterns = ("0.1.0", "0.2.0", "0.3.2", "0.4.0")
     paths = list((ROOT / "bioeval").rglob("*.py")) + list((ROOT / "scripts").rglob("*.py")) + [ROOT / "README.md"]
     offenders = []
     for p in paths:
