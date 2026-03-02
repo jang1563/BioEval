@@ -19,6 +19,10 @@ from dataclasses import dataclass, field
 from typing import Optional
 from enum import Enum
 
+from bioeval.utils.logging import get_logger
+
+_logger = get_logger(__name__)
+
 
 class DialogueType(Enum):
     """Types of multi-turn dialogues."""
@@ -802,7 +806,7 @@ class MultiTurnEvaluator:
         results = []
 
         for dialogue in DIALOGUES:
-            print(f"Running: {dialogue.title}...")
+            _logger.info("Running: %s...", dialogue.title)
             result = self.run_dialogue(dialogue)
             results.append(
                 {

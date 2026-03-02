@@ -5,6 +5,36 @@ All notable changes to BioEval will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-03-01
+
+### Added
+
+- Auto-apply Benjamini-Hochberg multiple comparison correction when comparing >1 component
+- `--correction` flag for `bioeval compare` (choices: auto, bh, bonferroni, none)
+- Gemini token fairness transparency: constant, logging, `--equalize-tokens` flag
+- `docs/FAIRNESS.md` documenting token budget asymmetry
+- Weight sensitivity analysis framework (`bioeval sensitivity` CLI)
+- Random and naive baseline computations (`bioeval/reporting/baselines.py`)
+- LLM-as-Judge metadata (`get_judge_metadata()`), rubric versioning, and score validation (clamping to [1,5])
+- Judge self-consistency measurement (`compute_judge_self_consistency()`)
+- `docs/JUDGE_VALIDATION.md` — judge reliability protocol
+- `docs/LIMITATIONS.md` — 8 key limitations documented
+- `bioeval baselines` CLI command for random/naive baseline display
+
+### Changed
+
+- Migrated remaining substring matching to `phrase_match()` in debate, biosafety, datainterp
+- Updated datasheet to cover all 9 components with limitations section
+- Normalized judge score scale (1-5 → 0-1) in agreement analysis for correct `weighted_kappa`
+- README: added Limitations and Documentation sections
+- Version synchronized across version.py, STATUS.md, README.md
+
+### Fixed
+
+- `print_comparison()` displays corrected p-values when correction applied
+- Significance stars now use corrected (not raw) p-values
+- `analyze_agreement()` judge_passed threshold fixed from 0.5 to normalized midpoint
+
 ## [0.3.0] - 2026-02-27
 
 ### Changed

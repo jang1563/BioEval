@@ -22,7 +22,7 @@ pip install -e . --quiet
 # Run dry-run first to verify setup
 echo ""
 echo "Verifying setup (dry run)..."
-python scripts/run_evaluation.py --dry-run --component all
+bioeval run --all --dry-run
 
 # Ask user to proceed
 echo ""
@@ -31,11 +31,10 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
     echo "Running full evaluation..."
-    python scripts/run_evaluation.py --model claude-sonnet-4-20250514 --component all
-    
+    bioeval run --all --model claude-sonnet-4-20250514 --seed 42
+
     echo ""
     echo "=============================================="
     echo "Evaluation complete! Results saved in results/"
-    echo "Open notebooks/01_results_analysis.ipynb to visualize"
     echo "=============================================="
 fi

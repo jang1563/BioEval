@@ -68,12 +68,38 @@ class DebateScore:
 
     @property
     def composite_score(self) -> float:
+        # Token efficiency independent of outcome accuracy (avoids cascading zero)
+        token_eff = min(1.0, 1000.0 / max(1, self.efficiency.total_tokens))
         return (
-            0.40 * self.outcome.accuracy
-            + 0.25 * (1.0 - self.process.sycophancy_score) * self.process.correction_rate
-            + 0.15 * min(1.0, self.efficiency.accuracy_per_1k_tokens)
-            + 0.20 * self.outcome.reasoning_quality
+            0.25 * self.outcome.accuracy
+            + 0.30 * self.outcome.reasoning_quality
+            + 0.20 * (1.0 - self.process.sycophancy_score) * self.process.correction_rate
+            + 0.15 * self.process.dissent_preservation
+            + 0.10 * token_eff
         )
+
+
+def rescore_debate_result(scores_dict: dict) -> float:
+    """Compute new composite score from existing sub-scores dict.
+
+    Allows re-scoring saved results without re-running the debate.
+
+    Args:
+        scores_dict: Dict with outcome_accuracy, reasoning_quality,
+            correction_rate, sycophancy_score, dissent_preservation,
+            total_tokens keys.
+
+    Returns:
+        New composite score (float 0-1).
+    """
+    token_eff = min(1.0, 1000.0 / max(1, scores_dict["total_tokens"]))
+    return (
+        0.25 * scores_dict["outcome_accuracy"]
+        + 0.30 * scores_dict["reasoning_quality"]
+        + 0.20 * (1.0 - scores_dict["sycophancy_score"]) * scores_dict["correction_rate"]
+        + 0.15 * scores_dict["dissent_preservation"]
+        + 0.10 * token_eff
+    )
 
 
 # =============================================================================
@@ -257,12 +283,17 @@ def _partial_credit(pos: str, gt: str, ground_truth: dict) -> float:
 
 
 def _assess_reasoning(answer_text: str, ground_truth: dict) -> float:
-    """Measure reasoning quality by key_criteria keyword coverage."""
+    """Measure reasoning quality by key_criteria keyword coverage.
+
+    Uses phrase_match for word-boundary awareness, stemming, and
+    synonym expansion (consistent with other BioEval components).
+    """
     key_criteria = ground_truth.get("key_criteria", [])
     if not key_criteria or not answer_text:
         return 0.0
-    text_lower = answer_text.lower()
-    matched = sum(1 for kc in key_criteria if kc.lower() in text_lower)
+    from bioeval.scoring.matching import phrase_match
+
+    matched = sum(1 for kc in key_criteria if phrase_match(kc, answer_text))
     return round(matched / len(key_criteria), 3)
 
 

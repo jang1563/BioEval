@@ -35,10 +35,12 @@ setup(
         "tqdm>=4.65.0",
         "pyyaml>=6.0",
         "requests>=2.28.0",
-        "jupyter>=1.0.0",
         "aiohttp>=3.9.0",
     ],
     extras_require={
+        "notebooks": [
+            "jupyter>=1.0.0",
+        ],
         "dev": [
             "pytest>=7.0.0",
             "pytest-asyncio>=0.21.0",

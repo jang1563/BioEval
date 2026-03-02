@@ -23,7 +23,15 @@ from pathlib import Path
 
 
 from bioeval.config import COMPONENTS
+from bioeval.models.base import GEMINI_THINKING_TOKEN_MULTIPLIER
 from bioeval.version import __version__
+
+
+def _get_judge_meta() -> dict:
+    """Lazy-load judge metadata to avoid importing heavy modules at startup."""
+    from bioeval.scoring.llm_judge import get_judge_metadata
+
+    return get_judge_metadata()
 
 
 def cmd_inventory(args):
@@ -127,6 +135,14 @@ def cmd_run(args):
     else:
         print("Error: specify --all or -c <component>")
         sys.exit(1)
+
+    # Set equalize-tokens mode before any model initialization
+    equalize = getattr(args, "equalize_tokens", False)
+    if equalize:
+        from bioeval.models.base import set_equalize_tokens
+
+        set_equalize_tokens(True)
+        print("  Equalize-tokens mode: Gemini token multiplier DISABLED")
 
     # Reproducibility control for any stochastic local logic
     random.seed(args.seed)
@@ -268,6 +284,9 @@ def cmd_run(args):
                 "use_judge": args.use_judge,
                 "judge_model": args.judge_model if args.use_judge else None,
                 "judge_temperature": args.judge_temperature if args.use_judge else None,
+                "judge_metadata": _get_judge_meta() if args.use_judge else None,
+                "equalize_tokens": equalize,
+                "gemini_token_multiplier": 1 if equalize else GEMINI_THINKING_TOKEN_MULTIPLIER,
                 "timestamp": datetime.now().isoformat(),
                 "elapsed_seconds": round(total_elapsed, 1),
                 "bioeval_version": __version__,
@@ -292,6 +311,11 @@ def cmd_run(args):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         model_safe = model.replace("/", "_").replace(":", "_")
         output_path = f"results/{model_safe}_{timestamp}.json"
+
+    # Ensure parent directory exists
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
 
     with open(output_path, "w") as f:
         json.dump(output_data, f, indent=2, default=str)
@@ -491,6 +515,69 @@ def _aggregate(all_results: list[dict]) -> dict:
     return summary
 
 
+def cmd_rescore(args):
+    """Re-score results with updated scoring logic (no API calls needed)."""
+    from bioeval.biosafety.tasks import rescore_biosafety
+    from bioeval.debate.scoring import rescore_debate_result
+
+    with open(args.result_file) as f:
+        data = json.load(f)
+
+    components_to_rescore = {"biosafety", "debate"}
+    if args.components:
+        components_to_rescore = set(args.components.split(","))
+
+    changes = {}
+    for comp_data in data.get("results", []):
+        comp_name = comp_data.get("component", "")
+
+        if comp_name == "biosafety" and "biosafety" in components_to_rescore:
+            n_changed = 0
+            for r in comp_data.get("results", []):
+                if "response" not in r:
+                    continue
+                old_score = r.get("score", 0.0)
+                new_scores = rescore_biosafety(r)
+                new_score = new_scores.get("score", old_score)
+                if abs(new_score - old_score) > 1e-6:
+                    n_changed += 1
+                r.update(new_scores)
+            changes["biosafety"] = n_changed
+
+        elif comp_name == "debate" and "debate" in components_to_rescore:
+            n_changed = 0
+            for r in comp_data.get("results", []):
+                scores = r.get("scores", {})
+                if "outcome_accuracy" not in scores:
+                    continue
+                old_composite = scores.get("composite_score", 0.0)
+                new_composite = rescore_debate_result(scores)
+                if abs(new_composite - old_composite) > 1e-6:
+                    n_changed += 1
+                scores["composite_score"] = round(new_composite, 4)
+            changes["debate"] = n_changed
+
+    # Update metadata
+    data.setdefault("metadata", {})["rescored_at"] = datetime.now().isoformat()
+    data["metadata"]["rescored_components"] = list(changes.keys())
+
+    # Output path
+    output_path = args.output
+    if not output_path:
+        stem = Path(args.result_file).stem
+        parent = Path(args.result_file).parent
+        output_path = str(parent / f"{stem}_rescored.json")
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+
+    # Summary
+    print(f"Rescored: {args.result_file}")
+    for comp, n in changes.items():
+        print(f"  {comp}: {n} tasks changed")
+    print(f"Output: {output_path}")
+
+
 def cmd_compare(args):
     """Compare two evaluation result files with statistical tests."""
     with open(args.baseline) as f:
@@ -500,7 +587,9 @@ def cmd_compare(args):
 
     from bioeval.reporting.statistical_tests import compare_models, print_comparison
 
-    comparison = compare_models(baseline, enhanced)
+    corr = getattr(args, "correction", "auto")
+    correction = corr if corr != "none" else None
+    comparison = compare_models(baseline, enhanced, correction=correction)
 
     if hasattr(args, "json") and args.json:
         print(json.dumps(comparison, indent=2, default=str))
@@ -508,6 +597,31 @@ def cmd_compare(args):
         print(f"\nBaseline: {args.baseline}")
         print(f"Enhanced: {args.enhanced}")
         print_comparison(comparison)
+
+
+def cmd_sensitivity(args):
+    """Run weight sensitivity analysis on a result file."""
+    from bioeval.reporting.sensitivity import (
+        print_sensitivity,
+        sensitivity_analysis,
+    )
+
+    analysis = sensitivity_analysis(
+        args.result_file,
+        delta=args.delta,
+        n_samples=args.samples,
+    )
+    if getattr(args, "json", False):
+        print(json.dumps(analysis, indent=2, default=str))
+    else:
+        print_sensitivity(analysis)
+
+
+def cmd_baselines(args):
+    """Show random and naive baseline scores."""
+    from bioeval.reporting.baselines import print_baselines
+
+    print_baselines()
 
 
 def cmd_demo(args):
@@ -599,6 +713,11 @@ def main():
         default=None,
         help="Comma-separated model names for heterogeneous debate (e.g., claude-sonnet-4-20250514,gpt-4o)",
     )
+    run_parser.add_argument(
+        "--equalize-tokens",
+        action="store_true",
+        help="Disable Gemini thinking-token multiplier for strict fairness (see docs/FAIRNESS.md)",
+    )
 
     # --- inventory ---
     subparsers.add_parser("inventory", help="Show complete task inventory")
@@ -608,6 +727,27 @@ def main():
     compare_parser.add_argument("baseline", help="Baseline results JSON")
     compare_parser.add_argument("enhanced", help="Enhanced results JSON")
     compare_parser.add_argument("--json", action="store_true", help="Output comparison as JSON")
+    compare_parser.add_argument(
+        "--correction",
+        choices=["auto", "bh", "bonferroni", "none"],
+        default="auto",
+        help="Multiple comparison correction (default: auto=BH when >1 component)",
+    )
+
+    # --- sensitivity ---
+    sens_parser = subparsers.add_parser("sensitivity", help="Weight sensitivity analysis")
+    sens_parser.add_argument("result_file", help="Result JSON file")
+    sens_parser.add_argument(
+        "--delta",
+        type=float,
+        default=0.1,
+        help="Max weight perturbation (default: 0.1 = +-10%%)",
+    )
+    sens_parser.add_argument("--samples", type=int, default=1000, help="Perturbation samples")
+    sens_parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    # --- baselines ---
+    subparsers.add_parser("baselines", help="Show random and naive baseline scores")
 
     # --- demo ---
     subparsers.add_parser("demo", help="Show pre-cached results (no API key needed)")
@@ -707,6 +847,12 @@ def main():
     vadapt_parser.add_argument("--strict", action="store_true", help="Fail validation if warnings are present")
     vadapt_parser.add_argument("--json", action="store_true", help="Output as JSON")
 
+    # --- rescore ---
+    rescore_parser = subparsers.add_parser("rescore", help="Re-score results with updated scoring logic (no API)")
+    rescore_parser.add_argument("result_file", help="Result JSON file to re-score")
+    rescore_parser.add_argument("--output", "-o", help="Output file path (default: <input>_rescored.json)")
+    rescore_parser.add_argument("--components", help="Comma-separated components to rescore (default: biosafety,debate)")
+
     # --- simulate ---
     sim_parser = subparsers.add_parser("simulate", help="Run simulation with synthetic responses (no API)")
     sim_parser.add_argument(
@@ -731,6 +877,10 @@ def main():
         cmd_inventory(args)
     elif args.command == "compare":
         cmd_compare(args)
+    elif args.command == "sensitivity":
+        cmd_sensitivity(args)
+    elif args.command == "baselines":
+        cmd_baselines(args)
     elif args.command == "demo":
         cmd_demo(args)
     elif args.command == "stats":
@@ -931,6 +1081,8 @@ def main():
                     print(f"  - [{issue['severity']}] record {issue['index']} " f"{issue['field']}: {issue['message']}")
         if not result["ok"]:
             sys.exit(1)
+    elif args.command == "rescore":
+        cmd_rescore(args)
     elif args.command == "simulate":
         from bioeval.simulation import run_simulation, print_simulation_summary
 

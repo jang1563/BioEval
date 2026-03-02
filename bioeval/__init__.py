@@ -14,8 +14,11 @@ from bioeval.models.base import BaseEvaluator, EvalTask, EvalResult
 from bioeval.protoreason.evaluator import ProtoReasonEvaluator
 from bioeval.causalbio.evaluator import CausalBioEvaluator
 from bioeval.designcheck.evaluator import DesignCheckEvaluator
-
-# Debate
+from bioeval.adversarial.tasks import AdversarialEvaluator
+from bioeval.multiturn.dialogues import MultiTurnEvaluator
+from bioeval.scoring.calibration import CalibrationEvaluator
+from bioeval.biosafety.tasks import BiosafetyEvaluator
+from bioeval.datainterp.tasks import DataInterpEvaluator
 from bioeval.debate.evaluator import DebateEvaluator
 
 # Scoring
@@ -37,7 +40,11 @@ __all__ = [
     "ProtoReasonEvaluator",
     "CausalBioEvaluator",
     "DesignCheckEvaluator",
-    # Debate
+    "AdversarialEvaluator",
+    "MultiTurnEvaluator",
+    "CalibrationEvaluator",
+    "BiosafetyEvaluator",
+    "DataInterpEvaluator",
     "DebateEvaluator",
     # Scoring
     "extract_confidence",

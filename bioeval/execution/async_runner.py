@@ -21,6 +21,10 @@ from pathlib import Path
 from typing import Optional, Callable, Any
 import sqlite3
 
+from bioeval.utils.logging import get_logger
+
+_logger = get_logger(__name__)
+
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -431,7 +435,7 @@ async def run_async_evaluation(
         progress = tracker.load(evaluation_id)
         if progress:
             completed_task_ids = {r.get("task_id") for r in progress.results}
-            print(f"Resuming: {progress.completed_tasks}/{progress.total_tasks} already complete")
+            _logger.info("Resuming: %d/%d already complete", progress.completed_tasks, progress.total_tasks)
 
     if not progress:
         progress = EvaluationProgress(total_tasks=len(tasks), start_time=datetime.now().isoformat())
@@ -440,19 +444,19 @@ async def run_async_evaluation(
     remaining_tasks = [t for t in tasks if t.get("task_id") not in completed_task_ids]
 
     if not remaining_tasks:
-        print("All tasks already completed!")
+        _logger.info("All tasks already completed!")
         return progress.results, client.get_stats()
 
-    print(f"Running {len(remaining_tasks)} tasks with max {config.max_concurrent} concurrent...")
+    _logger.info("Running %d tasks with max %d concurrent...", len(remaining_tasks), config.max_concurrent)
 
     # Progress callback
     def on_progress(completed: int, total: int):
         pct = (progress.completed_tasks + completed) / progress.total_tasks * 100
-        print(f"\rProgress: {progress.completed_tasks + completed}/{progress.total_tasks} ({pct:.1f}%)", end="")
+        _logger.debug("Progress: %d/%d (%.1f%%)", progress.completed_tasks + completed, progress.total_tasks, pct)
 
     # Run evaluation
     new_results = await client.batch_generate(remaining_tasks, progress_callback=on_progress)
-    print()  # Newline after progress
+    # Progress complete
 
     # Update progress
     progress.results.extend(new_results)
@@ -465,8 +469,11 @@ async def run_async_evaluation(
         tracker.save(evaluation_id, progress)
 
     stats = client.get_stats()
-    print(
-        f"\nStats: {stats['api_calls']} API calls, {stats['cache_hits']} cache hits, " f"{stats['total_tokens']} tokens used"
+    _logger.info(
+        "Stats: %d API calls, %d cache hits, %d tokens used",
+        stats["api_calls"],
+        stats["cache_hits"],
+        stats["total_tokens"],
     )
 
     return progress.results, stats
@@ -491,17 +498,17 @@ def clear_cache(model: Optional[str] = None):
     """Clear response cache."""
     cache = ResponseCache()
     cache.clear(model)
-    print(f"Cache cleared" + (f" for model {model}" if model else ""))
+    _logger.info("Cache cleared%s", f" for model {model}" if model else "")
 
 
 def show_cache_stats():
     """Show cache statistics."""
     cache = ResponseCache()
     stats = cache.get_stats()
-    print("Cache Statistics:")
-    print(f"  Total cached responses: {stats['total_cached']}")
-    print(f"  By model: {stats['by_model']}")
-    print(f"  Cache path: {stats['cache_path']}")
+    _logger.info("Cache Statistics:")
+    _logger.info("  Total cached responses: %d", stats["total_cached"])
+    _logger.info("  By model: %s", stats["by_model"])
+    _logger.info("  Cache path: %s", stats["cache_path"])
 
 
 if __name__ == "__main__":

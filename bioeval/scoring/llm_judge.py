@@ -7,10 +7,43 @@ This provides semantic evaluation rather than simple string matching.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Optional
 from dataclasses import dataclass, field
 from enum import Enum
+
+from bioeval.utils.logging import get_logger
+
+_logger = get_logger(__name__)
+
+# =============================================================================
+# JUDGE METADATA
+# =============================================================================
+
+JUDGE_METADATA = {
+    "default_model": "claude-sonnet-4-20250514",
+    "temperature": 0.0,
+    "scoring_scale": "1-5",
+    "n_dimensions": 6,
+}
+
+
+def _rubric_hash() -> str:
+    """Compute a short hash of the rubric definitions for versioning."""
+    # Deterministic string representation of all rubrics
+    parts = []
+    for task_type in sorted(RUBRICS.keys()):
+        for c in RUBRICS[task_type]:
+            parts.append(f"{task_type}:{c.dimension.value}:{c.weight}")
+    content = "|".join(parts)
+    return hashlib.sha256(content.encode()).hexdigest()[:12]
+
+
+def get_judge_metadata() -> dict:
+    """Return judge configuration metadata for result file inclusion."""
+    return {**JUDGE_METADATA, "rubric_version": _rubric_hash()}
+
 
 # =============================================================================
 # SCORING RUBRICS
@@ -485,13 +518,36 @@ class LLMJudge:
 
             result_dict = json.loads(json_str.strip())
 
+            # Validate overall score
+            overall = result_dict.get("overall_score", 0)
+            if not isinstance(overall, (int, float)):
+                _logger.warning(
+                    "Judge score not numeric: %s, defaulting to 3",
+                    overall,
+                )
+                overall = 3.0
+            elif not (1 <= overall <= 5):
+                _logger.warning(
+                    "Judge score out of range [1,5]: %s, clamping",
+                    overall,
+                )
+                overall = max(1.0, min(5.0, float(overall)))
+            else:
+                overall = float(overall)
+
+            # Validate dimension scores
+            validated_dims = {}
+            for k, v in result_dict.get("dimension_scores", {}).items():
+                raw = v.get("score", 0) if isinstance(v, dict) else v
+                if isinstance(raw, (int, float)):
+                    validated_dims[k] = max(1.0, min(5.0, float(raw)))
+                else:
+                    validated_dims[k] = 3.0
+
             return JudgeResult(
                 task_id=task_id,
-                overall_score=result_dict.get("overall_score", 0),
-                dimension_scores={
-                    k: v.get("score", 0) if isinstance(v, dict) else v
-                    for k, v in result_dict.get("dimension_scores", {}).items()
-                },
+                overall_score=overall,
+                dimension_scores=validated_dims,
                 reasoning=result_dict.get("summary_reasoning", ""),
                 strengths=result_dict.get("strengths", []),
                 weaknesses=result_dict.get("weaknesses", []),

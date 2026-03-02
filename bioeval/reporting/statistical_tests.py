@@ -292,7 +292,7 @@ def compare_models(
     results_a: dict,
     results_b: dict,
     extract_score_fn=None,
-    correction: Optional[str] = None,
+    correction: Optional[str] = "auto",
 ) -> dict:
     """Full statistical comparison of two model result files.
 
@@ -300,6 +300,10 @@ def compare_models(
         results_a: BioEval result dict for model A.
         results_b: BioEval result dict for model B.
         extract_score_fn: Function(component, task_result) -> float|None.
+        correction: Multiple comparison correction method.
+            'auto' (default): apply BH when >1 component has valid p-values.
+            'bh'/'bonferroni': apply specified method.
+            None: no correction (explicit opt-out).
 
     Returns:
         Comparison dict with per-component statistics.
@@ -358,17 +362,31 @@ def compare_models(
             },
         }
 
-    # Apply multiple comparison correction if requested
-    if correction:
-        comps_with_p = [
-            (comp, data) for comp, data in comparison["by_component"].items() if data["test_result"].get("p_value") is not None
-        ]
-        if comps_with_p:
-            raw_ps = [data["test_result"]["p_value"] for _, data in comps_with_p]
-            corrected_ps = apply_correction(raw_ps, method=correction)
-            for (comp, data), corrected_p in zip(comps_with_p, corrected_ps):
-                data["test_result"]["p_value_corrected"] = round(corrected_p, 6)
-                data["test_result"]["correction_method"] = correction
+    # Apply multiple comparison correction
+    comps_with_p = [
+        (comp, data) for comp, data in comparison["by_component"].items() if data["test_result"].get("p_value") is not None
+    ]
+
+    # Determine effective correction method
+    if correction == "auto":
+        effective = "bh" if len(comps_with_p) > 1 else None
+    elif correction:
+        effective = correction
+    else:
+        effective = None
+
+    if effective and comps_with_p:
+        raw_ps = [data["test_result"]["p_value"] for _, data in comps_with_p]
+        corrected_ps = apply_correction(raw_ps, method=effective)
+        for (comp, data), corrected_p in zip(comps_with_p, corrected_ps):
+            data["test_result"]["p_value_corrected"] = round(corrected_p, 6)
+            data["test_result"]["correction_method"] = effective
+
+    comparison["correction"] = {
+        "requested": correction,
+        "applied": effective,
+        "n_tests": len(comps_with_p),
+    }
 
     return comparison
 
@@ -437,28 +455,44 @@ def _normal_cdf(z: float) -> float:
 
 def print_comparison(comparison: dict) -> None:
     """Pretty-print a model comparison."""
+    corr_info = comparison.get("correction", {})
+    applied = corr_info.get("applied")
+
     print(f"\nModel Comparison: {comparison['model_a']} vs {comparison['model_b']}")
     print("=" * 90)
-    print(f"  {'Component':15s} {'Model A':>12s} {'Model B':>12s} {'Diff':>8s} {'p-value':>10s} {'Effect':>8s} {'Sig':>5s}")
+    print(
+        f"  {'Component':15s} {'Model A':>12s} {'Model B':>12s}" f" {'Diff':>8s} {'p-value':>10s} {'Effect':>8s} {'Sig':>5s}"
+    )
     print("-" * 90)
 
     for comp, data in sorted(comparison["by_component"].items()):
         mean_a = data["model_a"]["mean"]
         mean_b = data["model_b"]["mean"]
         diff = mean_a - mean_b
-        p = data["test_result"].get("p_value")
         d = data["effect_size"].get("cohens_d", 0)
 
-        p_str = f"{p:.4f}" if p is not None else "N/A"
-        sig = "*" if p is not None and p < 0.05 else ""
-        if p is not None and p < 0.01:
-            sig = "**"
-        if p is not None and p < 0.001:
-            sig = "***"
+        # Use corrected p-value when available, else raw
+        p_corrected = data["test_result"].get("p_value_corrected")
+        p_raw = data["test_result"].get("p_value")
+        p_display = p_corrected if p_corrected is not None else p_raw
+
+        p_str = f"{p_display:.4f}" if p_display is not None else "N/A"
+        sig = ""
+        if p_display is not None:
+            if p_display < 0.001:
+                sig = "***"
+            elif p_display < 0.01:
+                sig = "**"
+            elif p_display < 0.05:
+                sig = "*"
 
         ci_a = f"{mean_a:.3f} [{data['model_a']['lower']:.3f},{data['model_a']['upper']:.3f}]"
         ci_b = f"{mean_b:.3f} [{data['model_b']['lower']:.3f},{data['model_b']['upper']:.3f}]"
 
-        print(f"  {comp:15s} {ci_a:>25s} {ci_b:>25s} {diff:+.3f} {p_str:>10s} d={d:+.2f} {sig:>5s}")
+        print(f"  {comp:15s} {ci_a:>25s} {ci_b:>25s}" f" {diff:+.3f} {p_str:>10s} d={d:+.2f} {sig:>5s}")
 
     print("-" * 90)
+    if applied:
+        n_tests = corr_info.get("n_tests", 0)
+        print(f"  Correction: {applied.upper()} (k={n_tests})")
+    print()

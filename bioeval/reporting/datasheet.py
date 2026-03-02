@@ -16,10 +16,11 @@ def generate_datasheet() -> dict:
         # ── Motivation ────────────────────────────────────────────────
         "motivation": {
             "purpose": (
-                "BioEval evaluates frontier large language models on six dimensions of "
+                "BioEval evaluates frontier large language models on nine dimensions of "
                 "biological reasoning: protocol understanding, causal inference, experimental "
                 "design critique, adversarial robustness, multi-turn scientific dialogue, "
-                "and confidence calibration."
+                "confidence calibration, biosafety assessment, data interpretation, "
+                "and scientific debate."
             ),
             "creators": "Developed as part of AI biology benchmarking research.",
             "funding": "Self-funded research project.",
@@ -36,7 +37,7 @@ def generate_datasheet() -> dict:
                 "correct answers, flaws to detect, etc.), scoring rubric metadata, "
                 "and difficulty tier information."
             ),
-            "total_instances": "~190 tasks (base+extended), ~300 including advanced tier.",
+            "total_instances": "178 base tasks, 301 total (with extended tier).",
             "components": {
                 "ProtoReason": "Protocol comprehension: step ordering, gap identification, calculations, troubleshooting.",
                 "CausalBio": "Causal biological reasoning: gene knockout prediction, pathway analysis, drug response, epistasis.",
@@ -44,6 +45,9 @@ def generate_datasheet() -> dict:
                 "Adversarial": "Adversarial robustness: false premises, hallucination traps, misleading context.",
                 "MultiTurn": "Multi-turn dialogue: maintaining scientific coherence across conversation turns.",
                 "Calibration": "Confidence calibration: appropriate uncertainty expression, overconfidence detection.",
+                "BioSafety": "Biosafety assessment: dual-use risk evaluation, safety protocol knowledge, ethical reasoning.",
+                "DataInterp": "Data interpretation: reading biological figures, statistical analysis, identifying artifacts.",
+                "Debate": "Scientific debate: multi-model discussion, error correction, reasoning under disagreement.",
             },
             "labels": (
                 "Ground truth includes: categorical labels (essential/non-essential, up/down), "
@@ -63,7 +67,7 @@ def generate_datasheet() -> dict:
             ),
             "collection_mechanisms": "Manual expert authoring with structured templates.",
             "who_collected": "Researchers with molecular/cancer biology expertise.",
-            "timeframe": "2024-2025.",
+            "timeframe": "2024-2026.",
             "ethical_review": "Not applicable — no human subjects data.",
             "third_party_data": "No third-party data was used.",
         },
@@ -110,6 +114,20 @@ def generate_datasheet() -> dict:
                 "contamination detection between versions."
             ),
             "versioning": f"Semantic versioning (MAJOR.MINOR.PATCH). Current: {__version__}.",
+        },
+        # ── Limitations ──────────────────────────────────────────────
+        "limitations": {
+            "full_document": "See docs/LIMITATIONS.md for comprehensive discussion.",
+            "key_limitations": (
+                "1) Token budget asymmetry for Gemini thinking models; "
+                "2) Keyword-based scoring vulnerable to paraphrasing; "
+                "3) LLM-as-Judge not validated against human experts; "
+                "4) Expert-chosen scoring weights; "
+                "5) Small task counts in some components (6-10 tasks); "
+                "6) English-only; "
+                "7) Temporal scope limited to 2024-2026 biology knowledge; "
+                "8) Prompt template sensitivity across model architectures."
+            ),
         },
     }
 

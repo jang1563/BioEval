@@ -18,6 +18,29 @@ import os
 import json
 from datetime import datetime
 
+from bioeval.utils.logging import get_logger
+
+_logger = get_logger(__name__)
+
+# Gemini thinking models consume thinking tokens from the output budget.
+# This multiplier gives Gemini enough room for both thinking and response.
+# See docs/FAIRNESS.md for full disclosure and --equalize-tokens option.
+GEMINI_THINKING_TOKEN_MULTIPLIER = 4
+
+# Module-level default for equalize_tokens. Set via set_equalize_tokens()
+# before model initialization. This avoids threading the flag through
+# every evaluator constructor.
+_EQUALIZE_TOKENS_DEFAULT = False
+
+
+def set_equalize_tokens(value: bool) -> None:
+    """Set the module-level default for equalize_tokens.
+
+    Call before model initialization (e.g., in CLI cmd_run).
+    """
+    global _EQUALIZE_TOKENS_DEFAULT
+    _EQUALIZE_TOKENS_DEFAULT = value
+
 
 @dataclass
 class EvalTask:
@@ -55,12 +78,20 @@ def init_model(
     temperature: float = 0.0,
     adapter_path: Optional[str] = None,
     use_4bit: bool = True,
+    equalize_tokens: Optional[bool] = None,
 ):
     """Initialize model client based on name routing.
 
     This is the single source of truth for model name → backend mapping.
     Used by BaseEvaluator and standalone evaluators alike.
+
+    Args:
+        equalize_tokens: If True, do not apply the Gemini thinking-token
+            multiplier (strict fairness mode). None uses module default
+            (set via set_equalize_tokens). See docs/FAIRNESS.md.
     """
+    if equalize_tokens is None:
+        equalize_tokens = _EQUALIZE_TOKENS_DEFAULT
     name_lower = model_name.lower()
     if "claude" in name_lower:
         return ClaudeModel(model_name, temperature=temperature)
@@ -72,6 +103,7 @@ def init_model(
             base_url="https://api.deepseek.com",
             api_key_env="DEEPSEEK_API_KEY",
             temperature=temperature,
+            equalize_tokens=equalize_tokens,
         )
     elif "groq" in name_lower or "mixtral" in name_lower:
         return OpenAICompatibleModel(
@@ -79,6 +111,7 @@ def init_model(
             base_url="https://api.groq.com/openai/v1",
             api_key_env="GROQ_API_KEY",
             temperature=temperature,
+            equalize_tokens=equalize_tokens,
         )
     elif "gemini" in name_lower:
         return OpenAICompatibleModel(
@@ -86,6 +119,7 @@ def init_model(
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             api_key_env="GEMINI_API_KEY",
             temperature=temperature,
+            equalize_tokens=equalize_tokens,
         )
     elif "llama" in name_lower or "together" in name_lower:
         return OpenAICompatibleModel(
@@ -93,6 +127,7 @@ def init_model(
             base_url="https://api.together.xyz/v1",
             api_key_env="TOGETHER_API_KEY",
             temperature=temperature,
+            equalize_tokens=equalize_tokens,
         )
     elif "/" in model_name or adapter_path:
         # HuggingFace model (local)
@@ -290,6 +325,7 @@ class OpenAICompatibleModel:
         base_url: str,
         api_key_env: str,
         temperature: float = 0.0,
+        equalize_tokens: bool = False,
     ):
         from openai import OpenAI
 
@@ -301,6 +337,8 @@ class OpenAICompatibleModel:
         self.temperature = temperature
         self._base_url = base_url
         self._api_key_env = api_key_env
+        self._equalize_tokens = equalize_tokens
+        self._gemini_logged = False
 
     def _reset_client(self):
         """Recreate HTTP client after connection errors."""
@@ -322,6 +360,26 @@ class OpenAICompatibleModel:
                     self._reset_client()
         raise last_err  # type: ignore[misc]
 
+    def _token_kwargs(self, max_tokens: int) -> dict:
+        """Build token limit kwargs, adjusting for Gemini thinking models.
+
+        When equalize_tokens is True, Gemini receives the same max_tokens as
+        other models (strict fairness mode). See docs/FAIRNESS.md.
+        """
+        is_gemini = "generativelanguage.googleapis.com" in self._base_url
+        if is_gemini and not self._equalize_tokens:
+            effective = max_tokens * GEMINI_THINKING_TOKEN_MULTIPLIER
+            if not self._gemini_logged:
+                _logger.info(
+                    "Gemini thinking model: max_tokens %d -> %d (x%d). " "Use --equalize-tokens for strict fairness.",
+                    max_tokens,
+                    effective,
+                    GEMINI_THINKING_TOKEN_MULTIPLIER,
+                )
+                self._gemini_logged = True
+            return {"max_completion_tokens": effective}
+        return {"max_tokens": max_tokens}
+
     def generate(self, prompt: str, max_tokens: int = 2048, system: Optional[str] = None) -> str:
         """Generate response from OpenAI-compatible API."""
         messages = []
@@ -332,9 +390,9 @@ class OpenAICompatibleModel:
         response = self._retry_call(
             self.client.chat.completions.create,
             model=self.model,
-            max_tokens=max_tokens,
             temperature=self.temperature,
             messages=messages,
+            **self._token_kwargs(max_tokens),
         )
         return response.choices[0].message.content
 
@@ -348,9 +406,9 @@ class OpenAICompatibleModel:
         response = self._retry_call(
             self.client.chat.completions.create,
             model=self.model,
-            max_tokens=max_tokens,
             temperature=self.temperature,
             messages=msgs,
+            **self._token_kwargs(max_tokens),
         )
         return response.choices[0].message.content
 
@@ -383,14 +441,14 @@ class HuggingFaceModel:
         except ImportError:
             raise ImportError("Please install transformers and torch: " "pip install transformers torch accelerate")
 
-        print(f"Loading HuggingFace model: {model_name}")
+        _logger.info("Loading HuggingFace model: %s", model_name)
 
         # Check for GPU
         if torch.cuda.is_available():
-            print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+            _logger.info("Using GPU: %s", torch.cuda.get_device_name(0))
             device_map = "auto" if device == "auto" else device
         else:
-            print("No GPU detected, using CPU (will be slow)")
+            _logger.warning("No GPU detected, using CPU (will be slow)")
             device_map = "cpu"
             use_4bit = False
 
@@ -421,7 +479,7 @@ class HuggingFaceModel:
                     trust_remote_code=True,
                 )
             except ImportError:
-                print("bitsandbytes not available, loading without quantization")
+                _logger.warning("bitsandbytes not available, loading without quantization")
                 self.model = AutoModelForCausalLM.from_pretrained(
                     model_name,
                     device_map=device_map,
@@ -441,13 +499,13 @@ class HuggingFaceModel:
             try:
                 from peft import PeftModel
 
-                print(f"Loading LoRA adapters from: {adapter_path}")
+                _logger.info("Loading LoRA adapters from: %s", adapter_path)
                 self.model = PeftModel.from_pretrained(self.model, adapter_path)
             except ImportError:
                 raise ImportError("Please install peft: pip install peft")
 
         self.model.eval()
-        print("Model loaded successfully!")
+        _logger.info("Model loaded successfully!")
 
     def generate(
         self,

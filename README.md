@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.3.0-green.svg)](https://github.com/jang1563/BioEval)
-[![Tests](https://img.shields.io/badge/tests-299%2F299%20passing-brightgreen.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-0.3.2-green.svg)](https://github.com/jang1563/BioEval)
+[![Tests](https://img.shields.io/badge/tests-407%2F407%20passing-brightgreen.svg)](#testing)
 
 Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
 
@@ -232,15 +232,12 @@ BioEval/
 │   ├── run_comparison.py        # Enhanced vs baseline comparison
 │   └── visualize_results.py     # Results visualization
 ├── docs/                        # Project documentation
-│   ├── PRD.md                   # Product Requirements Document
-│   ├── IMPROVEMENT_PLAN.md      # Development roadmap
-│   ├── BIOLOGICAL_AMBIGUITY_DESIGN.md  # BioAmbiguity component design
-│   ├── LITERATURE_SURVEY.md     # Related work survey
-│   ├── EXPERT_PANEL_REVIEW.md   # Expert panel feedback
-│   ├── PUBLICATION_QUALITY_REVIEW.md   # Quality review
-│   └── PHASE0_BASELINE.md      # Phase 0 baseline report
+│   ├── STATUS.md               # Version & reproducibility contract
+│   ├── LIMITATIONS.md          # Known limitations
+│   ├── FAIRNESS.md             # Gemini token fairness disclosure
+│   └── JUDGE_VALIDATION.md     # LLM-as-Judge validation protocol
 ├── results/                     # Evaluation outputs
-├── tests/                       # Test suite (299 tests currently passing)
+├── tests/                       # Test suite (407 tests)
 ├── notebooks/                   # Analysis notebooks
 ├── setup.py
 ├── requirements.txt
@@ -291,7 +288,7 @@ Current release note: base CausalBio tasks are bundled curated tasks. External l
 # Run full test suite
 pytest tests/ -v
 
-# Expected: 299 passed
+# Expected: 407 passed
 
 # Format + lint checks (publication-grade hygiene)
 black --check bioeval/ scripts/ tests/
@@ -346,6 +343,26 @@ Companion JSON Schema references are provided in:
 | Base (all components) | 178 | Environment/model-dependent |
 | Base + Judge | 178 | Environment/model-dependent |
 | Extended + Judge | 301 | Environment/model-dependent |
+
+## Limitations
+
+Key limitations (see [docs/LIMITATIONS.md](docs/LIMITATIONS.md) for full details):
+
+- **Token budget asymmetry**: Gemini thinking models receive 4x output tokens; use `--equalize-tokens` for strict fairness
+- **Keyword-based scoring**: Vulnerable to paraphrasing despite word-boundary and stemming support
+- **LLM-as-Judge**: Single judge model (Claude Sonnet), not yet validated against human experts
+- **Task scale**: Some components have only 6-10 base tasks, yielding wider confidence intervals
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [docs/FAIRNESS.md](docs/FAIRNESS.md) | Gemini token budget fairness and disclosure |
+| [docs/JUDGE_VALIDATION.md](docs/JUDGE_VALIDATION.md) | LLM-as-Judge validation protocol |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | Comprehensive limitations |
+| [docs/STATUS.md](docs/STATUS.md) | Version, test counts, reproducibility contract |
+
+Generate the structured datasheet: `bioeval datasheet` (or `bioeval datasheet --json`)
 
 ## Citation
 

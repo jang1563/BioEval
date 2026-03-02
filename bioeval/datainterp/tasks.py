@@ -1118,17 +1118,14 @@ def _extract_numbers(text: str) -> list[float]:
 
 
 def _count_interp_matches(points: list[str], text: str) -> tuple[int, list[str]]:
-    """Count how many interpretation points are found in response."""
-    text_lower = text.lower()
-    found = []
-    for point in points:
-        words = point.lower().split()
-        if len(words) == 1:
-            if words[0] in text_lower:
-                found.append(point)
-        else:
-            if all(w in text_lower for w in words):
-                found.append(point)
+    """Count how many interpretation points are found in response.
+
+    Uses phrase_match for word-boundary awareness, stemming, and
+    synonym expansion (consistent with other BioEval components).
+    """
+    from bioeval.scoring.matching import phrase_match
+
+    found = [point for point in points if phrase_match(point, text)]
     return len(found), found
 
 

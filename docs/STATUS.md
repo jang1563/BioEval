@@ -1,7 +1,7 @@
 # BioEval Current Status (Canonical)
 
-Last updated: 2026-02-28
-Version: `0.3.1`
+Last updated: 2026-03-01
+Version: `0.3.2`
 
 This file is the canonical runtime status reference for counts, version, and reproducibility contract.
 
@@ -11,7 +11,7 @@ This file is the canonical runtime status reference for counts, version, and rep
 - Extended additions: `123` (ProtoReason +45, CausalBio +34, DesignCheck +20, MultiTurn +24)
 - Total unique: `301`
 - Components: `protoreason` (14), `causalbio` (13), `designcheck` (10), `adversarial` (30), `multiturn` (6), `calibration` (30), `biosafety` (25), `datainterp` (25), `debate` (25)
-- Tests: `379` passing
+- Tests: `407` passing
 
 Note: Advanced tiers reuse base task IDs with the same prompts (no unique additions). Previous counts of "Advanced: 78" and "Total: 417" were inflated and have been corrected.
 

@@ -256,3 +256,82 @@ class TestMultipleComparisonCorrection:
 
         with pytest.raises(ValueError, match="Unknown correction"):
             apply_correction([0.05], method="invalid")
+
+
+# =============================================================================
+# AUTO-CORRECTION TESTS
+# =============================================================================
+
+
+class TestAutoCorrection:
+    """Tests for automatic multiple comparison correction."""
+
+    @staticmethod
+    def _extract(component, task_result):
+        """Simple score extractor for testing."""
+        return task_result.get("scores", {}).get("value")
+
+    def _make_comp(self, component, base, n=10):
+        """Build a component result with unique task_ids."""
+        return {
+            "component": component,
+            "results": [
+                {
+                    "task_id": f"{component}_{i}",
+                    "task_type": "test",
+                    "scores": {"value": base + i * 0.01},
+                }
+                for i in range(n)
+            ],
+        }
+
+    def test_auto_correction_default_bh(self):
+        """correction='auto' applies BH when >1 component has valid p-values."""
+        from bioeval.reporting.statistical_tests import compare_models
+
+        baseline = {
+            "results": [
+                self._make_comp("comp_a", 0.4),
+                self._make_comp("comp_b", 0.3),
+            ]
+        }
+        enhanced = {
+            "results": [
+                self._make_comp("comp_a", 0.7),
+                self._make_comp("comp_b", 0.6),
+            ]
+        }
+        result = compare_models(baseline, enhanced, extract_score_fn=self._extract, correction="auto")
+        correction_info = result.get("correction", {})
+        assert correction_info.get("applied") == "bh"
+        assert correction_info.get("n_tests") == 2
+
+    def test_auto_correction_single_component(self):
+        """correction='auto' skips correction with only 1 component."""
+        from bioeval.reporting.statistical_tests import compare_models
+
+        baseline = {"results": [self._make_comp("comp_a", 0.4)]}
+        enhanced = {"results": [self._make_comp("comp_a", 0.7)]}
+        result = compare_models(baseline, enhanced, extract_score_fn=self._extract, correction="auto")
+        correction_info = result.get("correction", {})
+        assert correction_info.get("applied") is None
+
+    def test_correction_none_explicit_optout(self):
+        """correction=None means no correction applied."""
+        from bioeval.reporting.statistical_tests import compare_models
+
+        baseline = {
+            "results": [
+                self._make_comp("comp_a", 0.4),
+                self._make_comp("comp_b", 0.3),
+            ]
+        }
+        enhanced = {
+            "results": [
+                self._make_comp("comp_a", 0.7),
+                self._make_comp("comp_b", 0.6),
+            ]
+        }
+        result = compare_models(baseline, enhanced, extract_score_fn=self._extract, correction=None)
+        correction_info = result.get("correction", {})
+        assert correction_info.get("applied") is None

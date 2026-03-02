@@ -172,14 +172,17 @@ def analyze_agreement(result_path: str) -> dict:
             if judge_score is None:
                 continue
 
+            # Normalize judge score from 1-5 to 0-1 for comparability
+            judge_norm = (judge_score - 1.0) / 4.0
             paired_scores.append(
                 {
                     "task_id": r.get("task_id", r.get("dialogue_id", "")),
                     "component": comp,
                     "auto_score": auto_score,
-                    "judge_score": judge_score,
+                    "judge_score": judge_norm,
+                    "judge_score_raw": judge_score,
                     "auto_passed": auto_score >= 0.5,
-                    "judge_passed": judge_score >= 0.5,
+                    "judge_passed": judge_norm >= 0.5,
                 }
             )
 
@@ -285,6 +288,111 @@ def _interpret_kappa(kappa: float) -> str:
 # =============================================================================
 # TEXT OUTPUT
 # =============================================================================
+
+
+def compute_judge_self_consistency(
+    result_path: str,
+    judge_model: str = "claude-sonnet-4-20250514",
+    n_samples: int = 30,
+    seed: int = 42,
+) -> dict:
+    """Measure judge self-consistency by re-evaluating a sample.
+
+    Selects ``n_samples`` tasks from a result file that already contain
+    judge scores, re-runs the same judge, and computes agreement
+    (kappa, percent agreement) between the two runs.
+
+    **Important**: This makes ``n_samples`` API calls to the judge model.
+
+    Args:
+        result_path: Path to result JSON with existing judge_scores.
+        judge_model: Model name for the judge.
+        n_samples: Number of tasks to re-evaluate.
+        seed: Random seed for sample selection.
+
+    Returns:
+        Dict with kappa, percent_agreement, n_samples, and per-task details.
+    """
+    import random as _random
+
+    from bioeval.scoring.llm_judge import LLMJudge
+
+    with open(result_path) as f:
+        data = json.load(f)
+
+    # Collect tasks that have judge_scores
+    candidates = []
+    for comp_result in data.get("results", []):
+        comp = comp_result.get("component", "unknown")
+        for r in comp_result.get("results", []):
+            if not isinstance(r, dict):
+                continue
+            judge = r.get("judge_scores", {})
+            if not judge or "error" in judge or judge.get("overall_score") is None:
+                continue
+            candidates.append(
+                {
+                    "task_id": r.get("task_id", r.get("dialogue_id", "")),
+                    "task_type": r.get("task_type", ""),
+                    "component": comp,
+                    "prompt": r.get("prompt", ""),
+                    "response": r.get("response", ""),
+                    "ground_truth": r.get("ground_truth", {}),
+                    "original_judge_score": judge["overall_score"],
+                }
+            )
+
+    if not candidates:
+        return {"error": "No tasks with judge scores found."}
+
+    rng = _random.Random(seed)
+    sample = rng.sample(candidates, min(n_samples, len(candidates)))
+
+    # Re-evaluate with judge
+    lj = LLMJudge(judge_model=judge_model, temperature=0.0)
+    original_scores = []
+    rerun_scores = []
+    details = []
+
+    for item in sample:
+        result = lj.evaluate(
+            task_id=item["task_id"],
+            task_type=item["task_type"],
+            task_prompt=item["prompt"],
+            model_response=item["response"],
+            ground_truth=item["ground_truth"],
+        )
+        orig = item["original_judge_score"]
+        rerun = result.overall_score if result.overall_score is not None else 0.0
+        original_scores.append(orig)
+        rerun_scores.append(rerun)
+        details.append(
+            {
+                "task_id": item["task_id"],
+                "component": item["component"],
+                "original": orig,
+                "rerun": rerun,
+                "match": abs(orig - rerun) < 0.5,
+            }
+        )
+
+    # Binarize at midpoint (3.0) for 1-5 scale
+    orig_bin = [1 if s >= 3.0 else 0 for s in original_scores]
+    rerun_bin = [1 if s >= 3.0 else 0 for s in rerun_scores]
+    # Normalize 1-5 → 0-1 for weighted_kappa (expects [0,1])
+    orig_norm = [(s - 1.0) / 4.0 for s in original_scores]
+    rerun_norm = [(s - 1.0) / 4.0 for s in rerun_scores]
+
+    return {
+        "judge_model": judge_model,
+        "n_samples": len(sample),
+        "cohens_kappa": round(cohens_kappa(orig_bin, rerun_bin), 4),
+        "weighted_kappa": round(weighted_kappa(orig_norm, rerun_norm), 4),
+        "percent_agreement": round(percent_agreement(orig_bin, rerun_bin), 4),
+        "correlation": round(correlation(original_scores, rerun_scores), 4),
+        "interpretation": _interpret_kappa(cohens_kappa(orig_bin, rerun_bin)),
+        "details": details,
+    }
 
 
 def print_agreement(result_path: str):

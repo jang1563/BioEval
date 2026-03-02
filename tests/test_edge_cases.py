@@ -74,8 +74,8 @@ class TestNormalizerEdgeCases:
         from bioeval.scoring.normalizer import normalize_adversarial
 
         ns = normalize_adversarial({"score": float("nan")})
-        # Score should be 0 or handled, not NaN
-        assert ns.score == 0.0 or ns.score >= 0.0
+        # Score should be 0 or a valid non-negative number, not NaN
+        assert ns.score >= 0.0
 
     def test_negative_scores(self):
         from bioeval.scoring.normalizer import normalize_adversarial
@@ -284,8 +284,8 @@ class TestSimulationEdgeCases:
             for r in comp["results"]
             if isinstance(r, dict) and "error" not in r
         ]
-        # At least some scores should differ (seed affects response generation)
-        assert s1 != s2 or True  # Structural test: no crash
+        # Structural test: both runs produce valid score lists without crashing
+        assert isinstance(s1, list) and isinstance(s2, list)
 
     def test_all_quality_levels_run(self):
         from bioeval.simulation import run_simulation

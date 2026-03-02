@@ -176,3 +176,19 @@ temp/
 
 # BioEval progress tracking
 .bioeval_progress/
+
+# Internal development docs (not for public release)
+docs/PRD.md
+docs/IMPROVEMENT_PLAN.md
+docs/PUBLICATION_QUALITY_REVIEW.md
+docs/PUBLICATION_ROADMAP.md
+docs/POST_PHASE0_REVIEW.md
+docs/PHASE0_BASELINE.md
+docs/EXPERT_PANEL_REVIEW.md
+docs/LITERATURE_SURVEY.md
+docs/BIOLOGICAL_AMBIGUITY_DESIGN.md
+docs/SYSTEM_REVIEW_2026-02-28.md
+
+# Generated HTML reports
+*.html
+!examples/**/*.html

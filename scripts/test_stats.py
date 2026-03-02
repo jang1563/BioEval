@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Quick test of statistical_tests module."""
 import sys
+from pathlib import Path
 
-sys.path.insert(0, "/Users/jak4013/Dropbox/Bioinformatics/Claude/Evaluation_model/BioEval")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from bioeval.reporting.statistical_tests import bootstrap_ci, wilcoxon_signed_rank, permutation_test, cohens_d, hedges_g
 
