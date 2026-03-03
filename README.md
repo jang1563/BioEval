@@ -182,7 +182,10 @@ enhanced = enhance_prompt(original_prompt, config)
 |----------|--------|--------|
 | Anthropic | Claude Sonnet 4, Claude Opus 4 | API |
 | OpenAI | GPT-4o, GPT-4-turbo | API |
-| HuggingFace | Mistral, Llama, etc. | Local (with LoRA support) |
+| Google | Gemini 2.5 Flash | OpenAI-compatible API |
+| DeepSeek | DeepSeek V3 | OpenAI-compatible API |
+| Meta | Llama 3.3 70B | Together API |
+| Groq | Mixtral | Groq API |
 
 ### Additional Features
 
@@ -221,19 +224,23 @@ BioEval/
 │   ├── biosafety/               # Biosafety evaluation (25 tasks)
 │   ├── datainterp/              # Data interpretation (25 tasks)
 │   ├── debate/                  # Multi-agent debate (25 tasks)
-│   └── scoring/                 # Scoring & calibration
+│   ├── scoring/                 # Scoring & calibration
+│   ├── reporting/               # Analysis, baselines, sensitivity, agreement
+│   ├── adapters/                # Cross-benchmark adapters (LAB-Bench, BioProbeBench, BioLP-Bench)
+│   └── execution/               # Async runner
 ├── scripts/
 │   ├── run_evaluation.py        # Basic evaluation runner
 │   ├── run_enhanced.py          # Full-featured async runner
-│   ├── run_comparison.py        # Enhanced vs baseline comparison
-│   └── visualize_results.py     # Results visualization
+│   ├── check_release_consistency.py  # Release guardrails
+│   └── run_quality_checks.py    # Local quality verification
 ├── docs/                        # Project documentation
 │   ├── STATUS.md               # Version & reproducibility contract
 │   ├── LIMITATIONS.md          # Known limitations
 │   ├── FAIRNESS.md             # Gemini token fairness disclosure
-│   └── JUDGE_VALIDATION.md     # LLM-as-Judge validation protocol
+│   ├── JUDGE_VALIDATION.md     # LLM-as-Judge validation protocol
+│   └── REPRODUCTION_MANIFEST.md # Reproducibility contract
 ├── results/                     # Evaluation outputs
-├── tests/                       # Test suite (407 tests)
+├── tests/                       # Test suite (427 tests)
 ├── notebooks/                   # Analysis notebooks
 ├── setup.py
 ├── requirements.txt
@@ -284,7 +291,7 @@ Current release note: base CausalBio tasks are bundled curated tasks. External l
 # Run full test suite
 pytest tests/ -v
 
-# Expected: 407 passed
+# Expected: 427 passed
 
 # Format + lint checks (publication-grade hygiene)
 black --check bioeval/ scripts/ tests/
