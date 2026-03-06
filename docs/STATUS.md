@@ -11,7 +11,7 @@ This file is the canonical runtime status reference for counts, version, and rep
 - Extended additions: `104` (ProtoReason +45, CausalBio +34, DesignCheck +10, MultiTurn +15)
 - Total unique: `301`
 - Components: `protoreason` (14), `causalbio` (13), `designcheck` (20), `adversarial` (30), `multiturn` (15), `calibration` (30), `biosafety` (25), `datainterp` (25), `debate` (25)
-- Tests: `427` passing
+- Tests: `433` passing
 
 Note: Advanced tiers reuse base task IDs with the same prompts (no unique additions). Previous counts of "Advanced: 78" and "Total: 417" were inflated and have been corrected.
 

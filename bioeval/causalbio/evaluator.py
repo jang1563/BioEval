@@ -271,6 +271,10 @@ class CausalBioEvaluator(BaseEvaluator):
                 EPISTASIS_TASKS as EXT_EP,
             )
 
+            ext_ids = set()
+            for lst in (EXT_KO, EXT_PW, EXT_DR, EXT_EP):
+                ext_ids.update(item["id"] for item in lst)
+
             def _merge_by_id(base, ext):
                 seen = {item["id"]: item for item in base}
                 seen.update({item["id"]: item for item in ext})
@@ -280,23 +284,30 @@ class CausalBioEvaluator(BaseEvaluator):
             pw_list = _merge_by_id(PATHWAY_TASKS, EXT_PW)
             dr_list = _merge_by_id(DRUG_RESPONSE_TASKS, EXT_DR)
             ep_list = _merge_by_id(EPISTASIS_TASKS, EXT_EP)
-            source_module = "bioeval.causalbio.extended_data"
+
+            def _source_for(task):
+                if task["id"] in ext_ids:
+                    return "bioeval.causalbio.extended_data"
+                return "bioeval.causalbio.evaluator"
+
         else:
             ko_list = KNOCKOUT_TASKS
             pw_list = PATHWAY_TASKS
             dr_list = DRUG_RESPONSE_TASKS
             ep_list = EPISTASIS_TASKS
-            source_module = "bioeval.causalbio.evaluator"
+
+            def _source_for(task):
+                return "bioeval.causalbio.evaluator"
 
         tasks = []
         for ko in ko_list:
-            tasks.append(self._create_knockout_task(ensure_task_provenance(ko, source_module)))
+            tasks.append(self._create_knockout_task(ensure_task_provenance(ko, _source_for(ko))))
         for pathway in pw_list:
-            tasks.append(self._create_pathway_task(ensure_task_provenance(pathway, source_module)))
+            tasks.append(self._create_pathway_task(ensure_task_provenance(pathway, _source_for(pathway))))
         for epi in ep_list:
-            tasks.append(self._create_epistasis_task(ensure_task_provenance(epi, source_module)))
+            tasks.append(self._create_epistasis_task(ensure_task_provenance(epi, _source_for(epi))))
         for drug in dr_list:
-            tasks.append(self._create_drug_response_task(ensure_task_provenance(drug, source_module)))
+            tasks.append(self._create_drug_response_task(ensure_task_provenance(drug, _source_for(drug))))
         return tasks
 
     def _create_knockout_task(self, ko: dict) -> EvalTask:
