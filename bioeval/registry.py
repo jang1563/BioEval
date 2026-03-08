@@ -23,7 +23,37 @@ Usage:
 
 from __future__ import annotations
 
+import inspect
+from contextlib import contextmanager
 from dataclasses import dataclass, field
+
+
+class _RegistryDummyModel:
+    """Dummy model used to bypass API client initialization during task loading."""
+
+    def generate(self, prompt: str, **kwargs) -> str:
+        return ""
+
+    def generate_chat(self, messages: list, **kwargs) -> str:
+        return ""
+
+
+@contextmanager
+def _bypass_base_model_init():
+    """Temporarily bypass BaseEvaluator model client setup."""
+    try:
+        from bioeval.models.base import BaseEvaluator
+    except Exception:
+        # If base module is unavailable, proceed without patching.
+        yield
+        return
+
+    original = BaseEvaluator._init_model
+    BaseEvaluator._init_model = lambda self, *args, **kwargs: _RegistryDummyModel()
+    try:
+        yield
+    finally:
+        BaseEvaluator._init_model = original
 
 
 @dataclass
@@ -51,28 +81,21 @@ class ComponentInfo:
     def load_tasks(self, data_tier: str = "base"):
         """Load tasks using the evaluator's load_tasks method."""
         # Create a dummy evaluator just to load tasks (model not used for loading)
-        evaluator = self.create_evaluator("dummy")
-        if hasattr(evaluator, "load_tasks"):
-            return evaluator.load_tasks(data_tier=data_tier)
-        return evaluator.load_tasks()
+        with _bypass_base_model_init():
+            evaluator = self.create_evaluator("dummy")
+        load_tasks = getattr(evaluator, "load_tasks")
+        sig = inspect.signature(load_tasks)
+        has_var_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+        if "data_tier" in sig.parameters or has_var_kwargs:
+            return load_tasks(data_tier=data_tier)
+        return load_tasks()
 
     def get_task_count(self, data_tier: str = "base") -> int:
-        """Get the number of tasks without instantiating an evaluator."""
-        import importlib
-
+        """Get the number of tasks for this component."""
         try:
-            mod = importlib.import_module(self.task_data_module)
-            # Sum up task lists
-            count = 0
-            for attr_name in dir(mod):
-                attr = getattr(mod, attr_name)
-                if isinstance(attr, (list, dict)) and attr_name.isupper():
-                    if isinstance(attr, dict):
-                        count += len(attr)
-                    else:
-                        count += len(attr)
-            return count
-        except ImportError:
+            tasks = self.load_tasks(data_tier=data_tier)
+            return len(tasks)
+        except Exception:
             return 0
 
 
@@ -202,6 +225,42 @@ _BUILTIN_COMPONENTS = {
         supports_data_tiers=["base"],
         normalizer_name="normalize_debate",
         judge_rubric_types=["debate_outcome", "debate_process"],
+    ),
+    "longhorizon": ComponentInfo(
+        name="longhorizon",
+        description="Long-horizon scientific reasoning: constraint tracking, "
+                    "state accumulation, error propagation, resource management, "
+                    "adaptive replanning across multi-stage experiments",
+        evaluator_module="bioeval.longhorizon.evaluator",
+        evaluator_class="LongHorizonEvaluator",
+        task_data_module="bioeval.longhorizon.tasks",
+        task_types=[
+            "constraint_tracking",
+            "state_accumulation",
+            "error_propagation",
+            "resource_management",
+            "adaptive_replanning",
+        ],
+        supports_data_tiers=["base"],
+        normalizer_name="normalize_longhorizon",
+        judge_rubric_types=["adaptive_replanning", "error_propagation_reasoning"],
+    ),
+    "agentic": ComponentInfo(
+        name="agentic",
+        description="Pseudo-agentic multi-step scientific reasoning: "
+                    "experimental design, bioinformatics pipelines, "
+                    "literature research, troubleshooting workflows",
+        evaluator_module="bioeval.agentic.evaluator",
+        evaluator_class="AgenticEvaluator",
+        task_data_module="bioeval.agentic.tasks",
+        task_types=[
+            "experimental_design",
+            "bioinformatics_pipeline",
+            "literature_research",
+            "troubleshooting",
+        ],
+        supports_data_tiers=["base"],
+        normalizer_name="normalize_agentic",
     ),
 }
 

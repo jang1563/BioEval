@@ -5,6 +5,46 @@ All notable changes to BioEval will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-03-08
+
+### Added
+
+- **LongHorizon component** — 30 QA-based tasks for multi-step scientific reasoning
+  - 5 task types: constraint tracking (6), state accumulation (6), error propagation (6), resource management (6), adaptive replanning (6)
+  - Tests sustained reasoning across multi-stage experimental workflows without code execution
+  - Programmatic scoring via `phrase_match()` with task-type-specific rubrics
+  - Composite scoring: violation recall, target/elimination recall, affected/unaffected identification, infeasibility detection, required/prohibited element checking
+
+- **Agentic component** — 24 pseudo-agentic multi-turn tasks with milestone-based progress scoring
+  - 4 categories × 6 tasks: experimental design, bioinformatics pipeline, literature research, troubleshooting
+  - Multi-step workflow: model receives scenario → step-by-step prompts → milestone scoring per step
+  - Progress rate metric (milestones_achieved / total) inspired by AgentBoard (NeurIPS 2024)
+  - No code execution required — evaluates reasoning quality, not tool-use success
+  - Offline `score_response()` for batch evaluation without API calls
+
+- Simulation generators for longhorizon and agentic in `bioeval simulate`
+- Benchmark statistics coverage for all 11 components
+- 26 new tests for agentic component (data loading, milestone scoring, progress rate, offline scoring, registry, normalizer)
+- Longhorizon and agentic in `bioeval export`, `bioeval inventory`, and `bioeval run` CLI commands
+
+### Changed
+
+- Total components: 9 → **11**
+- Base tasks: 197 → **251** (+30 longhorizon, +24 agentic)
+- Total unique tasks: 301 → **355**
+- Tests: 433 → **482**
+- Version: 0.4.1 → 0.5.0
+- Updated `check_release_consistency.py` to validate all 11 components
+- Updated reproducibility framework expected components (9 → 11)
+
+### Fixed
+
+- **ag_lr_006**: Corrected factual error — "gut microbes consume ~95% of dietary tryptophan" → "~95% of the body's serotonin is produced in the gut"
+- **ag_ts_004**: Fixed TMT11-plex arithmetic — "3 TMT sets × 40 samples" → "12 plexes total, 4 plexes per batch"
+- **ag_lr_003**: CA 19-9 sensitivity clarified — added "(~79% overall, but only 40-65% for stage I-II)"
+- **ag_bp_005**: H3K27ac peak calling mode — changed from "broad peak" to "peak calling (narrow per ENCODE or broad for super-enhancer analysis)"
+- Removed dead code `AgenticTaskScore` dataclass from `agentic/scoring.py`
+
 ## [0.4.1] - 2026-03-02
 
 ### Fixed

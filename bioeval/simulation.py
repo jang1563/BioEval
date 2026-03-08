@@ -475,6 +475,117 @@ def _gen_datainterp(task, quality: str, rng: random.Random) -> str:
         return "The results are inconclusive and require further investigation."
 
 
+def _gen_longhorizon(task, quality: str, rng: random.Random) -> str:
+    """Generate synthetic response for a LongHorizon EvalTask."""
+    gt = task.ground_truth
+    tt = task.task_type
+
+    if tt == "constraint_tracking":
+        violations = gt.get("violations", [])
+        if quality == "good" and violations:
+            lines = ["I identified the following violations:\n"]
+            for v in violations:
+                lines.append(f"- {v.replace('_', ' ')}: This is infeasible and incompatible.\n")
+            return "".join(lines)
+        elif quality == "bad":
+            return "The protocol looks fine. No issues detected."
+        else:
+            if violations and rng.random() < 0.5:
+                v = violations[0]
+                return f"One issue: {v.replace('_', ' ')} is problematic."
+            return "There may be some issues with compatibility."
+
+    elif tt == "state_accumulation":
+        targets = gt.get("final_active_targets", [])
+        elims = gt.get("all_eliminations", {})
+        if quality == "good":
+            lines = ["Final active targets: "]
+            lines.append(", ".join(targets) + ".\n")
+            lines.append("Eliminations:\n")
+            for name in elims:
+                clean = name.replace("Compound_", "Compound ").replace("_", " ")
+                lines.append(f"- {clean} was eliminated.\n")
+            return "".join(lines)
+        elif quality == "bad":
+            return "Several compounds remain in the pipeline."
+        else:
+            if targets and rng.random() < 0.5:
+                return f"Active targets include: {', '.join(targets[:2])}."
+            return "The pipeline has been narrowed down."
+
+    elif tt == "error_propagation":
+        affected = gt.get("affected", [])
+        unaffected = gt.get("unaffected", [])
+        if quality == "good":
+            lines = ["Downstream impact analysis:\n"]
+            lines.append("Affected: ")
+            lines.append(", ".join(a.replace("_", " ") for a in affected) + ".\n")
+            lines.append("Unaffected: ")
+            lines.append(", ".join(u.replace("_", " ") for u in unaffected) + ".\n")
+            return "".join(lines)
+        elif quality == "bad":
+            return "The error has some downstream effects."
+        else:
+            if affected and rng.random() < 0.5:
+                return f"The error affects {affected[0].replace('_', ' ')}."
+            return "Some downstream analyses may be impacted."
+
+    elif tt == "resource_management":
+        infeasible = gt.get("infeasible", {})
+        if quality == "good":
+            lines = ["Resource allocation assessment:\n"]
+            for name in infeasible:
+                clean = name.replace("_", " ")
+                lines.append(f"- {clean} is infeasible due to insufficient resources.\n")
+            return "".join(lines)
+        elif quality == "bad":
+            return "All requests can be accommodated."
+        else:
+            if infeasible and rng.random() < 0.5:
+                name = list(infeasible.keys())[0]
+                return f"{name.replace('_', ' ')} cannot be accommodated — not enough capacity."
+            return "Most requests are feasible."
+
+    elif tt == "adaptive_replanning":
+        required = gt.get("required_elements", [])
+        prohibited = gt.get("prohibited_elements", [])
+        if quality == "good":
+            lines = ["Revised plan:\n"]
+            for r in required:
+                lines.append(f"- {r}\n")
+            return "".join(lines)
+        elif quality == "bad":
+            lines = ["Plan:\n"]
+            for p in prohibited[:2]:
+                lines.append(f"- Continue with {p}\n")
+            return "".join(lines)
+        else:
+            if required and rng.random() < 0.5:
+                return f"Key adjustment: {required[0]}."
+            return "Minor modifications to the original plan."
+
+    return "No response generated."
+
+
+def _gen_agentic_step(task, step, quality: str, rng: random.Random) -> str:
+    """Generate synthetic response for a single agentic step."""
+    criteria = step.milestone_criteria
+
+    if quality == "good":
+        lines = [f"For {step.name}, here is my analysis:\n"]
+        for c in criteria:
+            lines.append(f"We should consider {c} as a key component. ")
+        return "".join(lines)
+    elif quality == "bad":
+        return f"I would approach {step.name} by following standard procedures."
+    else:
+        if rng.random() < 0.5 and criteria:
+            n = max(1, len(criteria) // 2)
+            selected = rng.sample(criteria, min(n, len(criteria)))
+            return f"Key considerations: {', '.join(selected)}."
+        return f"This step involves {step.name.lower()} considerations."
+
+
 # =============================================================================
 # PER-COMPONENT SIMULATION RUNNERS
 # =============================================================================
@@ -694,6 +805,48 @@ def _simulate_datainterp(quality: str, rng: random.Random) -> dict:
     return {"component": "datainterp", "num_tasks": len(results), "results": results}
 
 
+def _simulate_longhorizon(evaluator, quality: str, rng: random.Random) -> dict:
+    """Run LongHorizon simulation using actual scorer."""
+    tasks = evaluator.load_tasks()
+    results = []
+
+    for task in tasks:
+        response = _gen_longhorizon(task, quality, rng)
+        try:
+            score = evaluator.score_response(task, response)
+            score["task_id"] = task.id
+            score["task_type"] = task.task_type
+            score["response"] = response
+            results.append(score)
+        except Exception as e:
+            results.append({"task_id": task.id, "task_type": task.task_type, "error": str(e)})
+
+    return {"component": "longhorizon", "num_tasks": len(results), "results": results}
+
+
+def _simulate_agentic(quality: str, rng: random.Random) -> dict:
+    """Run Agentic simulation using offline scoring (no API calls)."""
+    from bioeval.agentic.evaluator import AgenticEvaluator
+    from bioeval.agentic.tasks import AGENTIC_TASKS
+
+    evaluator = AgenticEvaluator()
+    task_wrappers = evaluator.load_tasks()
+    results = []
+
+    for tw in task_wrappers:
+        task = tw._task
+        n_steps = len(task.steps)
+        responses = [_gen_agentic_step(task, step, quality, rng) for step in task.steps]
+        try:
+            result = AgenticEvaluator.score_response(tw, responses)
+            result["response"] = "\n\n".join(responses)
+            results.append(result)
+        except Exception as e:
+            results.append({"task_id": task.id, "category": task.category, "error": str(e)})
+
+    return {"component": "agentic", "num_tasks": len(results), "results": results}
+
+
 def _simulate_debate(quality: str, rng: random.Random) -> dict:
     """Run Debate simulation with synthetic scoring results."""
     from bioeval.debate.tasks import DEBATE_TASKS
@@ -859,6 +1012,16 @@ def run_simulation(
 
     # Debate (synthetic scoring — no multi-agent simulation)
     all_results.append(_simulate_debate(quality, rng))
+
+    # LongHorizon (BaseEvaluator, uses score_response)
+    with _bypass_model_init():
+        from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+
+        lh_eval = LongHorizonEvaluator("dummy")
+        all_results.append(_simulate_longhorizon(lh_eval, quality, rng))
+
+    # Agentic (standalone offline scoring, no API needed)
+    all_results.append(_simulate_agentic(quality, rng))
 
     return {
         "metadata": {

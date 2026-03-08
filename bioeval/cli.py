@@ -45,6 +45,8 @@ def cmd_inventory(args):
     from bioeval.biosafety.tasks import BiosafetyEvaluator
     from bioeval.datainterp.tasks import DataInterpEvaluator
     from bioeval.debate.evaluator import DebateEvaluator
+    from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+    from bioeval.agentic.evaluator import AgenticEvaluator
 
     print("=" * 60)
     print("BioEval Task Inventory")
@@ -63,6 +65,8 @@ def cmd_inventory(args):
         "BioSafety": BiosafetyEvaluator,
         "DataInterp": DataInterpEvaluator,
         "Debate": DebateEvaluator,
+        "LongHorizon": LongHorizonEvaluator,
+        "Agentic": AgenticEvaluator,
     }
 
     base_counts = {}
@@ -425,6 +429,16 @@ def _run_component(
             temperature=temperature,
         )
         tasks = evaluator.load_tasks()
+    elif component == "longhorizon":
+        from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+
+        evaluator = LongHorizonEvaluator(model, temperature=temperature)
+        tasks = evaluator.load_tasks()
+    elif component == "agentic":
+        from bioeval.agentic.evaluator import AgenticEvaluator
+
+        evaluator = AgenticEvaluator(model_name=model, temperature=temperature)
+        tasks = evaluator.load_tasks()
     else:
         raise ValueError(f"Unknown component: {component}")
 
@@ -568,6 +582,8 @@ def cmd_export(args):
     from bioeval.biosafety.tasks import BiosafetyEvaluator
     from bioeval.datainterp.tasks import DataInterpEvaluator
     from bioeval.debate.evaluator import DebateEvaluator
+    from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+    from bioeval.agentic.evaluator import AgenticEvaluator
 
     tier = args.data_tier
     output_path = args.output or f"data/{tier}.jsonl"
@@ -584,6 +600,8 @@ def cmd_export(args):
         ("biosafety", BiosafetyEvaluator),
         ("datainterp", DataInterpEvaluator),
         ("debate", DebateEvaluator),
+        ("longhorizon", LongHorizonEvaluator),
+        ("agentic", AgenticEvaluator),
     ]
 
     records = []

@@ -110,6 +110,24 @@ class TestNumericalValue:
         assert result.success
         assert abs(result.value - 1.5e6) / 1.5e6 < 0.05
 
+    def test_scientific_notation_negative_exponent(self):
+        response = "Final concentration is 1 x 10^-3 mL."
+        result = extract_numerical_value(response, expected_value=1e-3)
+        assert result.success
+        assert abs(result.value - 1e-3) / 1e-3 < 0.05
+
+    def test_scientific_notation_e_format(self):
+        response = "The concentration is 1.5e6 cells/mL"
+        result = extract_numerical_value(response, expected_value=1.5e6)
+        assert result.success
+        assert abs(result.value - 1.5e6) / 1.5e6 < 0.05
+
+    def test_scientific_notation_superscript_minus(self):
+        response = "The concentration is 1×10⁻³ mL"
+        result = extract_numerical_value(response, expected_value=1e-3)
+        assert result.success
+        assert abs(result.value - 1e-3) / 1e-3 < 0.05
+
     def test_multiple_values(self):
         response = "You need 10 μL of stock and 90 μL of water."
         result = extract_numerical_value(response, expected_value=10.0)

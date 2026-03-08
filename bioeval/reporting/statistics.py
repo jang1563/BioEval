@@ -209,6 +209,31 @@ def _collect_task_ids(data_tier: str) -> list[str]:
     for t in DEBATE_TASKS:
         ids.append(t.id)
 
+    # LongHorizon
+    from bioeval.longhorizon.tasks import (
+        CONSTRAINT_TRACKING_TASKS,
+        STATE_ACCUMULATION_TASKS,
+        ERROR_PROPAGATION_TASKS,
+        RESOURCE_MANAGEMENT_TASKS,
+        ADAPTIVE_REPLANNING_TASKS,
+    )
+
+    for task_list in [
+        CONSTRAINT_TRACKING_TASKS,
+        STATE_ACCUMULATION_TASKS,
+        ERROR_PROPAGATION_TASKS,
+        RESOURCE_MANAGEMENT_TASKS,
+        ADAPTIVE_REPLANNING_TASKS,
+    ]:
+        for t in task_list:
+            ids.append(t["id"])
+
+    # Agentic
+    from bioeval.agentic.tasks import AGENTIC_TASKS
+
+    for t in AGENTIC_TASKS:
+        ids.append(t.id)
+
     # Extended data
     if data_tier in ("extended", "all"):
         try:
@@ -299,6 +324,36 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
     stats["components"]["biosafety"] = _count_biosafety()
     stats["components"]["datainterp"] = _count_datainterp()
     stats["components"]["debate"] = _count_debate()
+
+    # LongHorizon
+    from bioeval.longhorizon.tasks import (
+        CONSTRAINT_TRACKING_TASKS,
+        STATE_ACCUMULATION_TASKS,
+        ERROR_PROPAGATION_TASKS,
+        RESOURCE_MANAGEMENT_TASKS,
+        ADAPTIVE_REPLANNING_TASKS,
+    )
+
+    lh_by_type = {
+        "constraint_tracking": len(CONSTRAINT_TRACKING_TASKS),
+        "state_accumulation": len(STATE_ACCUMULATION_TASKS),
+        "error_propagation": len(ERROR_PROPAGATION_TASKS),
+        "resource_management": len(RESOURCE_MANAGEMENT_TASKS),
+        "adaptive_replanning": len(ADAPTIVE_REPLANNING_TASKS),
+    }
+    stats["components"]["longhorizon"] = {
+        "n_tasks": sum(lh_by_type.values()),
+        "by_type": lh_by_type,
+    }
+
+    # Agentic
+    from bioeval.agentic.tasks import AGENTIC_TASKS
+
+    ag_types = Counter(t.category for t in AGENTIC_TASKS)
+    stats["components"]["agentic"] = {
+        "n_tasks": len(AGENTIC_TASKS),
+        "by_type": dict(ag_types),
+    }
 
     # Split stats
     from bioeval.scoring.splits import get_split

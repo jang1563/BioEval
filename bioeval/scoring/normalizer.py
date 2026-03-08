@@ -319,6 +319,83 @@ def normalize_debate(result: dict) -> NormalizedScore:
     )
 
 
+def normalize_longhorizon(result: dict, task_type: str) -> NormalizedScore:
+    """Normalize a LongHorizon result."""
+    task_id = result.get("task_id", "")
+
+    if task_type == "constraint_tracking":
+        score = _clamp(result.get("recall", 0.0))
+        subscores = {
+            "recall": result.get("recall", 0.0),
+            "violations_detected": result.get("violations_detected", 0),
+            "violations_total": result.get("violations_total", 0),
+        }
+    elif task_type in ("state_accumulation", "error_propagation"):
+        score = _clamp(result.get("composite_score", 0.0))
+        subscores = {}
+        if task_type == "state_accumulation":
+            subscores = {
+                "target_recall": result.get("target_recall", 0.0),
+                "elimination_recall": result.get("elimination_recall", 0.0),
+            }
+        else:
+            subscores = {
+                "affected_recall": result.get("affected_recall", 0.0),
+                "unaffected_recall": result.get("unaffected_recall", 0.0),
+            }
+    elif task_type == "resource_management":
+        score = _clamp(result.get("score", 0.0))
+        subscores = {
+            "infeasible_correctly_identified": result.get("infeasible_correctly_identified", 0),
+            "infeasible_total": result.get("infeasible_total", 0),
+        }
+    elif task_type == "adaptive_replanning":
+        score = _clamp(result.get("composite_score", 0.0))
+        subscores = {
+            "required_score": result.get("required_score", 0.0),
+            "penalty": result.get("penalty", 0.0),
+            "bonus_elements_found": result.get("bonus_elements_found", 0),
+        }
+    else:
+        score = _clamp(result.get("composite_score", result.get("score", result.get("recall", 0.0))))
+        subscores = {}
+
+    return NormalizedScore(
+        task_id=task_id,
+        component="longhorizon",
+        task_type=task_type,
+        score=round(score, 4),
+        passed=score >= 0.5,
+        subscores=subscores,
+        raw=result,
+    )
+
+
+def normalize_agentic(result: dict) -> NormalizedScore:
+    """Normalize an Agentic result.
+
+    The primary score is progress_rate (milestones achieved / total).
+    """
+    task_id = result.get("task_id", "")
+    scores = result.get("scores", {})
+    progress = _clamp(scores.get("progress_rate", 0.0))
+    achieved = scores.get("milestones_achieved", 0)
+    total = scores.get("milestones_total", 0)
+    subscores = {
+        "milestones_achieved": achieved,
+        "milestones_total": total,
+    }
+    return NormalizedScore(
+        task_id=task_id,
+        component="agentic",
+        task_type=result.get("category", "unknown"),
+        score=round(progress, 4),
+        passed=progress >= 0.5,
+        subscores=subscores,
+        raw=result,
+    )
+
+
 # =============================================================================
 # DISPATCHER
 # =============================================================================
@@ -350,6 +427,10 @@ def normalize_result(result: dict, component: str, task_type: str = "") -> Norma
         return normalize_datainterp(result)
     elif component == "debate":
         return normalize_debate(result)
+    elif component == "longhorizon":
+        return normalize_longhorizon(result, task_type)
+    elif component == "agentic":
+        return normalize_agentic(result)
     else:
         # Generic fallback: look for common score fields
         score = result.get("score", result.get("f1", result.get("accuracy", 0.0)))
@@ -390,6 +471,24 @@ def normalize_component_results(
                 task_type = "troubleshooting"
             elif "safety" in task_id:
                 task_type = "safety"
+            elif task_id.startswith("lh_ct_"):
+                task_type = "constraint_tracking"
+            elif task_id.startswith("lh_sa_"):
+                task_type = "state_accumulation"
+            elif task_id.startswith("lh_ep_"):
+                task_type = "error_propagation"
+            elif task_id.startswith("lh_rm_"):
+                task_type = "resource_management"
+            elif task_id.startswith("lh_ar_"):
+                task_type = "adaptive_replanning"
+            elif task_id.startswith("ag_ed_"):
+                task_type = "experimental_design"
+            elif task_id.startswith("ag_bp_"):
+                task_type = "bioinformatics_pipeline"
+            elif task_id.startswith("ag_lr_"):
+                task_type = "literature_research"
+            elif task_id.startswith("ag_ts_"):
+                task_type = "troubleshooting"
 
         normalized.append(normalize_result(r, component, task_type))
     return normalized

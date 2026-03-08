@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.4.1-green.svg)](https://github.com/jang1563/BioEval)
-[![Tests](https://img.shields.io/badge/tests-433%2F433%20passing-brightgreen.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-0.5.0-green.svg)](https://github.com/jang1563/BioEval)
+[![Tests](https://img.shields.io/badge/tests-482%2F482%20passing-brightgreen.svg)](#testing)
 
 Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
 
@@ -45,9 +45,9 @@ BioEval fills this gap with **procedural reasoning**, **causal perturbation reas
 
 | Tier | Tasks | Description |
 |------|:-----:|-------------|
-| **Base** | 197 | Base tasks across 9 components |
+| **Base** | 251 | Base tasks across 11 components |
 | **Extended** | 104 | Additional ProtoReason (+45), CausalBio (+34), DesignCheck (+10), MultiTurn (+15) |
-| **Total Unique** | **301** | Full benchmark suite |
+| **Total Unique** | **355** | Full benchmark suite |
 
 ## Quick Start
 
@@ -343,9 +343,9 @@ Companion JSON Schema references are provided in:
 
 | Tier | Tasks | Cost per Run (Claude) |
 |------|:-----:|-----------------:|
-| Base (all components) | 197 | Environment/model-dependent |
-| Base + Judge | 197 | Environment/model-dependent |
-| Extended + Judge | 301 | Environment/model-dependent |
+| Base (all components) | 251 | Environment/model-dependent |
+| Base + Judge | 251 | Environment/model-dependent |
+| Extended + Judge | 355 | Environment/model-dependent |
 
 ## Limitations
 

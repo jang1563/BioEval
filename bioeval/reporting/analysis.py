@@ -76,6 +76,24 @@ def load_and_normalize(result_path: str) -> dict:
                     task_type = "flaw_detection"
                 elif task_id.startswith("cal_"):
                     task_type = "calibration"
+                elif task_id.startswith("lh_ct_"):
+                    task_type = "constraint_tracking"
+                elif task_id.startswith("lh_sa_"):
+                    task_type = "state_accumulation"
+                elif task_id.startswith("lh_ep_"):
+                    task_type = "error_propagation"
+                elif task_id.startswith("lh_rm_"):
+                    task_type = "resource_management"
+                elif task_id.startswith("lh_ar_"):
+                    task_type = "adaptive_replanning"
+                elif task_id.startswith("ag_ed_"):
+                    task_type = "experimental_design"
+                elif task_id.startswith("ag_bp_"):
+                    task_type = "bioinformatics_pipeline"
+                elif task_id.startswith("ag_lr_"):
+                    task_type = "literature_research"
+                elif task_id.startswith("ag_ts_"):
+                    task_type = "troubleshooting"
 
             ns = normalize_result(merged, component, task_type)
 

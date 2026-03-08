@@ -20,6 +20,8 @@ from bioeval.scoring.calibration import CalibrationEvaluator
 from bioeval.biosafety.tasks import BiosafetyEvaluator
 from bioeval.datainterp.tasks import DataInterpEvaluator
 from bioeval.debate.evaluator import DebateEvaluator
+from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+from bioeval.agentic.evaluator import AgenticEvaluator
 
 # Scoring
 from bioeval.scoring.calibration import extract_confidence, compute_calibration_metrics
@@ -46,6 +48,8 @@ __all__ = [
     "BiosafetyEvaluator",
     "DataInterpEvaluator",
     "DebateEvaluator",
+    "LongHorizonEvaluator",
+    "AgenticEvaluator",
     # Scoring
     "extract_confidence",
     "compute_calibration_metrics",

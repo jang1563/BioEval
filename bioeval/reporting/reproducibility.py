@@ -196,6 +196,8 @@ def verify_component_coverage() -> dict:
         "biosafety",
         "datainterp",
         "debate",
+        "longhorizon",
+        "agentic",
     }
     all_present = set(components.keys()) == expected_components
 

@@ -181,19 +181,25 @@ def extract_numerical_value(
     """
     # Normalize response
     text = response.replace("×", "x").replace("−", "-")
-    # Normalize Unicode superscript digits to ^N notation
-    _super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")
-    text = re.sub(r"10([⁰¹²³⁴⁵⁶⁷⁸⁹]+)", lambda m: f"10^{m.group(1).translate(_super_map)}", text)
+    # Normalize Unicode superscript digits/signs to ^N notation
+    _super_map = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺", "0123456789-+")
+    text = re.sub(r"10([⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)", lambda m: f"10^{m.group(1).translate(_super_map)}", text)
     # Remove commas inside numbers (1,500,000 → 1500000)
     text = re.sub(r"(\d),(\d{3})", r"\1\2", text)
     text = re.sub(r"(\d),(\d{3})", r"\1\2", text)  # repeat for millions+
+    # Normalize scientific notation (e.g., 1.5e6, 2E-3) to x10^ format.
+    text = re.sub(
+        r"(?<![\w.])(\d+(?:\.\d+)?)[eE]([+-]?\d+)\b",
+        lambda m: f"{m.group(1)} x 10^{m.group(2)}",
+        text,
+    )
 
     # Strategy 1: Look for "answer is X" or "= X" patterns
     answer_patterns = [
         # 3-group patterns: number, optional exponent, unit
         r"(?:answer|result|total|volume|concentration|amount)\s+(?:is|=|:)\s*"
-        r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)",
-        r"(?:=|equals)\s*([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(\S*)",
+        r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?([+-]?\d+))?\s*(\S*)",
+        r"(?:=|equals)\s*([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?([+-]?\d+))?\s*(\S*)",
         # 2-group pattern: number, unit (no scientific notation)
         r"(?:need|require|use)\s+([\d]+\.?[\d]*)\s*(\S*)",
     ]
@@ -214,7 +220,7 @@ def extract_numerical_value(
             candidates.append((value, unit, match.group(0)))
 
     # Strategy 2: Find all numbers with units
-    number_unit_pattern = r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?(\d+))?\s*(μ[Ll]|mL|[Ll]|μg|mg|g|ng|cells?/mL|%|μM|mM|nM)"
+    number_unit_pattern = r"([\d]+\.?[\d]*)\s*(?:[x×]\s*10\^?([+-]?\d+))?\s*(μ[Ll]|mL|[Ll]|μg|mg|g|ng|cells?/mL|%|μM|mM|nM)"
     for match in re.finditer(number_unit_pattern, text):
         value = float(match.group(1))
         if match.group(2):

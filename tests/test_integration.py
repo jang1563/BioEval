@@ -429,8 +429,8 @@ class TestSplits:
         from bioeval.reporting.statistics import compute_benchmark_statistics
 
         stats = compute_benchmark_statistics("base")
-        assert stats["totals"]["n_components"] == 9
-        assert stats["totals"]["total_tasks"] == 197
+        assert stats["totals"]["n_components"] == 11
+        assert stats["totals"]["total_tasks"] == 251
         for comp in [
             "protoreason",
             "causalbio",
@@ -441,6 +441,8 @@ class TestSplits:
             "biosafety",
             "datainterp",
             "debate",
+            "longhorizon",
+            "agentic",
         ]:
             assert comp in stats["components"]
 
@@ -808,7 +810,7 @@ class TestRegistry:
         from bioeval.registry import REGISTRY, list_components
 
         names = list_components()
-        assert len(names) == 9
+        assert len(names) == 11
         for expected in [
             "protoreason",
             "causalbio",
@@ -819,6 +821,8 @@ class TestRegistry:
             "biosafety",
             "datainterp",
             "debate",
+            "longhorizon",
+            "agentic",
         ]:
             assert expected in names
 
@@ -852,6 +856,28 @@ class TestRegistry:
         with pytest.raises(KeyError):
             get_component("nonexistent_component")
 
+    def test_load_tasks_supports_components_without_data_tier_argument(self):
+        from bioeval.registry import REGISTRY
+
+        for component_name in ["adversarial", "biosafety", "debate"]:
+            tasks = REGISTRY[component_name].load_tasks(data_tier="base")
+            assert isinstance(tasks, list)
+            assert len(tasks) > 0
+
+    def test_get_task_count_matches_loaded_tasks(self):
+        from bioeval.registry import REGISTRY
+
+        for component_name in ["adversarial", "biosafety", "debate"]:
+            info = REGISTRY[component_name]
+            assert info.get_task_count(data_tier="base") == len(info.load_tasks(data_tier="base"))
+
+    def test_get_task_count_matches_loaded_tasks_for_tiered_components(self):
+        from bioeval.registry import REGISTRY
+
+        for component_name in ["protoreason", "causalbio", "designcheck", "multiturn"]:
+            info = REGISTRY[component_name]
+            assert info.get_task_count(data_tier="base") == len(info.load_tasks(data_tier="base"))
+
 
 # =============================================================================
 # SIMULATION TESTS
@@ -867,8 +893,8 @@ class TestSimulation:
         result = run_simulation(quality="good", seed=42)
         assert result["metadata"]["quality"] == "good"
         assert result["metadata"]["simulation"] is True
-        assert len(result["results"]) == 9
-        # All 9 components present
+        assert len(result["results"]) == 11
+        # All 11 components present
         comp_names = {r["component"] for r in result["results"]}
         assert comp_names == {
             "protoreason",
@@ -880,6 +906,8 @@ class TestSimulation:
             "biosafety",
             "datainterp",
             "debate",
+            "longhorizon",
+            "agentic",
         }
         # No errors
         for comp_result in result["results"]:

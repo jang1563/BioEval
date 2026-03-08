@@ -75,6 +75,8 @@ COMPONENTS = [
     "biosafety",
     "datainterp",
     "debate",
+    "longhorizon",
+    "agentic",
 ]
 
 # Task types by component
@@ -109,6 +111,19 @@ TASK_TYPES = {
         "experimental_critique",
         "evidence_synthesis",
         "mechanism_dispute",
+    ],
+    "longhorizon": [
+        "constraint_tracking",
+        "state_accumulation",
+        "error_propagation",
+        "resource_management",
+        "adaptive_replanning",
+    ],
+    "agentic": [
+        "experimental_design",
+        "bioinformatics_pipeline",
+        "literature_research",
+        "troubleshooting",
     ],
 }
 

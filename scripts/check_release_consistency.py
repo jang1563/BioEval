@@ -49,6 +49,8 @@ def check_inventory_counts():
     from bioeval.biosafety.tasks import BiosafetyEvaluator
     from bioeval.datainterp.tasks import DataInterpEvaluator
     from bioeval.debate.evaluator import DebateEvaluator
+    from bioeval.longhorizon.evaluator import LongHorizonEvaluator
+    from bioeval.agentic.evaluator import AgenticEvaluator
 
     # Count base tasks from actual evaluator load_tasks()
     base_counts = {}
@@ -65,6 +67,8 @@ def check_inventory_counts():
         "biosafety": BiosafetyEvaluator,
         "datainterp": DataInterpEvaluator,
         "debate": DebateEvaluator,
+        "longhorizon": LongHorizonEvaluator,
+        "agentic": AgenticEvaluator,
     }
 
     for name, (cls, tier) in evaluators.items():
@@ -122,7 +126,7 @@ def check_inventory_counts():
 
 
 def check_no_hardcoded_legacy_versions():
-    bad_patterns = ("0.1.0", "0.2.0", "0.3.2", "0.4.0")
+    bad_patterns = ("0.1.0", "0.2.0", "0.3.2", "0.4.0", "0.4.1")
     paths = list((ROOT / "bioeval").rglob("*.py")) + list((ROOT / "scripts").rglob("*.py")) + [ROOT / "README.md"]
     offenders = []
     for p in paths:
