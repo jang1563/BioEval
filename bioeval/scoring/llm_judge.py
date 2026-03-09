@@ -499,9 +499,11 @@ class LLMJudge:
         """Call the judge model via the appropriate API."""
         if self._provider in ("openai", "gemini", "deepseek"):
             model_name = self.judge_model
+            # Gemini thinking models need more output tokens to avoid truncation
+            max_tok = 8000 if self._provider == "gemini" else 2000
             response = self.client.chat.completions.create(
                 model=model_name,
-                max_tokens=2000,
+                max_tokens=max_tok,
                 temperature=self.temperature,
                 timeout=self.timeout,
                 messages=[
