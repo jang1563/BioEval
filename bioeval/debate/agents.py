@@ -145,8 +145,13 @@ class AgentModelPool:
             elif "groq" in name_lower or "mixtral" in name_lower:
                 from bioeval.models.base import OpenAICompatibleModel
 
+                api_model = model_name
+                for prefix in ("groq-", "groq/", "Groq-", "Groq/"):
+                    if model_name.startswith(prefix):
+                        api_model = model_name[len(prefix):]
+                        break
                 self._models[model_name] = OpenAICompatibleModel(
-                    model_name,
+                    api_model,
                     base_url="https://api.groq.com/openai/v1",
                     api_key_env="GROQ_API_KEY",
                     temperature=self.temperature,
