@@ -74,6 +74,7 @@ class TestBaseSubsetExtended:
         from bioeval.debate.evaluator import DebateEvaluator
         from bioeval.longhorizon.evaluator import LongHorizonEvaluator
         from bioeval.agentic.evaluator import AgenticEvaluator
+        from bioeval.bioambiguity.evaluator import BioAmbiguityEvaluator
 
         all_ids = set()
         for cls in [
@@ -92,10 +93,11 @@ class TestBaseSubsetExtended:
             DebateEvaluator,
             LongHorizonEvaluator,
             AgenticEvaluator,
+            BioAmbiguityEvaluator,
         ]:
             for t in cls().load_tasks():
                 all_ids.add(t.id)
-        assert len(all_ids) == 355, f"Expected 355, got {len(all_ids)}"
+        assert len(all_ids) == 400, f"Expected 400, got {len(all_ids)}"
 
 
 class TestExportCommand:
@@ -111,7 +113,7 @@ class TestExportCommand:
         cmd_export(args)
 
         lines = out.read_text().strip().split("\n")
-        assert len(lines) == 251, f"Expected 251, got {len(lines)}"
+        assert len(lines) == 296, f"Expected 296, got {len(lines)}"
         for line in lines:
             record = json.loads(line)
             assert "component" in record
@@ -129,7 +131,7 @@ class TestExportCommand:
         cmd_export(args)
 
         lines = out.read_text().strip().split("\n")
-        assert len(lines) == 355, f"Expected 355, got {len(lines)}"
+        assert len(lines) == 400, f"Expected 400, got {len(lines)}"
 
         ids = [json.loads(line)["task_id"] for line in lines]
         assert len(ids) == len(set(ids)), "Duplicate task_ids in export"

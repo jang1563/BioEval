@@ -77,6 +77,7 @@ COMPONENTS = [
     "debate",
     "longhorizon",
     "agentic",
+    "bioambiguity",
 ]
 
 # Task types by component
@@ -124,6 +125,13 @@ TASK_TYPES = {
         "bioinformatics_pipeline",
         "literature_research",
         "troubleshooting",
+    ],
+    "bioambiguity": [
+        "gene_context",
+        "pathway_crosstalk",
+        "dose_response",
+        "temporal_shift",
+        "species_translation",
     ],
 }
 

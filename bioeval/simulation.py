@@ -847,6 +847,56 @@ def _simulate_agentic(quality: str, rng: random.Random) -> dict:
     return {"component": "agentic", "num_tasks": len(results), "results": results}
 
 
+def _gen_bioambiguity(task, quality: str, rng: random.Random) -> str:
+    """Generate synthetic response for a BioAmbiguity EvalTask."""
+    gt = task.ground_truth
+    contexts = gt.get("contexts", {})
+
+    if quality == "good":
+        lines = []
+        for ctx_name, ctx_info in contexts.items():
+            key_terms = ctx_info.get("key_terms", [])
+            role = ctx_info.get("role", "unknown role")
+            lines.append(
+                f"In the context of {ctx_name.replace('_', ' ')}, "
+                f"the role is {role}. Key aspects include: "
+                f"{', '.join(key_terms)}."
+            )
+        distinction = gt.get("distinction_key", "")
+        if distinction:
+            lines.append(f"\nOverall: {distinction}")
+        return "\n\n".join(lines)
+    elif quality == "bad":
+        return "This gene/pathway has one primary function across all contexts."
+    else:
+        # Medium: mention some terms from first context only
+        if contexts:
+            first_ctx = list(contexts.values())[0]
+            terms = first_ctx.get("key_terms", [])
+            if terms and rng.random() < 0.6:
+                return f"This involves {', '.join(terms[:2])} in certain contexts."
+        return "The function may vary depending on conditions."
+
+
+def _simulate_bioambiguity(evaluator, quality: str, rng: random.Random) -> dict:
+    """Run BioAmbiguity simulation using actual scorer."""
+    tasks = evaluator.load_tasks()
+    results = []
+
+    for task in tasks:
+        response = _gen_bioambiguity(task, quality, rng)
+        try:
+            score = evaluator.score_response(task, response)
+            score["task_id"] = task.id
+            score["task_type"] = task.task_type
+            score["response"] = response
+            results.append(score)
+        except Exception as e:
+            results.append({"task_id": task.id, "task_type": task.task_type, "error": str(e)})
+
+    return {"component": "bioambiguity", "num_tasks": len(results), "results": results}
+
+
 def _simulate_debate(quality: str, rng: random.Random) -> dict:
     """Run Debate simulation with synthetic scoring results."""
     from bioeval.debate.tasks import DEBATE_TASKS
@@ -1022,6 +1072,13 @@ def run_simulation(
 
     # Agentic (standalone offline scoring, no API needed)
     all_results.append(_simulate_agentic(quality, rng))
+
+    # BioAmbiguity (BaseEvaluator, uses score_response)
+    with _bypass_model_init():
+        from bioeval.bioambiguity.evaluator import BioAmbiguityEvaluator
+
+        ba_eval = BioAmbiguityEvaluator("dummy")
+        all_results.append(_simulate_bioambiguity(ba_eval, quality, rng))
 
     return {
         "metadata": {

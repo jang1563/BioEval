@@ -429,8 +429,8 @@ class TestSplits:
         from bioeval.reporting.statistics import compute_benchmark_statistics
 
         stats = compute_benchmark_statistics("base")
-        assert stats["totals"]["n_components"] == 11
-        assert stats["totals"]["total_tasks"] == 251
+        assert stats["totals"]["n_components"] == 12
+        assert stats["totals"]["total_tasks"] == 296
         for comp in [
             "protoreason",
             "causalbio",
@@ -443,6 +443,7 @@ class TestSplits:
             "debate",
             "longhorizon",
             "agentic",
+            "bioambiguity",
         ]:
             assert comp in stats["components"]
 
@@ -810,7 +811,7 @@ class TestRegistry:
         from bioeval.registry import REGISTRY, list_components
 
         names = list_components()
-        assert len(names) == 11
+        assert len(names) == 12
         for expected in [
             "protoreason",
             "causalbio",
@@ -823,6 +824,7 @@ class TestRegistry:
             "debate",
             "longhorizon",
             "agentic",
+            "bioambiguity",
         ]:
             assert expected in names
 
@@ -893,8 +895,8 @@ class TestSimulation:
         result = run_simulation(quality="good", seed=42)
         assert result["metadata"]["quality"] == "good"
         assert result["metadata"]["simulation"] is True
-        assert len(result["results"]) == 11
-        # All 11 components present
+        assert len(result["results"]) == 12
+        # All 12 components present
         comp_names = {r["component"] for r in result["results"]}
         assert comp_names == {
             "protoreason",
@@ -908,6 +910,7 @@ class TestSimulation:
             "debate",
             "longhorizon",
             "agentic",
+            "bioambiguity",
         }
         # No errors
         for comp_result in result["results"]:

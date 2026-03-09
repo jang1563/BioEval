@@ -396,6 +396,44 @@ def normalize_agentic(result: dict) -> NormalizedScore:
     )
 
 
+def normalize_bioambiguity(result: dict) -> NormalizedScore:
+    """Normalize a BioAmbiguity result.
+
+    Primary score is composite of context_awareness, distinction_quality,
+    and evidence_support.
+    """
+    task_id = result.get("task_id", "")
+    score = _clamp(result.get("score", 0.0))
+    subscores = {
+        "context_awareness": result.get("context_awareness", 0.0),
+        "distinction_quality": result.get("distinction_quality", 0.0),
+        "evidence_support": result.get("evidence_support", 0.0),
+    }
+    # Infer task_type from task_id prefix
+    task_type = ""
+    prefix_map = {
+        "ba_gc_": "gene_context",
+        "ba_pc_": "pathway_crosstalk",
+        "ba_dr_": "dose_response",
+        "ba_ts_": "temporal_shift",
+        "ba_st_": "species_translation",
+    }
+    for prefix, tt in prefix_map.items():
+        if task_id.startswith(prefix):
+            task_type = tt
+            break
+
+    return NormalizedScore(
+        task_id=task_id,
+        component="bioambiguity",
+        task_type=task_type,
+        score=round(score, 4),
+        passed=score >= 0.5,
+        subscores=subscores,
+        raw=result,
+    )
+
+
 # =============================================================================
 # DISPATCHER
 # =============================================================================
@@ -431,6 +469,8 @@ def normalize_result(result: dict, component: str, task_type: str = "") -> Norma
         return normalize_longhorizon(result, task_type)
     elif component == "agentic":
         return normalize_agentic(result)
+    elif component == "bioambiguity":
+        return normalize_bioambiguity(result)
     else:
         # Generic fallback: look for common score fields
         score = result.get("score", result.get("f1", result.get("accuracy", 0.0)))
@@ -489,6 +529,16 @@ def normalize_component_results(
                 task_type = "literature_research"
             elif task_id.startswith("ag_ts_"):
                 task_type = "troubleshooting"
+            elif task_id.startswith("ba_gc_"):
+                task_type = "gene_context"
+            elif task_id.startswith("ba_pc_"):
+                task_type = "pathway_crosstalk"
+            elif task_id.startswith("ba_dr_"):
+                task_type = "dose_response"
+            elif task_id.startswith("ba_ts_"):
+                task_type = "temporal_shift"
+            elif task_id.startswith("ba_st_"):
+                task_type = "species_translation"
 
         normalized.append(normalize_result(r, component, task_type))
     return normalized

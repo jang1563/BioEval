@@ -25,7 +25,7 @@ JUDGE_METADATA = {
     "default_model": "claude-sonnet-4-20250514",
     "temperature": 0.0,
     "scoring_scale": "1-5",
-    "n_dimensions": 6,
+    "n_dimensions": 4,
 }
 
 

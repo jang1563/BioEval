@@ -47,6 +47,7 @@ def cmd_inventory(args):
     from bioeval.debate.evaluator import DebateEvaluator
     from bioeval.longhorizon.evaluator import LongHorizonEvaluator
     from bioeval.agentic.evaluator import AgenticEvaluator
+    from bioeval.bioambiguity.evaluator import BioAmbiguityEvaluator
 
     print("=" * 60)
     print("BioEval Task Inventory")
@@ -67,6 +68,7 @@ def cmd_inventory(args):
         "Debate": DebateEvaluator,
         "LongHorizon": LongHorizonEvaluator,
         "Agentic": AgenticEvaluator,
+        "BioAmbiguity": BioAmbiguityEvaluator,
     }
 
     base_counts = {}
@@ -439,6 +441,11 @@ def _run_component(
 
         evaluator = AgenticEvaluator(model_name=model, temperature=temperature)
         tasks = evaluator.load_tasks()
+    elif component == "bioambiguity":
+        from bioeval.bioambiguity.evaluator import BioAmbiguityEvaluator
+
+        evaluator = BioAmbiguityEvaluator(model, temperature=temperature)
+        tasks = evaluator.load_tasks()
     else:
         raise ValueError(f"Unknown component: {component}")
 
@@ -584,6 +591,7 @@ def cmd_export(args):
     from bioeval.debate.evaluator import DebateEvaluator
     from bioeval.longhorizon.evaluator import LongHorizonEvaluator
     from bioeval.agentic.evaluator import AgenticEvaluator
+    from bioeval.bioambiguity.evaluator import BioAmbiguityEvaluator
 
     tier = args.data_tier
     output_path = args.output or f"data/{tier}.jsonl"
@@ -602,6 +610,7 @@ def cmd_export(args):
         ("debate", DebateEvaluator),
         ("longhorizon", LongHorizonEvaluator),
         ("agentic", AgenticEvaluator),
+        ("bioambiguity", BioAmbiguityEvaluator),
     ]
 
     records = []

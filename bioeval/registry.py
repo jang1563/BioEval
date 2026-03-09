@@ -262,6 +262,24 @@ _BUILTIN_COMPONENTS = {
         supports_data_tiers=["base"],
         normalizer_name="normalize_agentic",
     ),
+    "bioambiguity": ComponentInfo(
+        name="bioambiguity",
+        description="Context-dependent biological reasoning: same gene/pathway/compound "
+                    "behaves differently across tissue, disease, species, dose, or developmental context",
+        evaluator_module="bioeval.bioambiguity.evaluator",
+        evaluator_class="BioAmbiguityEvaluator",
+        task_data_module="bioeval.bioambiguity.tasks",
+        task_types=[
+            "gene_context",
+            "pathway_crosstalk",
+            "dose_response",
+            "temporal_shift",
+            "species_translation",
+        ],
+        supports_data_tiers=["base"],
+        normalizer_name="normalize_bioambiguity",
+        judge_rubric_types=["bioambiguity_reasoning"],
+    ),
 }
 
 # Public registry (mutable copy)

@@ -198,6 +198,7 @@ def verify_component_coverage() -> dict:
         "debate",
         "longhorizon",
         "agentic",
+        "bioambiguity",
     }
     all_present = set(components.keys()) == expected_components
 

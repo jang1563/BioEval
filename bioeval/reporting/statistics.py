@@ -234,6 +234,19 @@ def _collect_task_ids(data_tier: str) -> list[str]:
     for t in AGENTIC_TASKS:
         ids.append(t.id)
 
+    # BioAmbiguity
+    from bioeval.bioambiguity.tasks import (
+        GENE_CONTEXT_TASKS as BA_GC,
+        PATHWAY_CROSSTALK_TASKS as BA_PC,
+        DOSE_RESPONSE_TASKS as BA_DR,
+        TEMPORAL_SHIFT_TASKS as BA_TS,
+        SPECIES_TRANSLATION_TASKS as BA_ST,
+    )
+
+    for task_list in [BA_GC, BA_PC, BA_DR, BA_TS, BA_ST]:
+        for t in task_list:
+            ids.append(t["id"])
+
     # Extended data
     if data_tier in ("extended", "all"):
         try:
@@ -353,6 +366,27 @@ def compute_benchmark_statistics(data_tier: str = "base") -> dict:
     stats["components"]["agentic"] = {
         "n_tasks": len(AGENTIC_TASKS),
         "by_type": dict(ag_types),
+    }
+
+    # BioAmbiguity
+    from bioeval.bioambiguity.tasks import (
+        GENE_CONTEXT_TASKS,
+        PATHWAY_CROSSTALK_TASKS,
+        DOSE_RESPONSE_TASKS,
+        TEMPORAL_SHIFT_TASKS,
+        SPECIES_TRANSLATION_TASKS,
+    )
+
+    ba_by_type = {
+        "gene_context": len(GENE_CONTEXT_TASKS),
+        "pathway_crosstalk": len(PATHWAY_CROSSTALK_TASKS),
+        "dose_response": len(DOSE_RESPONSE_TASKS),
+        "temporal_shift": len(TEMPORAL_SHIFT_TASKS),
+        "species_translation": len(SPECIES_TRANSLATION_TASKS),
+    }
+    stats["components"]["bioambiguity"] = {
+        "n_tasks": sum(ba_by_type.values()),
+        "by_type": ba_by_type,
     }
 
     # Split stats

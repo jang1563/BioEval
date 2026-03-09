@@ -2,8 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.5.0-green.svg)](https://github.com/jang1563/BioEval)
-[![Tests](https://img.shields.io/badge/tests-482%2F482%20passing-brightgreen.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-0.6.0-green.svg)](https://github.com/jang1563/BioEval)
+[![Tests](https://img.shields.io/badge/tests-503%2F503%20passing-brightgreen.svg)](#testing)
 
 Canonical status note: for version/task-count/reproducibility contract, see [docs/STATUS.md](docs/STATUS.md).
 
@@ -40,14 +40,17 @@ BioEval fills this gap with **procedural reasoning**, **causal perturbation reas
 | **BioSafety** | Biosafety and dual-use risk judgment | 25 | Safety rubric |
 | **DataInterp** | Biological data interpretation | 25 | Quant/interpretation rubric |
 | **Debate** | Multi-agent debate reliability | 25 | Debate outcome/process rubric |
+| **LongHorizon** | Multi-step scientific reasoning | 30 | Constraint/state/error tracking |
+| **Agentic** | Pseudo-agentic multi-turn workflows | 24 | Milestone-based progress scoring |
+| **BioAmbiguity** | Context-dependent biological reasoning | 45 | Context-awareness/distinction rubric |
 
 ### Task Inventory
 
 | Tier | Tasks | Description |
 |------|:-----:|-------------|
-| **Base** | 251 | Base tasks across 11 components |
+| **Base** | 296 | Base tasks across 12 components |
 | **Extended** | 104 | Additional ProtoReason (+45), CausalBio (+34), DesignCheck (+10), MultiTurn (+15) |
-| **Total Unique** | **355** | Full benchmark suite |
+| **Total Unique** | **400** | Full benchmark suite |
 
 ## Quick Start
 
@@ -224,6 +227,9 @@ BioEval/
 │   ├── biosafety/               # Biosafety evaluation (25 tasks)
 │   ├── datainterp/              # Data interpretation (25 tasks)
 │   ├── debate/                  # Multi-agent debate (25 tasks)
+│   ├── longhorizon/             # Long-horizon reasoning (30 tasks)
+│   ├── agentic/                 # Pseudo-agentic workflows (24 tasks)
+│   ├── bioambiguity/            # Context-dependent reasoning (45 tasks)
 │   ├── scoring/                 # Scoring & calibration
 │   ├── reporting/               # Analysis, baselines, sensitivity, agreement
 │   ├── adapters/                # Cross-benchmark adapters (LAB-Bench, BioProbeBench, BioLP-Bench)
@@ -240,7 +246,7 @@ BioEval/
 │   ├── JUDGE_VALIDATION.md     # LLM-as-Judge validation protocol
 │   └── REPRODUCTION_MANIFEST.md # Reproducibility contract
 ├── results/                     # Evaluation outputs
-├── tests/                       # Test suite (427 tests)
+├── tests/                       # Test suite (503 tests)
 ├── notebooks/                   # Analysis notebooks
 ├── setup.py
 ├── requirements.txt
@@ -254,7 +260,7 @@ BioEval/
 | **Phase 0** | Make It Run — imports, tests, CLI, baseline | **COMPLETE** |
 | **Phase 1** | Make It Score — real metrics (Kendall's tau, directional accuracy, detection rate) | **COMPLETE** |
 | **Phase 2** | Make It Credible — 5-model comparison, statistical tests, judge validation | **COMPLETE** |
-| **Phase 2b** | BioAmbiguity — novel component for context-dependent biological reasoning (45 tasks) | Planned |
+| **Phase 2b** | BioAmbiguity — novel component for context-dependent biological reasoning (45 tasks) | **COMPLETE** |
 | **Phase 3** | Make It Impressive — dashboard, publication prep, HuggingFace distribution | In Progress |
 
 Publication target: **NeurIPS Datasets & Benchmarks** / **Nature Methods**
@@ -273,6 +279,9 @@ BioEval includes expert-curated evaluation tasks that work out of the box:
 - 25 biosafety dual-use risk judgment tasks
 - 25 data interpretation tasks
 - 25 multi-agent debate tasks
+- 30 long-horizon multi-step reasoning tasks (constraint tracking, state accumulation, error propagation, resource management, adaptive replanning)
+- 24 pseudo-agentic workflow tasks (experimental design, bioinformatics pipeline, literature research, troubleshooting)
+- 45 context-dependent biological reasoning tasks (gene context, pathway crosstalk, dose response, temporal shift, species translation)
 
 ### External Data Sources (Optional, Not Required for Base Run)
 
@@ -291,7 +300,7 @@ Current release note: base CausalBio tasks are bundled curated tasks. External l
 # Run full test suite
 pytest tests/ -v
 
-# Expected: 427 passed
+# Expected: 503 passed
 
 # Format + lint checks (publication-grade hygiene)
 black --check bioeval/ scripts/ tests/
@@ -343,9 +352,9 @@ Companion JSON Schema references are provided in:
 
 | Tier | Tasks | Cost per Run (Claude) |
 |------|:-----:|-----------------:|
-| Base (all components) | 251 | Environment/model-dependent |
-| Base + Judge | 251 | Environment/model-dependent |
-| Extended + Judge | 355 | Environment/model-dependent |
+| Base (all components) | 296 | Environment/model-dependent |
+| Base + Judge | 296 | Environment/model-dependent |
+| Extended + Judge | 400 | Environment/model-dependent |
 
 ## Limitations
 

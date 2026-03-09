@@ -292,7 +292,7 @@ class TestSimulationEdgeCases:
 
         for q in ["good", "bad", "mixed"]:
             r = run_simulation(quality=q, seed=42)
-            assert len(r["results"]) == 11
+            assert len(r["results"]) == 12
             for comp in r["results"]:
                 assert comp["num_tasks"] > 0
 

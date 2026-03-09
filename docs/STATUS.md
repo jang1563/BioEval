@@ -1,17 +1,17 @@
 # BioEval Current Status (Canonical)
 
-Last updated: 2026-03-02
-Version: `0.4.1`
+Last updated: 2026-03-08
+Version: `0.6.0`
 
 This file is the canonical runtime status reference for counts, version, and reproducibility contract.
 
-## Canonical Inventory (Code-Verified 2026-03-02)
+## Canonical Inventory (Code-Verified 2026-03-08)
 
-- Base: `197`
+- Base: `296`
 - Extended additions: `104` (ProtoReason +45, CausalBio +34, DesignCheck +10, MultiTurn +15)
-- Total unique: `301`
-- Components: `protoreason` (14), `causalbio` (13), `designcheck` (20), `adversarial` (30), `multiturn` (15), `calibration` (30), `biosafety` (25), `datainterp` (25), `debate` (25)
-- Tests: `433` passing
+- Total unique: `400`
+- Components (12): `protoreason` (14), `causalbio` (13), `designcheck` (20), `adversarial` (30), `multiturn` (15), `calibration` (30), `biosafety` (25), `datainterp` (25), `debate` (25), `longhorizon` (30), `agentic` (24), `bioambiguity` (45)
+- Tests: `503` passing
 
 Note: Advanced tiers reuse base task IDs with the same prompts (no unique additions). Previous counts of "Advanced: 78" and "Total: 417" were inflated and have been corrected.
 
@@ -52,4 +52,3 @@ Phase 1 expert review (statistical, biological, SW engineering, benchmark design
 
 - Run `python scripts/check_release_consistency.py` before release/merge.
 - CI enforces this check.
-

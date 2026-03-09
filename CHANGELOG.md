@@ -5,6 +5,36 @@ All notable changes to BioEval will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-03-08
+
+### Added
+
+- **BioAmbiguity component** — 45 tasks for context-dependent biological reasoning
+  - 5 task types × 9 tasks: gene_context, pathway_crosstalk, dose_response, temporal_shift, species_translation
+  - Tests whether models recognize that the same gene/pathway/compound behaves differently across tissue, disease, species, dose, or developmental context
+  - Programmatic scoring: context_awareness (0.40), distinction_quality (0.35), evidence_support (0.25)
+  - Expert-reviewed task design with 5-expert simulation (molecular oncology, immunology, developmental biology, pharmacology, comparative biology)
+  - No existing benchmark covers context-dependent biological reasoning — unique to BioEval
+
+- Simulation generators for bioambiguity in `bioeval simulate`
+- Benchmark statistics coverage for all 12 components
+- Normalizer support for bioambiguity (ba_ prefix task type inference)
+- 21 new tests for bioambiguity component (data loading, scoring, registry, normalizer, simulation, statistics)
+
+### Changed
+
+- Total components: 11 → **12**
+- Base tasks: 251 → **296** (+45 bioambiguity)
+- Total unique tasks: 355 → **400**
+- Tests: 482 → **503**
+- Version: 0.5.0 → 0.6.0
+- Updated `check_release_consistency.py` to validate all 12 components
+- Updated reproducibility framework expected components (11 → 12)
+- Fixed `cmd_inventory` to include BioAmbiguity in task listing
+- Fixed `JUDGE_METADATA["n_dimensions"]` from 6 to 4 (matches actual rubric dimensions)
+- Fixed `distinction_key` word processing to strip trailing punctuation in bioambiguity scorer
+- Added defensive `ba_` prefix matching in `normalize_component_results()` to prevent task type inference collisions
+
 ## [0.5.0] - 2026-03-08
 
 ### Added
