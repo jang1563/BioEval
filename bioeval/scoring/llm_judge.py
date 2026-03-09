@@ -444,8 +444,15 @@ class LLMJudge:
     @staticmethod
     def _detect_provider(model: str) -> str:
         """Detect API provider from model name."""
-        if any(k in model for k in ("gpt", "o1", "o3")):
+        m = model.lower()
+        if any(k in m for k in ("gpt", "o1", "o3")):
             return "openai"
+        if "gemini" in m:
+            return "gemini"
+        if "groq" in m or "mixtral" in m:
+            return "groq"
+        if "deepseek" in m:
+            return "deepseek"
         return "anthropic"
 
     @property
@@ -454,19 +461,60 @@ class LLMJudge:
         if self._client is None:
             if self._provider == "openai":
                 from openai import OpenAI
-
                 self._client = OpenAI()
+            elif self._provider == "gemini":
+                import os
+                from openai import OpenAI
+                self._client = OpenAI(
+                    api_key=os.environ.get("GEMINI_API_KEY"),
+                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                )
+            elif self._provider == "groq":
+                import os
+                from openai import OpenAI
+                # Strip groq- prefix for the API
+                api_model = self.judge_model
+                for prefix in ("groq-", "groq/"):
+                    if api_model.startswith(prefix):
+                        api_model = api_model[len(prefix):]
+                        break
+                self._groq_api_model = api_model
+                self._client = OpenAI(
+                    api_key=os.environ.get("GROQ_API_KEY"),
+                    base_url="https://api.groq.com/openai/v1",
+                )
+            elif self._provider == "deepseek":
+                import os
+                from openai import OpenAI
+                self._client = OpenAI(
+                    api_key=os.environ.get("DEEPSEEK_API_KEY"),
+                    base_url="https://api.deepseek.com",
+                )
             else:
                 from anthropic import Anthropic
-
                 self._client = Anthropic()
         return self._client
 
     def _call_model(self, judge_prompt: str) -> str:
         """Call the judge model via the appropriate API."""
-        if self._provider == "openai":
+        if self._provider in ("openai", "gemini", "deepseek"):
+            model_name = self.judge_model
             response = self.client.chat.completions.create(
-                model=self.judge_model,
+                model=model_name,
+                max_tokens=2000,
+                temperature=self.temperature,
+                timeout=self.timeout,
+                messages=[
+                    {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+                    {"role": "user", "content": judge_prompt},
+                ],
+            )
+            return response.choices[0].message.content
+        elif self._provider == "groq":
+            # Use stripped model name stored during client init
+            api_model = getattr(self, "_groq_api_model", self.judge_model)
+            response = self.client.chat.completions.create(
+                model=api_model,
                 max_tokens=2000,
                 temperature=self.temperature,
                 timeout=self.timeout,
