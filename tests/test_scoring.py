@@ -1600,8 +1600,9 @@ class TestTemperaturePropagation:
                     return {}
 
             _TestEval("groq-mixtral-8x7b", temperature=0.3)
+            # groq- prefix is stripped before passing to OpenAICompatibleModel
             mock_compat.assert_called_once_with(
-                "groq-mixtral-8x7b",
+                "mixtral-8x7b",
                 base_url="https://api.groq.com/openai/v1",
                 api_key_env="GROQ_API_KEY",
                 temperature=0.3,
