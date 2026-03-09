@@ -126,8 +126,11 @@ class BioAmbiguityEvaluator(BaseEvaluator):
             + 0.25 * evidence_support
         )
 
+        passed = composite >= 0.5
+
         return {
             "score": round(composite, 4),
+            "passed": passed,
             "context_awareness": round(context_awareness, 4),
             "distinction_quality": round(distinction_quality, 4),
             "evidence_support": round(evidence_support, 4),

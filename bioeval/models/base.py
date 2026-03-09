@@ -106,8 +106,14 @@ def init_model(
             equalize_tokens=equalize_tokens,
         )
     elif "groq" in name_lower or "mixtral" in name_lower:
+        # Strip "groq-" or "groq/" prefix so the API receives the bare model name
+        api_model = model_name
+        for prefix in ("groq-", "groq/", "Groq-", "Groq/"):
+            if model_name.startswith(prefix):
+                api_model = model_name[len(prefix):]
+                break
         return OpenAICompatibleModel(
-            model_name,
+            api_model,
             base_url="https://api.groq.com/openai/v1",
             api_key_env="GROQ_API_KEY",
             temperature=temperature,
