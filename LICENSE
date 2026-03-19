@@ -1,6 +1,14 @@
-MIT License
+BioEval — Dual License
 
-Copyright (c) 2025 JangKeun Kim
+Copyright (c) 2026 JangKeun Kim, Weill Cornell Medicine
+
+This repository contains both software and benchmark data. Each component is
+licensed separately to distinguish non-commercial research use from commercial use.
+
+================================================================================
+1. CODE (Python package, evaluation harness, scripts, tests, examples)
+   License: MIT License
+================================================================================
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +27,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+2. BENCHMARK DATA (evaluation questions, answer rubrics, scoring criteria,
+   task definitions, adversarial items, calibration probes)
+   License: Creative Commons Attribution-NonCommercial 4.0 International
+            (CC BY-NC 4.0)
+================================================================================
+
+You are free to:
+  - Share: copy and redistribute the benchmark data in any medium or format
+  - Adapt: remix, transform, and build upon the benchmark data
+
+Under the following terms:
+  - Attribution: You must give appropriate credit, provide a link to the
+    license, and indicate if changes were made.
+  - NonCommercial: You may not use the benchmark data for commercial purposes.
+  - No additional restrictions: You may not apply legal terms or technological
+    measures that legally restrict others from doing anything the license permits.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+================================================================================
+COMMERCIAL LICENSING
+================================================================================
+
+For commercial use of the benchmark data, evaluation items, or derivative
+products, a separate commercial license is required. Contact:
+
+  JangKeun Kim
+  Email: jak4013@med.cornell.edu
+  Weill Cornell Medicine, New York, NY

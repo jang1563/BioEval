@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+title: "BioEval: Multi-dimensional Evaluation of LLMs for Biological Research"
+message: "If you use this dataset, please cite it using the metadata from this file."
+type: dataset
+authors:
+  - family-names: Kim
+    given-names: JangKeun
+    orcid: "https://orcid.org/0000-0002-4653-2616"
+    affiliation: "Weill Cornell Medicine"
+    email: jak4013@med.cornell.edu
+date-released: "2026-03-02"
+version: "0.6.0"
+license: CC-BY-NC-4.0
+url: "https://huggingface.co/datasets/jang1563/BioEval"
+repository-code: "https://github.com/jang1563/BioEval"
+keywords:
+  - biology
+  - benchmark
+  - evaluation
+  - reasoning
+  - llm
+  - bioinformatics
+  - calibration
+  - adversarial
+  - biosafety
+  - experimental-design
+abstract: >-
+  BioEval is a multi-dimensional evaluation benchmark for large language models
+  in biological research. It measures capabilities beyond factual recall,
+  including protocol reasoning, lab calculations, troubleshooting, causal
+  biology, experimental design evaluation, calibration, and adversarial
+  robustness. The benchmark contains 696 evaluation items (296 base + 400
+  extended) across 12 assessment components.
+preferred-citation:
+  type: software
+  title: "BioEval: Multi-dimensional Evaluation of LLMs for Biological Research"
+  authors:
+    - family-names: Kim
+      given-names: JangKeun
+  year: 2026
+  version: "0.6.0"
+  url: "https://github.com/jang1563/BioEval"
