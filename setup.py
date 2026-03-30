@@ -15,6 +15,7 @@ setup(
     long_description_content_type="text/markdown",
     author="JangKeun Kim",
     author_email="jang1563@gmail.com",
+    license="MIT (code); CC-BY-NC-4.0 (benchmark data)",
     url="https://github.com/jang1563/BioEval",
     project_urls={
         "Bug Tracker": "https://github.com/jang1563/BioEval/issues",

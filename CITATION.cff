@@ -8,7 +8,7 @@ authors:
     orcid: "https://orcid.org/0000-0002-4653-2616"
     affiliation: "Weill Cornell Medicine"
     email: jak4013@med.cornell.edu
-date-released: "2026-03-02"
+date-released: "2026-03-08"
 version: "0.6.0"
 license: CC-BY-NC-4.0
 url: "https://huggingface.co/datasets/jang1563/BioEval"
@@ -29,8 +29,8 @@ abstract: >-
   in biological research. It measures capabilities beyond factual recall,
   including protocol reasoning, lab calculations, troubleshooting, causal
   biology, experimental design evaluation, calibration, and adversarial
-  robustness. The benchmark contains 696 evaluation items (296 base + 400
-  extended) across 12 assessment components.
+  robustness. The benchmark contains 400 evaluation items (296 base + 104
+  extended additions) across 12 assessment components.
 preferred-citation:
   type: software
   title: "BioEval: Multi-dimensional Evaluation of LLMs for Biological Research"
