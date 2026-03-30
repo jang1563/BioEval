@@ -101,15 +101,17 @@ git commit -m "Add new adversarial test type for temporal reasoning"
 
 ### Adding Evaluation Tasks
 
+Task data is embedded directly in Python data files rather than external JSON/YAML files.
+
 1. **Protocol Tasks** (ProtoReason)
-   - Add new protocols to `bioeval/protoreason/data/`
-   - Follow the existing JSON schema
+   - Add new tasks to `bioeval/protoreason/extended_data.py` or `advanced_data.py`
+   - Follow the existing dictionary schema with `id`, `task_type`, `prompt`, and `answer` fields
    - Include step annotations and expected answers
 
 2. **Causal Biology Tasks** (CausalBio)
-   - Add tasks to `bioeval/causalbio/data/`
-   - Include ground truth from experimental data
-   - Document the data source
+   - Add tasks to `bioeval/causalbio/extended_data.py`
+   - Include ground truth from experimental data with `source_type` and `source_id` provenance fields
+   - Document the data source inline
 
 3. **Adversarial Tasks**
    - Add new adversarial types to `bioeval/adversarial/tasks.py`
@@ -117,8 +119,8 @@ git commit -m "Add new adversarial test type for temporal reasoning"
    - Add corresponding prompt enhancements if needed
 
 4. **Experimental Design Flaws** (DesignCheck)
-   - Add designs to `bioeval/designcheck/data/`
-   - Annotate all flaws with categories
+   - Add tasks to `bioeval/designcheck/extended_data.py`
+   - Annotate all flaws with categories following the existing schema
 
 ### Adding Prompt Enhancements
 
@@ -150,6 +152,49 @@ git commit -m "Add new adversarial test type for temporal reasoning"
            pass
    ```
 3. Update `_init_model()` in `BaseEvaluator`
+
+### Adding New Evaluation Components
+
+To add a new top-level component (e.g., `bioeval/newcomponent/`):
+
+1. **Create the module directory** with the following files:
+   ```
+   bioeval/newcomponent/
+   ├── __init__.py       # Module docstring + public exports
+   ├── evaluator.py      # NewComponentEvaluator class
+   └── extended_data.py  # Task data as Python dicts
+   ```
+
+2. **Implement the evaluator** by subclassing `BaseEvaluator`:
+   ```python
+   from bioeval.models.base import BaseEvaluator, EvalTask, EvalResult
+
+   class NewComponentEvaluator(BaseEvaluator):
+       def load_tasks(self, tier: str = "base") -> list[EvalTask]:
+           # Return list of EvalTask objects
+           ...
+
+       def evaluate_task(self, task: EvalTask, response: str) -> EvalResult:
+           # Score the response and return EvalResult
+           ...
+
+       def run(self, model: str, **kwargs) -> dict:
+           # Orchestrate task loading, generation, scoring, and reporting
+           ...
+   ```
+
+3. **Register the component** in four places:
+   - `bioeval/__init__.py`: import and add to `__all__`
+   - `bioeval/cli.py`: add subcommand and wire to evaluator
+   - `bioeval/simulation.py`: add `_simulate_newcomponent()` function
+   - `docs/STATUS.md`: add to the canonical inventory
+
+4. **Add tests** in `tests/test_newcomponent.py` following the pattern of existing test files.
+
+5. **Run the consistency check** before submitting:
+   ```bash
+   python scripts/check_release_consistency.py
+   ```
 
 ### Bug Fixes
 
