@@ -13,7 +13,7 @@ BioEval is a benchmark framework that evaluates whether large language models ca
 
 ### Key Insight
 
-> Current LLM benchmarks for biology measure whether models have *learned about* biology from text. BioEval measures whether models have *learned biology* — the causal reasoning that predicts what happens when you perturb a biological system.
+> Current LLM benchmarks for biology measure whether models have *learned about* biology from text. BioEval measures whether models have *learned biology*: the causal reasoning that predicts what happens when you perturb a biological system.
 
 ### Why Existing Benchmarks Are Insufficient
 
@@ -76,7 +76,7 @@ pip install -e .
 # Show complete task inventory (no API key needed)
 bioeval inventory
 
-# Dry run — shows what would be evaluated without API calls
+# Dry run: shows what would be evaluated without API calls
 bioeval run --all --dry-run
 
 # Run full evaluation
@@ -149,9 +149,9 @@ results = evaluator.run_evaluation()
 | **Overall** | 0.770 | 0.749 | 0.780 | **0.789** | 0.699 |
 
 **Key findings:**
-- **No single model dominates** — each leads in different components, validating multi-dimensional evaluation
-- **DesignCheck is universally hard** — all models score 0.10–0.56 on experimental flaw detection
-- **Calibration and accuracy are orthogonal** — Llama 3.3 has the best calibration (0.790) but lowest overall score
+- **No single model dominates**: each leads in different components, validating multi-dimensional evaluation
+- **DesignCheck is universally hard**: all models score 0.10–0.56 on experimental flaw detection
+- **Calibration and accuracy are orthogonal**: Llama 3.3 has the best calibration (0.790) but lowest overall score
 - Gemini 2.5 Flash receives 4x output tokens for thinking; see [docs/FAIRNESS.md](docs/FAIRNESS.md)
 
 ## Features
@@ -160,11 +160,11 @@ results = evaluator.run_evaluation()
 
 BioEval includes targeted prompt engineering strategies that address specific failure modes:
 
-- **Calibration Enhancement** — Reduces overconfidence by requiring explicit evidence listing
-- **Context Defense** — Filters misleading/irrelevant information via relevance analysis
-- **Edge Case Recognition** — Forces explicit consideration of boundary conditions
-- **Nonsense Detection** — Catches hallucination traps by requiring entity verification
-- **Chain-of-Thought** — Structured 6-step reasoning for causal biology questions
+- **Calibration Enhancement**: Reduces overconfidence by requiring explicit evidence listing
+- **Context Defense**: Filters misleading/irrelevant information via relevance analysis
+- **Edge Case Recognition**: Forces explicit consideration of boundary conditions
+- **Nonsense Detection**: Catches hallucination traps by requiring entity verification
+- **Chain-of-Thought**: Structured 6-step reasoning for causal biology questions
 
 ```python
 from bioeval.prompts import enhance_prompt, PromptEnhancementConfig
@@ -192,11 +192,11 @@ enhanced = enhance_prompt(original_prompt, config)
 
 ### Additional Features
 
-- **Async Execution** — Parallel evaluation with rate limiting (`scripts/run_enhanced.py`)
-- **Response Caching** — SQLite-based caching to avoid redundant API calls
-- **LLM-as-Judge** — Semantic evaluation using structured rubrics
-- **Confidence Calibration** — ECE, overconfidence rates, reliability diagrams
-- **Multi-Turn Dialogue** — Hypothesis refinement, iterative design, troubleshooting
+- **Async Execution**: Parallel evaluation with rate limiting (`scripts/run_enhanced.py`)
+- **Response Caching**: SQLite-based caching to avoid redundant API calls
+- **LLM-as-Judge**: Semantic evaluation using structured rubrics
+- **Confidence Calibration**: ECE, overconfidence rates, reliability diagrams
+- **Multi-Turn Dialogue**: Hypothesis refinement, iterative design, troubleshooting
 
 ## Project Structure
 
@@ -257,11 +257,11 @@ BioEval/
 
 | Phase | Goal | Status |
 |-------|------|--------|
-| **Phase 0** | Make It Run — imports, tests, CLI, baseline | **COMPLETE** |
-| **Phase 1** | Make It Score — real metrics (Kendall's tau, directional accuracy, detection rate) | **COMPLETE** |
-| **Phase 2** | Make It Credible — 5-model comparison, statistical tests, judge validation | **COMPLETE** |
-| **Phase 2b** | BioAmbiguity — novel component for context-dependent biological reasoning (45 tasks) | **COMPLETE** |
-| **Phase 3** | Make It Impressive — dashboard, publication prep, HuggingFace distribution | In Progress |
+| **Phase 0** | Make It Run: imports, tests, CLI, baseline | **COMPLETE** |
+| **Phase 1** | Make It Score: real metrics (Kendall's tau, directional accuracy, detection rate) | **COMPLETE** |
+| **Phase 2** | Make It Credible: 5-model comparison, statistical tests, judge validation | **COMPLETE** |
+| **Phase 2b** | BioAmbiguity: novel component for context-dependent biological reasoning (45 tasks) | **COMPLETE** |
+| **Phase 3** | Make It Impressive: dashboard, publication prep, HuggingFace distribution | In Progress |
 
 Publication target: **NeurIPS Datasets & Benchmarks** / **Nature Methods**
 
@@ -380,7 +380,7 @@ Generate the structured datasheet: `bioeval datasheet` (or `bioeval datasheet --
 
 ```bibtex
 @software{bioeval2026,
-  author = {JangKeun Kim},
+  author = {Kim, JangKeun},
   title = {BioEval: Multi-dimensional Evaluation of LLMs for Biological Research},
   year = {2026},
   url = {https://github.com/jang1563/BioEval}
